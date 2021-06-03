@@ -4,7 +4,7 @@ const mysql = require('mysql2/promise')
 
 let pool
 
-const getConection = () => {
+const getConnection = () => {
     if (!pool){
         pool =  mysql.createPool ({
             connectionLimit: 10,
@@ -18,4 +18,4 @@ const getConection = () => {
     return pool
 }
 
-module.exports = { getConection }
+module.exports = { getConnection }
