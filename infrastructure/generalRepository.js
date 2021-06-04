@@ -20,3 +20,4 @@ const save = async (user, table) => {
 module.exports = {
     save
 }
+

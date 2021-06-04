@@ -1,5 +1,6 @@
 const { v4 } = require('uuid')
 const Joi = require('joi')
+const bcrypt = require('bcryptjs')
 
 //SCHEMAS
 const userSchema = Joi.object({
@@ -17,7 +18,7 @@ const userSchema = Joi.object({
 
 const loginSchema = Joi.object({
     username: Joi.string().alphanum().min(8).max(64).required(),
-    password: Joi.string().required()
+    password: Joi.string().alphanum().required()
 })
 
 //VALIDACIONES
@@ -31,16 +32,22 @@ const validateNewUser =(object)=>{
 }
 
 
+const validateLogin = (user) => {
+    if (user.login ==="" || user.password ===""){
+        
+        return false
+        // return false
 
-
-
-
-const validateLogin = (object) => {
-    if(!loginSchema.validateAsync(object).error){
-        throw loginSchema.validate(object).error
+    }else if(loginSchema.validate(user).error){
+        console.log("entra")
+        console.log(loginSchema.validate(user).error)
+        return loginSchema.validate(user).error
     }else{
-        return object
+        return true
+        
     }
 }
 
-module.exports = { validateNewUser }
+module.exports = { validateNewUser,
+    validateLogin
+}
