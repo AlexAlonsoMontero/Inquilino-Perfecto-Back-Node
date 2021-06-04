@@ -6,15 +6,19 @@ const { getConnection } = require('./bd/db')
 
 
 
-const find = async (username) => {
+const find = async (email) => {
     const connection = getConnection()
-    connection.query(`SELECT * FROM usuarios WHERE username=?`,username,function(err,results){
-        console.log(results)
-    })
+    const consulta = await connection.query(`SELECT * FROM usuarios WHERE email=?`, email)
+    return (consulta[0][0])
 
+    
 }
+
 
 const get = async (id) => {
 
 }
 
+module.exports = {
+    find
+}

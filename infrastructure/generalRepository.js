@@ -12,8 +12,6 @@ const save = async (user, table) => {
     const connection = getConnection()
     let sentencia = `INSERT INTO ${table} (${keys}) VALUES (${cadena})`
     const values  = Object.values(user).map(value=> (typeof(value)==='string'? value = "'" + value + "'": value))
-    console.log(keys)
-    console.log(Object.values(user))
     await connection.query(sentencia,Object.values(user))
 }
 
