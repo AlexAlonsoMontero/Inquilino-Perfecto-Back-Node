@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { validateNewUser, validateLogin } = require('../validators/uservalidator')
 const { save } = require('../infrastructure/generalRepository')
-const { find } = require('../infrastructure/userRepository')
+const { findUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
@@ -25,7 +25,7 @@ const createNewUser = async (request, response) => {
 const login = async (request, response) => {
     try {
         if (validateLogin(request.body)) {
-            const user = await find(request.body.email)
+            const user = await findUser(request.body.email)
 
             if (await !bcrypt.compare(request.body.password, user.password)) {
                 console.warn("Pasword incorrecto")

@@ -6,7 +6,7 @@ const { getConnection } = require('./bd/db')
 
 
 
-const find = async (email) => {
+const findUser = async (email) => {
     const connection = getConnection()
     const consulta = await connection.query(`SELECT * FROM usuarios WHERE email=?`, email)
     return (consulta[0][0])
@@ -15,10 +15,10 @@ const find = async (email) => {
 }
 
 
-const get = async (id) => {
+const getUser = async (id) => {
 
 }
 
 module.exports = {
-    find
+    findUser
 }
