@@ -22,7 +22,7 @@ const createNewUser = async (request, response) => {
 }
 
 
-const login = async (request, response) => {
+const login = async (request, response, next) => {
     try {
         if (validateLogin(request.body)) {
             const user = await findUser(request.body.email)
@@ -37,9 +37,9 @@ const login = async (request, response) => {
                 console.log(process.env.SECRET)
                 const token = jwt.sign(tokenPayload,process.env.SECRET,{expiresIn:'1d'})//TODO Revisar la duración
                 console.log("usuario ok")
-                console.log(token)
-                response.statusCode = 200
-                response.send(token)
+                response.send({ token })
+                
+                next()
             }
 
 
