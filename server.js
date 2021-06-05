@@ -14,127 +14,27 @@ const endpointAdv = "/api/adv";
 app.post('/api/login',login)
 
 //USUARIOS
-app.get(endpointUser, async function(req, res) {
-    console.log(req.body);
-    try{
-        const testQuery = "SELECT * FROM usuarios"
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.post(endpointUser, createNewUser)
-app.put(endpointUser, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.delete(endpointUser, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
+app.get(endpointUser, getUser);
+app.post(endpointUser, createNewUser);
+app.put(endpointUser, modifyUser);
+app.delete(endpointUser, deleteUser);
 
 //INMUEBLES
-app.get(endpointProperties, async function(req, res) {
-    console.log(req.body);
-    try{
-        const testQuery = "SELECT * FROM usuarios"
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.post(endpointProperties, createPrp)
-app.put(endpointProperties, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.delete(endpointProperties, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
+app.get(endpointProperties, getProperty);
+app.post(endpointProperties, createNewProperty);
+app.put(endpointProperties, modifyProperty);
+app.delete(endpointProperties, deleteProperty);
 
 //RESEÑAS
-app.get(endpointReviews, async function(req, res) {
-    console.log(req.body);
-    try{
-        const testQuery = "SELECT * FROM usuarios"
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.post(endpointReviews, createRev)
-app.put(endpointReviews, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.delete(endpointReviews, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
+app.get(endpointReviews,  getReview);
+app.post(endpointReviews, createNewReview);
+app.put(endpointReviews, modifyReview);
+app.delete(endpointReviews, deleteReview);
 
 //ANUNCIOS
-app.get(endpointAdv, async function(req, res) {
-    console.log(req.body);
-    try{
-        const testQuery = "SELECT * FROM usuarios"
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.post(endpointAdv, createAdv)
-app.put(endpointAdv, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
-app.delete(endpointAdv, async function(req, res) {
-    console.log(req.body);
-    try{
-        console.log();
-    }
-    catch(err){
-        console.log();
-    }
-});
+app.get(endpointAdv, getAdvertisement);
+app.post(endpointAdv, cretateNewAdvertisement);
+app.put(endpointAdv, modifyAdvertisement);
+app.delete(endpointAdv, deleteAdvertisement);
 
 app.listen(3000)
