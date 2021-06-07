@@ -19,7 +19,7 @@ app.post('/api/login',login)
 
 //USUARIOS
 
-app.get(endpointUser, getUser);
+app.get(endpointUser, validateAuthorization, getUser);
 app.post(endpointUser, createNewUser);
 // app.put(endpointUser, modifyUser);
 // app.delete(endpointUser, deleteUser);
