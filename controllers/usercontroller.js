@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { validateNewUser, validateLogin } = require('../validators/uservalidator')
 const { save } = require('../infrastructure/generalRepository')
-const { findUser } = require('../infrastructure/userRepository')
+const { findUser, getUserBDD} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
@@ -73,7 +73,18 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
     
 
 }
+//TODO Revisar response codes
+const getUser = async(request, response) => {
+    try{
+    const user = await getUserBDD(request.body.user_uuid)
+    response.statusCode = 200
+    request.send('Usuario localizado')
+    }catch(error){
+        response.statusCode =404
+        response.send("Error en la carga del usuario")
 
+    }
+}
 
 const confirmLogin = (objeto) => {
 
@@ -82,5 +93,6 @@ const confirmLogin = (objeto) => {
 
 module.exports = {
     createNewUser,
-    login
+    login,
+    getUser
 }
