@@ -11,7 +11,7 @@ const endpointReviews = "/api/reviews";
 const endpointAdv = "/api/adv";
 
 //LOGEO
-app.post('/api/login',login)
+app.post('/api/login', login, wrongUser)
 
 //USUARIOS
 app.get(endpointUser, getUser);
