@@ -1,6 +1,7 @@
 const { v4 } = require('uuid')
 const Joi = require('joi')
 const bcrypt = require('bcryptjs')
+const { object } = require('joi')
 
 /**
  * CREA LOS ESQUEMAS DE VALIDACIÓN Y LAS FUNCIONES CORRESPONDIENTES
@@ -15,14 +16,14 @@ const userSchema = Joi.object({
         ]
     }),
     username: Joi.string().alphanum().min(8).max(64).required(),
-    password: Joi.string().required(),
+    password: Joi.string().min(8).required(),
     email: Joi.string().email({ minDomainSegments:2}).required(),
     tipo: Joi.string()
 })
 
 const loginSchema = Joi.object({
-    useemail: Joi.string().email({ minDomainSegments:2}).required(),
-    password: Joi.string().alphanum().required()
+    email: Joi.string().email({ minDomainSegments:2}).min(8).required(),
+    password: Joi.string().min(5).alphanum().required()
 })
 
 //VALIDACIONES
@@ -37,15 +38,10 @@ const validateNewUser =(object)=>{
 
 
 const validateLogin = (user) => {
-    if (user.login ==="" || user.password ===""){
-        
-        return false
-        // return false
-
-    }else if(loginSchema.validate(user).error){
-        return loginSchema.validate(user).error
+    if(!loginSchema.validate(user).error){
+        return user
     }else{
-        return true
+        throw loginSchema.validate(user).error
         
     }
 }

@@ -5,6 +5,7 @@ const { findUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
+const { valid } = require('joi')
 
 
 const createNewUser = async (request, response) => {
@@ -16,43 +17,60 @@ const createNewUser = async (request, response) => {
     } catch (error) {
 
         response.statusCode = 400
+        console.warn(error.message)
         response.send("No se ha podido añadir el usuario")
 
     }
 }
 
 
-const login = async (request, response, next) => {
+const login = async (request, response, next) => {//TODO Ver la posibilidad de añadir morgan
+    let userLogin = {}
     try {
-        if (validateLogin(request.body)) {
-            const user = await findUser(request.body.email)
+        userLogin = validateLogin(request.body)
+    } catch (error) {
+        response.statusCode = 401
+        console.warn(error.message)
+        response.send("Formato de datos de entrega incorrectos")
 
-            if (await !bcrypt.compare(request.body.password, user.password)) {
-                console.warn("Pasword incorrecto")
-                response.statusCode = 404
-                response.send("Password o mail incorrecto")
+    }
+    try {
+        const user = await findUser(userLogin.email)
+        if (!user) {
+            const error = new Error('No existe el usuario');
+            console.warn('No existe el usuario')
+            error.code = 404
+            throw error
+        } else {
+            if (!await bcrypt.compare(request.body.password, user.password)) {
+                console.warn('Password incorrecto')
+                const error = new Error('El password es incorrecto')
+                error.code = 401
+
+                throw error
+
             } else {
-                //USUARIO PASWORD OK, JWT
-                const tokenPayload = { user_uuid: user.user_uuid  }
-                console.log(process.env.SECRET)
-                const token = jwt.sign(tokenPayload,process.env.SECRET,{expiresIn:'1d'})//TODO Revisar la duración
-                console.log("usuario ok")
+                const tokenPayload = { id: user.id_usuario }
+                const token = jwt.sign(
+                    tokenPayload,
+                    process.env.SECRET,
+                    { expiresIn: '1d' }
+                )
                 response.send({ token })
-                
-                next()
+
+
             }
 
 
-        } else {
-            console.warn("Formato de datos incorrecto")
-            response.statusCode = 500
-            response.send("Usuario o contraseña incorrectos, revisa el formato de entrada")
         }
+
     } catch (error) {
-        console.warn("Datos incorrectos")
-        console.warn(error.message)
-        response.status(500).send("Datos incorrectos")
+
+        response.statusCode = error.code
+        response.send(error.message)
     }
+
+    
 
 }
 
