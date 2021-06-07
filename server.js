@@ -14,7 +14,7 @@ const endpointAdv = "/api/adv";
 
 
 //RUTES
-app.post('/api/login',login)
+app.post('/login',login)
 
 
 //USUARIOS
