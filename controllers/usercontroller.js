@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { validateNewUser, validateLogin } = require('../validators/uservalidator')
 const { save } = require('../infrastructure/generalRepository')
-const { findUser, getUserBDD} = require('../infrastructure/userRepository')
+const { findUser, getUserBDD } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
@@ -50,7 +50,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
                 throw error
 
             } else {
-                const tokenPayload = { id: user.id_usuario }
+                const tokenPayload = { uuid: user.user_uuid }
                 const token = jwt.sign(
                     tokenPayload,
                     process.env.SECRET,
@@ -70,17 +70,18 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
         response.send(error.message)
     }
 
-    
+
 
 }
 //TODO Revisar response codes
-const getUser = async(request, response) => {
-    try{
-    const user = await getUserBDD(request.body.user_uuid)
-    response.statusCode = 200
-    request.send('Usuario localizado')
-    }catch(error){
-        response.statusCode =404
+const getUser = async (request, response) => {
+    try {
+        console.log(request.auth)
+        const user = await getUserBDD(request.auth.user_uuid)
+        response.statusCode = 200
+        request.send('Usuario localizado')
+    } catch (error) {
+        response.statusCode = 404
         response.send("Error en la carga del usuario")
 
     }

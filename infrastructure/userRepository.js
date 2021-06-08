@@ -20,12 +20,12 @@ const findUser = async (email) => {
 
 /**
  * 
- * @param {*} email 
+ * @param {*} uuid 
  * @returns Datos de usuario sin password
  */
 const getUserBDD = async (user_uuid) => {
     const connection = getConnection()
-    const consulta = await connection.query('SELECT user_uuid, username, password, email, tipo FROM usuarios')
+    const consulta = await connection.query('SELECT user_uuid, username, email, tipo FROM usuarios')
     return (consulta[0][0])
 }
 

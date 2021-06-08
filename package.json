@@ -1,11 +1,11 @@
 {
   "name": "proyecto2",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -21,5 +21,14 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto.git"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto/issues"
+  },
+  "homepage": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto#readme",
+  "description": ""
 }
