@@ -5,7 +5,11 @@ const { validateLogin } = require('../validators/uservalidator')
 const { getConnection } = require('./bd/db')
 
 
-
+/**
+ * 
+ * @param {*} email 
+ * @returns Datos de usuario password incluido
+ */
 const findUser = async (email) => {
     const connection = getConnection()
     const consulta = await connection.query(`SELECT * FROM usuarios WHERE email=?`, email)
@@ -14,11 +18,18 @@ const findUser = async (email) => {
     
 }
 
-
-const getUser = async (id) => {
-
+/**
+ * 
+ * @param {*} email 
+ * @returns Datos de usuario sin password
+ */
+const getUserBDD = async (user_uuid) => {
+    const connection = getConnection()
+    const consulta = await connection.query('SELECT user_uuid, username, password, email, tipo FROM usuarios')
+    return (consulta[0][0])
 }
 
 module.exports = {
-    findUser
+    findUser,
+    getUserBDD
 }
