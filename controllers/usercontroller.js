@@ -1,5 +1,5 @@
 require('dotenv').config()
-const { validateNewUser, validateLogin } = require('../validators/uservalidator')
+const { validateUser, validateLogin } = require('../validators/uservalidator')
 const { save } = require('../infrastructure/generalRepository')
 const { findUser, getUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
@@ -10,7 +10,7 @@ const { valid } = require('joi')
 
 const createNewUser = async (request, response) => {
     try {
-        const newUser = validateNewUser(request.body)
+        const newUser = validateUser(request.body)
         await save(newUser, 'usuarios')
         response.statusCode = 201
         response.send("Usuario guardado")
@@ -96,6 +96,10 @@ const getUser = async (request, response) => {
 
 const modifyUser = (request, response) => {
     try{
+        let  user = request.body
+        
+        user.user_uuid = request.params.user_uuid
+        user = validateUser(user)
         updateUser(request.body,request.params.user_uuid)
         response.statusCode=200
         response.send("Usuario modificado")

@@ -15,11 +15,12 @@ const userSchema = Joi.object({
             'uuidv5'
         ]
     }),
-    username: Joi.string().alphanum().min(8).max(64).required(),
-    password: Joi.string().min(8).required(),
+    username: Joi.string().min(8).max(64).required(),
     email: Joi.string().email({ minDomainSegments:2}).required(),
     tipo: Joi.string()
 })
+
+const passwordSchema = Joi.string().min(8).required()
 
 const loginSchema = Joi.object({
     email: Joi.string().email({ minDomainSegments:2}).min(8).required(),
@@ -27,14 +28,19 @@ const loginSchema = Joi.object({
 })
 
 //VALIDACIONES
-const validateNewUser =(object)=>{
-    object.user_uuid = v4()
+const validateUser =(object)=>{
+    if(!object.user_uuid){
+        object.user_uuid = v4()
+        passwordSchema.validate(object.password)
+    }
+    
     if (!userSchema.validate(object).error){
         return object
     }else{
         throw userSchema.validate(object).error
     }
 }
+
 
 
 const validateLogin = (user) => {
@@ -46,6 +52,9 @@ const validateLogin = (user) => {
     }
 }
 
-module.exports = { validateNewUser,
+
+
+
+module.exports = { validateUser,
     validateLogin
 }
