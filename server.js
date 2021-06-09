@@ -5,7 +5,7 @@ const app = express()
 
 app.use(express.json())
 
-
+const endpointAddUser = '/api/users'
 const endpointUser = "/api/users/:user_uuid";
 const endpointProperties = "/api/properties";
 const endpointReviews = "/api/reviews";
@@ -20,7 +20,7 @@ app.post('/login',login)
 //USUARIOS
 
 app.get(endpointUser, validateAuthorization,getUser);
-app.post(endpointUser, createNewUser);
+app.post(endpointAddUser, createNewUser);
 app.put(endpointUser, validateAuthorization, modifyUser);
 app.delete(endpointUser, deleteUser);
 
