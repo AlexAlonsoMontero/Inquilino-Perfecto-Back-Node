@@ -1,12 +1,12 @@
 const express = require('express')
-const { createNewUser, login, getUser} = require ('./controllers/usercontroller')
+const { createNewUser, login, getUser, modifyUser, deleteUser} = require ('./controllers/usercontroller')
 const { validateAuthorization } = require('./controllers/generalControlers')
 const app = express()
 
 app.use(express.json())
 
 
-const endpointUser = "/api/users";
+const endpointUser = "/api/users/:user_uuid";
 const endpointProperties = "/api/properties";
 const endpointReviews = "/api/reviews";
 const endpointAdv = "/api/adv";
@@ -19,10 +19,10 @@ app.post('/login',login)
 
 //USUARIOS
 
-app.get(endpointUser, validateAuthorization, getUser);
+app.get(endpointUser, validateAuthorization,getUser);
 app.post(endpointUser, createNewUser);
-// app.put(endpointUser, modifyUser);
-// app.delete(endpointUser, deleteUser);
+app.put(endpointUser, validateAuthorization, modifyUser);
+app.delete(endpointUser, deleteUser);
 
 // //INMUEBLES
 // app.get(endpointProperties, getProperty);

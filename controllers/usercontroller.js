@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { validateNewUser, validateLogin } = require('../validators/uservalidator')
 const { save } = require('../infrastructure/generalRepository')
-const { findUser, getUserBDD } = require('../infrastructure/userRepository')
+const { findUser, getUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
@@ -29,7 +29,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
     try {
         userLogin = validateLogin(request.body)
     } catch (error) {
-        response.statusCode = 401
+        response.statusCode = 400
         console.warn(error.message)
         response.send("Formato de datos de entrega incorrectos")
 
@@ -45,7 +45,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
             if (!await bcrypt.compare(request.body.password, user.password)) {
                 console.warn('Password incorrecto')
                 const error = new Error('El password es incorrecto')
-                error.code = 401
+                error.code = 404
 
                 throw error
 
@@ -74,26 +74,56 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
 
 }
 //TODO Revisar response codes
+/**
+ * 
+ * @param {*} request 
+ * @param {*} response 
+ * @returns El usuario se encuentra en request.auth, el método devuelve response code 200
+ */
 const getUser = async (request, response) => {
     try {
-        console.log(request.auth)
-        const user = await getUserBDD(request.auth.user_uuid)
+        const userReq = request.auth.usuario
+        const userBDD = await getUserBDD(userReq.user_uuid)
         response.statusCode = 200
-        request.send('Usuario localizado')
+        response.send('Usuario localizado')
     } catch (error) {
+        console.warn(error.message)
         response.statusCode = 404
         response.send("Error en la carga del usuario")
 
     }
 }
 
-const confirmLogin = (objeto) => {
+const modifyUser = (request, response) => {
+    try{
+        updateUser(request.body,request.params.user_uuid)
+        response.statusCode=200
+        response.send("Usuario modificado")
+    }catch(error){
+        response.statusCode = 400
+        console.warn(error.message)
+        response.send("No se ha podido actualizar el usuario")
+    }
+}
 
+const deleteUser = async(request, response) => {
+    try{
+        dropUser(request.params.user_uuid)
+        response.statusCode=200
+        response.send("Borrado de usuario realizado correctamente")
+
+    }catch(error){
+        response.statusCode = 400
+        console.warn(error.message)
+        response.send("No se ha podido eliminar el usuario")
+    }
 }
 
 
 module.exports = {
     createNewUser,
     login,
-    getUser
+    getUser,
+    modifyUser,
+    deleteUser
 }
