@@ -17,8 +17,7 @@ const validateAuthorization = async (request, response,next) => { //TEST .env SE
 
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
-
-        usersBDD = await getUserBDD(request.body.user_uuid)
+        usersBDD = await getUserBDD(request.params.user_uuid)
 
         response.statusCode = 200
 
@@ -27,10 +26,14 @@ const validateAuthorization = async (request, response,next) => { //TEST .env SE
 
 
     } catch (error) {
+        console.warn(error.message)
         response.status(401).send(error.message)
     }
 }
 
+
+
+
 module.exports = {
-    validateAuthorization
+    validateAuthorization,
 }
