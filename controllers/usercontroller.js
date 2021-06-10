@@ -1,16 +1,16 @@
 require('dotenv').config()
-const { validateUser, validateLogin } = require('../validators/uservalidator')
+const { validateNewUser,validateUser, validateLogin } = require('../validators/uservalidator')
 const { save } = require('../infrastructure/generalRepository')
 const { findUser, getUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
-const { valid } = require('joi')
+
 
 
 const createNewUser = async (request, response) => {
     try {
-        const newUser = validateUser(request.body)
+        const newUser = validateNewUser(request.body)
         await save(newUser, 'usuarios')
         response.statusCode = 201
         response.send("Usuario guardado")
@@ -56,7 +56,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
                     process.env.SECRET,
                     { expiresIn: '1d' }
                 )
-                response.send({ token })
+                response.send({ token , user})
 
 
             }
@@ -85,7 +85,8 @@ const getUser = async (request, response) => {
         const userReq = request.auth.usuario
         const userBDD = await getUserBDD(userReq.user_uuid)
         response.statusCode = 200
-        response.send('Usuario localizado')
+    
+        response.send(request.auth)
     } catch (error) {
         console.warn(error.message)
         response.statusCode = 404
@@ -94,15 +95,13 @@ const getUser = async (request, response) => {
     }
 }
 
-const modifyUser = (request, response) => {
+const modifyUser = async(request, response) => {
     try{
-        let  user = request.body
-        
-        user.user_uuid = request.params.user_uuid
-        user = validateUser(user)
-        updateUser(request.body,request.params.user_uuid)
+        let  modifyUser = request.body
+        modifyUser= validateUser(modifyUser)
+        const consulta= await updateUser(modifyUser,request.auth.usuario.user_uuid)
         response.statusCode=200
-        response.send("Usuario modificado")
+        response.send({info:"Usuario modificado",data:consulta})
     }catch(error){
         response.statusCode = 400
         console.warn(error.message)

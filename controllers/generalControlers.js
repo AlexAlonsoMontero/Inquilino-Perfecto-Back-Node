@@ -7,6 +7,7 @@ const validateAuthorization = async (request, response,next) => { //TEST .env SE
     try {
 
         const { authorization } = request.headers
+        
 
         if (!authorization || !authorization.startsWith('Bearer ')) {
 
@@ -17,7 +18,8 @@ const validateAuthorization = async (request, response,next) => { //TEST .env SE
 
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
-        usersBDD = await getUserBDD(request.params.user_uuid)
+        
+        usersBDD = await getUserBDD(decodedToken.uuid)
 
         response.statusCode = 200
 

@@ -1,17 +1,29 @@
 const express = require('express')
 const { createNewUser, login, getUser, modifyUser, deleteUser} = require ('./controllers/usercontroller')
 const { validateAuthorization } = require('./controllers/generalControlers')
+//prueba general repository
+const { generalGet, generalFind,generalUpdate, generalDrop } = require ('./controllers/pruebaGeneralRepositories.js')
+
+//***************************************************************************** */
+
 const app = express()
+
+
 
 app.use(express.json())
 
 const endpointAddUser = '/api/users'
-const endpointUser = "/api/users/:user_uuid";
+const endpointUser = "/api/users/";
 const endpointProperties = "/api/properties";
 const endpointReviews = "/api/reviews";
 const endpointAdv = "/api/adv";
 
 
+//PRUEBAS GENERAL REPOSITORY
+app.get('/prueba/api/users', generalGet)
+app.get('/prueba/api/finduser', generalFind)
+app.get('/prueba/api/modifyuser',generalUpdate)
+app.get('/prueba/api/dropuser', generalDrop)
 
 //RUTES
 app.post('/login',login)
