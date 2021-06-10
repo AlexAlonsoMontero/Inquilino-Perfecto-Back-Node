@@ -7,20 +7,72 @@ const { getConnection } = require('./bd/db')
  * @param {string} table correspondiente a dónde será insertado el dato
  */
 const save = async (entity, table) => {
-    entity.password = bcrypt.hashSync(entity.password, 10)
+    if (entity.password) {
+        entity.password = bcrypt.hashSync(entity.password, 10)
+    }
+
     const cont = Object.values(entity).length
     let cadena = '?'
-    for (let i=1; i<cont; i++){
-        cadena = cadena +', ?'
+    for (let i = 1; i < cont; i++) {
+        cadena = cadena + ', ?'
     }
     const keys = Object.keys(entity).toString()
     const connection = getConnection()
     let sentencia = `INSERT INTO ${table} (${keys}) VALUES (${cadena})`
-    const values  = Object.values(entity).map(value=> (typeof(value)==='string'? value = "'" + value + "'": value))
-    await connection.query(sentencia,Object.values(entity))
+    const values = Object.values(entity).map(value => (typeof (value) === 'string' ? value = "'" + value + "'" : value))
+    const consulta = await connection.query(sentencia, Object.values(entity))
+    return consulta[0][0]
 }
 
+const getItems = async (table) => {
+    const sentencia = `SELECT * FROM ${table}`
+    
+    const connection = getConnection()
+    
+    const consulta = await connection.query(sentencia)
+    
+    return consulta[0]
+
+}
+
+
+const findItem = async(item, table) => {
+    const connection = getConnection()
+    const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
+    const consulta = await connection.query(sentencia, Object.values(item)[0])
+    return consulta[0]
+}
+
+const updateItem = async (newItem, oldItemKeyValue, table) => {
+    const connection = getConnection()
+    let sentencia = `UPDATE ${table} SET `
+    const numValues = Object.keys(newItem).length
+    for (let i = 0; i < numValues; i++) {
+        sentencia += Object.keys(newItem)[i].toString() +"=?"
+        i<numValues-1 ? sentencia +="," : sentencia+=""
+
+    }
+    sentencia += ` WHERE ${Object.keys(oldItemKeyValue)} =?`
+    const [rows,fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItemKeyValue)])
+    return rows
+}
+
+const dropItem = async(item, table)=>{
+    const connection = getConnection()
+    const sentencia = `DELETE FROM ${table} WHERE ${Object.keys(item)}=?`
+    const consulta = await connection.query(sentencia,Object.values(item))
+    return (consulta[0].affectedRows>0)
+
+}
+
+//TODO REALIZAR BUSQUEDA POR VARIOS PARAMETROS EN EL WHERE
+
+
 module.exports = {
-    save
+    save,
+    getItems,
+    findItem,
+    updateItem,
+    dropItem
 }
 

@@ -4,7 +4,8 @@
 const { validateLogin } = require('../validators/uservalidator')
 const { getConnection } = require('./bd/db')
 
-
+//TODO GESTIONAR CAMBI0 DE PASWORD
+//TODO GESTIONAR USUARIO ADMIN
 
 /**
  * 
@@ -34,9 +35,8 @@ const getUserBDD = async (uuid_user) => {
 
 const updateUser = async(newUser,uuid_user)=>{
     const connection = getConnection()
-    newUser.uuid= uuid_user
     const sentencia = 'UPDATE usuarios SET username=?, email=?, tipo=? WHERE user_uuid=?;'
-    return await connection.query(sentencia,Object.values(newUser))
+    return await connection.query(sentencia,[...Object.values(newUser),uuid_user])
 }
 
 const dropUser = async(uuid_user)=>{
@@ -52,3 +52,4 @@ module.exports = {
     updateUser,
     dropUser
 }
+

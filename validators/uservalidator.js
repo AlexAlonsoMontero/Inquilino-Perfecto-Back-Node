@@ -16,45 +16,68 @@ const userSchema = Joi.object({
         ]
     }),
     username: Joi.string().min(8).max(64).required(),
-    email: Joi.string().email({ minDomainSegments:2}).required(),
+    email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
 })
 
-const passwordSchema = Joi.string().min(8).required()
+const newUserSchema = Joi.object({
+    user_uuid: Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    }),
+    username: Joi.string().min(8).max(64).required(),
+    password: Joi.string().min(8).required(),
+    email: Joi.string().email({ minDomainSegments: 2 }).required(),
+    tipo: Joi.string()
+})
+
 
 const loginSchema = Joi.object({
-    email: Joi.string().email({ minDomainSegments:2}).min(8).required(),
-    password: Joi.string().min(5).alphanum().required()
+    email: Joi.string().email({ minDomainSegments: 2 }).min(8).required(),
+    password: Joi.string().min(5).required()
 })
 
 //VALIDACIONES
-const validateUser =(object)=>{
-    if(!object.user_uuid){
-        object.user_uuid = v4()
-        passwordSchema.validate(object.password)
-    }
-    
-    if (!userSchema.validate(object).error){
+const validateNewUser =(object) => {
+    object.user_uuid = v4()
+    if (!newUserSchema.validate(object).error) {
+        
         return object
-    }else{
+    } else {
+        throw newUserSchema.validate(object).error
+    }
+
+}
+
+const validateUser = (object) => {
+    if (!userSchema.validate(object).error) {
+        
+        return object
+    } else {
         throw userSchema.validate(object).error
     }
 }
 
 
 
+
+
 const validateLogin = (user) => {
-    if(!loginSchema.validate(user).error){
+    if (!loginSchema.validate(user).error) {
         return user
-    }else{
+    } else {
         throw loginSchema.validate(user).error
-        
+
     }
 }
 
 
 
 
-module.exports = { validateUser,
+module.exports = {
+    validateNewUser,
+    validateUser,
     validateLogin
 }
