@@ -45,7 +45,7 @@ const findItem = async(item, table) => {
     return rows
 }
 
-const updateItem = async (newItem, oldItemKeyValue, table) => {
+const updateItem = async (newItem, oldItem, table) => {
     const connection = getConnection()
     let sentencia = `UPDATE ${table} SET `
     const numValues = Object.keys(newItem).length
@@ -54,8 +54,8 @@ const updateItem = async (newItem, oldItemKeyValue, table) => {
         i<numValues-1 ? sentencia +="," : sentencia+=""
 
     }
-    sentencia += ` WHERE ${Object.keys(oldItemKeyValue)} =?`
-    const [rows,fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItemKeyValue)])
+    sentencia += ` WHERE ${Object.keys(oldItem)} =?`
+    const [rows,fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
     return rows
 }
 
@@ -66,8 +66,10 @@ const dropItem = async(item, table)=>{
     return (consulta[0].affectedRows>0)
 
 }
-
+//TODO VER FILTER PARA GENERAL Y USUARIOS
 //TODO REALIZAR BUSQUEDA POR VARIOS PARAMETROS EN EL WHERE
+
+
 
 
 module.exports = {

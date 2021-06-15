@@ -9,13 +9,14 @@ const createAdvertisemenet = async(request, response) =>{
     //TODO Realizar validacion de  usuario cuando esté completa la base de datos
     try{
         const advertisement = validateAdvertisement(request.body)
-        await save(advertisement,'anuncia')
+        const advertisementBDD = await save(advertisement,'anuncios')
+        
         response.statusCode = 201
         response.send({ info:"Anuncio guardado",advertisement })
     }catch(error){
         response.statusCode = 400
         console.warn(error.message)
-        response.send("No se ha podido añadir el auncio")
+        response.send("No se ha podido añadir el anuncio")
 
     }
 }
@@ -35,6 +36,7 @@ const findAdvertisement = async(request,response) =>{
         response.status(400).send("Datos no localizados")
     }
 }
+
 
 
 

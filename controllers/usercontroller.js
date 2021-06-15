@@ -1,6 +1,7 @@
 require('dotenv').config()
-const { validateNewUser, validateUser, validateLogin } = require('../validators/uservalidator')
-const { save, findItem } = require('../infrastructure/generalRepository')
+const { validateNewUser, validateUser, validateLogin, validateUpdateUser } = require('../validators/uservalidator')
+const { save, findItem, updateItem, dropItem } = require('../infrastructure/generalRepository')
+const { selectUsersNoPass } = require('../infrastructure/userRepository')
 // const { findUser, findUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -82,11 +83,17 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
 
 
 //********************************* GET  */
-
+/**
+ * 
+ * @param {token,user} request 
+ * @param {} response 
+ * @description Confirm validate user an show user data
+ */
 const showUser = (request, response) => {
     try {
-        if (request.auth.token.userame === request.param.username) {
+        if (request.params.username === request.auth.user.username) {
             const user = request.auth.user
+
             response.status(200).send({ info: "Usuario verficado", user })
         } else {
             throw new Error("El usuario no coresponde on el acceso")
@@ -94,12 +101,12 @@ const showUser = (request, response) => {
         }
     } catch (error) {
         console.warn(error.message)
-        response.satus(401).send("Verificación de datos erronea")
+        response.status(401).send("Verificación de datos erronea")
     }
 }
 
 
-
+//TODO Revisar y realizar validación de admin
 
 /**
  * 
@@ -108,8 +115,19 @@ const showUser = (request, response) => {
  * @description get all users from database, only adminuse
  */
 
-const getUsers = (request, response) => {
-
+const getUsers = async(request, response) => {
+    try{
+        const users = await selectUsersNoPass()
+        if(users.length >1){
+            throw new Error ("No existen usuarios en la base de datos")
+        }else{
+            response.status(201).send({info:"Usuarios localizados", users})
+        }
+        
+    }catch(error){
+        console.warn(error.message)
+        response.status(401).send("No se han podido cargar usuarios")
+    }
 }
 
 /**
@@ -131,29 +149,49 @@ const findUser = (request, response) => {
  */
 const filterUser = (request, response) => {
 }
-//************************************************* */
-//************************** */
 
 //********************************* PUT */
 
 /**
  * 
+ * @param {*} request 
  * @param {*} response 
- * @param {*} rquire 
- * @description update user, use request.param
  */
-const updateUser = (response, rquire) => {
+const updateUser = async (request, response) => {
+    try {
 
+        const newUser = request.body
+        validateUpdateUser(newUser)
+        const oldUser = { user_uuid: request.auth.token.user_uuid }
+        console.log(request.auth.token.user_uuid)
+        const consulta = await updateItem(newUser, oldUser, 'usuarios')
+        response.statusCode = 200
+        response.send({ info: "Usuario modificado", data: consulta })
+    } catch (error) {
+        response.statusCode = 400
+        console.warn(error.message)
+        response.send("No se ha podido actualizar el usuario")
+    }
 }
 
 //********************************* DELETE */
 /**
  * 
+ * @param {user_uuid: string} request 
  * @param {*} response 
- * @param {*} require 
  * @description drop db user, user request.param
  */
-const dropUser = (response, require) => {
+const deleteUser = async (request, response) => {
+    try {
+        await dropItem(request.body,'usuarios')
+        response.statusCode = 200
+        response.send("Borrado de usuario realizado correctamente")
+
+    } catch (error) {
+        response.statusCode = 400
+        console.warn(error.message)
+        response.send("No se ha podido eliminar el usuario")
+    }
 
 }
 
@@ -168,74 +206,10 @@ module.exports = {
     findUser,
     filterUser,
     updateUser,
-    dropUser
+    deleteUser
 }
 
 
 //TODO COMENTAR METODOS
 //TODO REVISAR GETUSER QUE DEVUELVA TODOS LOS USUARIOS Y CREAR FIND USER USANDO PARAMS
-
-// const createNewUser = async (request, response) => {
-
-// }
-
-
-
-// //TODO Revisar response codes
-// /**
-//  * 
-//  * @param {*} request 
-//  * @param {*} response 
-//  * @returns El usuario se encuentra en request.auth, el método devuelve response code 200
-//  * @description Busqueda de datos de un usuario se requiere validación
-//  */
-// const findUser = async (request, response) => {
-//     try {
-//         const userReq = request.auth.usuario
-//         const userBDD = await findUserBDD(userReq.user_uuid)
-//         response.statusCode = 200
-
-//         response.send(request.auth)
-//     } catch (error) {
-//         console.warn(error.message)
-//         response.statusCode = 404
-//         response.send("Error en la carga del usuario")
-
-//     }
-// }
-
-// const modifyUser = async(request, response) => {
-//     try{
-//         let  modifyUser = request.body
-//         modifyUser= validateUser(modifyUser)
-//         const consulta= await updateUser(modifyUser,request.auth.usuario.user_uuid)
-//         response.statusCode=200
-//         response.send({info:"Usuario modificado",data:consulta})
-//     }catch(error){
-//         response.statusCode = 400
-//         console.warn(error.message)
-//         response.send("No se ha podido actualizar el usuario")
-//     }
-// }
-
-// const deleteUser = async(request, response) => {
-//     try{
-//         dropUser(request.params.user_uuid)
-//         response.statusCode=200
-//         response.send("Borrado de usuario realizado correctamente")
-
-//     }catch(error){
-//         response.statusCode = 400
-//         console.warn(error.message)
-//         response.send("No se ha podido eliminar el usuario")
-//     }
-// }
-
-
-// module.exports = {
-//     createNewUser,
-//     login,
-//     findUser,
-//     modifyUser,
-//     deleteUser
-// }
+//TODO Revisar response codes
