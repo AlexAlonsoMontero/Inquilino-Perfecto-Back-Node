@@ -2,9 +2,11 @@ const bcrypt = require('bcryptjs')
 const { getConnection } = require('./bd/db')
 
 /**
- * Guarda en la base de datos los datos correspondientes a la entidad dada
- * @param {json} entity correspondiente al dato a insertar
- * @param {string} table correspondiente a dónde será insertado el dato
+ * 
+ * @param {*} entity 
+ * @param {*} table 
+ * @returns object
+ * @description save an object in the assigned table
  */
 const save = async (entity, table) => {
     if (entity.password) {
@@ -39,11 +41,11 @@ const getItems = async (table) => {
 const findItem = async(item, table) => {
     const connection = getConnection()
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
-    const consulta = await connection.query(sentencia, Object.values(item)[0])
-    return consulta[0]
+    const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
+    return rows
 }
 
-const updateItem = async (newItem, oldItemKeyValue, table) => {
+const updateItem = async (newItem, oldItem, table) => {
     const connection = getConnection()
     let sentencia = `UPDATE ${table} SET `
     const numValues = Object.keys(newItem).length
@@ -52,8 +54,8 @@ const updateItem = async (newItem, oldItemKeyValue, table) => {
         i<numValues-1 ? sentencia +="," : sentencia+=""
 
     }
-    sentencia += ` WHERE ${Object.keys(oldItemKeyValue)} =?`
-    const [rows,fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItemKeyValue)])
+    sentencia += ` WHERE ${Object.keys(oldItem)} =?`
+    const [rows,fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
     return rows
 }
 
@@ -64,8 +66,10 @@ const dropItem = async(item, table)=>{
     return (consulta[0].affectedRows>0)
 
 }
-
+//TODO VER FILTER PARA GENERAL Y USUARIOS
 //TODO REALIZAR BUSQUEDA POR VARIOS PARAMETROS EN EL WHERE
+
+
 
 
 module.exports = {

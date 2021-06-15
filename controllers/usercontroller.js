@@ -1,19 +1,26 @@
 require('dotenv').config()
-const { validateNewUser,validateUser, validateLogin } = require('../validators/uservalidator')
-const { save } = require('../infrastructure/generalRepository')
-const { findUser, getUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
+const { validateNewUser, validateUser, validateLogin, validateUpdateUser } = require('../validators/uservalidator')
+const { save, findItem, updateItem, dropItem } = require('../infrastructure/generalRepository')
+const { selectUsersNoPass } = require('../infrastructure/userRepository')
+// const { findUser, findUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
 
 
-
+//********************************* POST  */
+/**
+ * 
+ * @param {*} request 
+ * @param {*} response 
+ * @description Create and save user in database
+ */
 const createNewUser = async (request, response) => {
     try {
         const newUser = validateNewUser(request.body)
         await save(newUser, 'usuarios')
         response.statusCode = 201
-        response.send("Usuario guardado")
+        response.send({ info: "usuario guardado", newUser })
     } catch (error) {
 
         response.statusCode = 400
@@ -21,9 +28,16 @@ const createNewUser = async (request, response) => {
         response.send("No se ha podido añadir el usuario")
 
     }
+
 }
 
-
+/**
+ * 
+ * @param {*} request
+ * @param {*} response
+ * @param {*} next
+ * @descriptions midleware, verify user login
+ */
 const login = async (request, response, next) => {//TODO Ver la posibilidad de añadir morgan
     let userLogin = {}
     try {
@@ -35,10 +49,11 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
 
     }
     try {
-        const user = await findUser(userLogin.email)
+        let user = await findItem(userLogin, 'usuarios')
+        user = user[0]
         if (!user) {
             const error = new Error('No existe el usuario');
-            console.warn('No existe el usuario')
+            console.warn('No existe el usuario entra aqui')
             error.code = 404
             throw error
         } else {
@@ -50,83 +65,151 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
                 throw error
 
             } else {
-                const tokenPayload = { uuid: user.user_uuid }
+                const tokenPayload = { user_uuid: user.user_uuid }
                 const token = jwt.sign(
                     tokenPayload,
                     process.env.SECRET,
                     { expiresIn: '1d' }
                 )
-                response.send({ token , user})
-
-
+                response.statusCode = 200
+                response.send({ token, user })
             }
-
-
         }
-
     } catch (error) {
-
         response.statusCode = error.code
         response.send(error.message)
     }
-
-
-
 }
-//TODO Revisar response codes
+
+
+//********************************* GET  */
+/**
+ * 
+ * @param {token,user} request 
+ * @param {} response 
+ * @description Confirm validate user an show user data
+ */
+const showUser = (request, response) => {
+    try {
+        if (request.params.username === request.auth.user.username) {
+            const user = request.auth.user
+
+            response.status(200).send({ info: "Usuario verficado", user })
+        } else {
+            throw new Error("El usuario no coresponde on el acceso")
+
+        }
+    } catch (error) {
+        console.warn(error.message)
+        response.status(401).send("Verificación de datos erronea")
+    }
+}
+
+
+//TODO Revisar y realizar validación de admin
+
 /**
  * 
  * @param {*} request 
  * @param {*} response 
- * @returns El usuario se encuentra en request.auth, el método devuelve response code 200
+ * @description get all users from database, only adminuse
  */
-const getUser = async (request, response) => {
-    try {
-        const userReq = request.auth.usuario
-        const userBDD = await getUserBDD(userReq.user_uuid)
-        response.statusCode = 200
-    
-        response.send(request.auth)
-    } catch (error) {
-        console.warn(error.message)
-        response.statusCode = 404
-        response.send("Error en la carga del usuario")
 
+const getUsers = async(request, response) => {
+    try{
+        const users = await selectUsersNoPass()
+        if(users.length >1){
+            throw new Error ("No existen usuarios en la base de datos")
+        }else{
+            response.status(201).send({info:"Usuarios localizados", users})
+        }
+        
+    }catch(error){
+        console.warn(error.message)
+        response.status(401).send("No se han podido cargar usuarios")
     }
 }
 
-const modifyUser = async(request, response) => {
-    try{
-        let  modifyUser = request.body
-        modifyUser= validateUser(modifyUser)
-        const consulta= await updateUser(modifyUser,request.auth.usuario.user_uuid)
-        response.statusCode=200
-        response.send({info:"Usuario modificado",data:consulta})
-    }catch(error){
+/**
+ * 
+ * @param {*} request 
+ * @param {*} response 
+ * @description get users , use request.param
+ */
+const findUser = (request, response) => {
+
+
+}
+
+/**
+ * 
+ * @param {*} request 
+ * @param {*} response 
+ * @description get users, use request.query
+ */
+const filterUser = (request, response) => {
+}
+
+//********************************* PUT */
+
+/**
+ * 
+ * @param {*} request 
+ * @param {*} response 
+ */
+const updateUser = async (request, response) => {
+    try {
+
+        const newUser = request.body
+        validateUpdateUser(newUser)
+        const oldUser = { user_uuid: request.auth.token.user_uuid }
+        console.log(request.auth.token.user_uuid)
+        const consulta = await updateItem(newUser, oldUser, 'usuarios')
+        response.statusCode = 200
+        response.send({ info: "Usuario modificado", data: consulta })
+    } catch (error) {
         response.statusCode = 400
         console.warn(error.message)
         response.send("No se ha podido actualizar el usuario")
     }
 }
 
-const deleteUser = async(request, response) => {
-    try{
-        dropUser(request.params.user_uuid)
-        response.statusCode=200
+//********************************* DELETE */
+/**
+ * 
+ * @param {user_uuid: string} request 
+ * @param {*} response 
+ * @description drop db user, user request.param
+ */
+const deleteUser = async (request, response) => {
+    try {
+        await dropItem(request.body,'usuarios')
+        response.statusCode = 200
         response.send("Borrado de usuario realizado correctamente")
 
-    }catch(error){
+    } catch (error) {
         response.statusCode = 400
         console.warn(error.message)
         response.send("No se ha podido eliminar el usuario")
     }
+
 }
+
+
 
 
 module.exports = {
     createNewUser,
     login,
-    getUser,
-    modifyUser,
+    getUsers,
+    showUser,
+    findUser,
+    filterUser,
+    updateUser,
     deleteUser
 }
+
+
+//TODO COMENTAR METODOS
+//TODO REVISAR GETUSER QUE DEVUELVA TODOS LOS USUARIOS Y CREAR FIND USER USANDO PARAMS
+//TODO Revisar response codes

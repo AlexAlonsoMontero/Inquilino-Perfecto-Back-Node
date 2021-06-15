@@ -1,29 +1,22 @@
 const express = require('express')
-const { createNewUser, login, getUser, modifyUser, deleteUser} = require ('./controllers/usercontroller')
 const { validateAuthorization } = require('./controllers/generalControlers')
-//prueba general repository
-const { generalGet, generalFind,generalUpdate, generalDrop } = require ('./controllers/pruebaGeneralRepositories.js')
+const { createAdvertisemenet, findAdvertisement } = require('./controllers/advertisementController')
 
-//***************************************************************************** */
+const { createNewUser, login, showUser, updateUser, deleteUser, getUsers } = require ('./controllers/usercontroller')
 
 const app = express()
 
-
-
 app.use(express.json())
 
-const endpointAddUser = '/api/users'
+
+//ENDPOINTS USER
 const endpointUser = "/api/users/";
 const endpointProperties = "/api/properties";
+const endpointUserProfile = "/api/users/:username"
 const endpointReviews = "/api/reviews";
+
+//ENDPOINTS ADVERTISEMENT
 const endpointAdv = "/api/adv";
-
-
-//PRUEBAS GENERAL REPOSITORY
-app.get('/prueba/api/users', generalGet)
-app.get('/prueba/api/finduser', generalFind)
-app.get('/prueba/api/modifyuser',generalUpdate)
-app.get('/prueba/api/dropuser', generalDrop)
 
 //RUTES
 app.post('/login',login)
@@ -31,9 +24,10 @@ app.post('/login',login)
 
 //USUARIOS
 
-app.get(endpointUser, validateAuthorization,getUser);
-app.post(endpointAddUser, createNewUser);
-app.put(endpointUser, validateAuthorization, modifyUser);
+app.get(endpointUserProfile, validateAuthorization,showUser);
+app.post(endpointUser, createNewUser);
+app.get(endpointUser,getUsers)
+app.put(endpointUserProfile, validateAuthorization, updateUser);
 app.delete(endpointUser, deleteUser);
 
 // //INMUEBLES
@@ -49,8 +43,8 @@ app.delete(endpointUser, deleteUser);
 // app.delete(endpointReviews, deleteReview);
 
 // //ANUNCIOS
-// app.get(endpointAdv, getAdvertisement);
-// app.post(endpointAdv, cretateNewAdvertisement);
+// app.get(endpointAdv, findAdvertisement);
+app.post(endpointAdv, createAdvertisemenet);
 // app.put(endpointAdv, modifyAdvertisement);
 // app.delete(endpointAdv, deleteAdvertisement);
 
