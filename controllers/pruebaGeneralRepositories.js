@@ -50,15 +50,13 @@ const generalUpdate = async(request, response) => {
 const generalDrop = async(request, response)=>{
     try {
         const item = {id_usuario:5}
-        
         if(await dropItem(item,'usuarios')){
             response.code=200
             response.send({info: "usuario borrado",item})
         }else{
             throw new Error ("No existe el usuario en la base de datos")
         }
-        
-    
+
     } catch (error) {
         response.statuscode=200
         response.send(error.message)

@@ -2,9 +2,11 @@ const bcrypt = require('bcryptjs')
 const { getConnection } = require('./bd/db')
 
 /**
- * Guarda en la base de datos los datos correspondientes a la entidad dada
- * @param {json} entity correspondiente al dato a insertar
- * @param {string} table correspondiente a dónde será insertado el dato
+ * 
+ * @param {*} entity 
+ * @param {*} table 
+ * @returns object
+ * @description save an object in the assigned table
  */
 const save = async (entity, table) => {
     if (entity.password) {
@@ -39,8 +41,8 @@ const getItems = async (table) => {
 const findItem = async(item, table) => {
     const connection = getConnection()
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
-    const consulta = await connection.query(sentencia, Object.values(item)[0])
-    return consulta[0]
+    const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
+    return rows
 }
 
 const updateItem = async (newItem, oldItemKeyValue, table) => {
