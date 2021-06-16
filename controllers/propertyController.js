@@ -67,7 +67,7 @@ const modifyProperty = async(req, res) =>{
 const deleteProperty = async(req, res) =>{
     try{
         let deleteProp = validateProp(request.body)
-        const deletedProp = await dropItem(deleteProp, deleteProp.inmueble_uuid)
+        const deletedProp = await deleteItem(deleteProp, deleteProp.inmueble_uuid)
         response.status(200).send({info:"Inmueble eliminado", data:deletedProp})
     }catch(error){
         console.warn(error.message)
