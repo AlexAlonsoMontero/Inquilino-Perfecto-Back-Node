@@ -30,21 +30,21 @@ INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
 	null);
 
 --inquilino pisos
-INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
-    VALUES(
-	'af1a2bf9-ea02-4462-9731-ad387891f591',
-	'fd0f280d-12f4-4561-96b8-8a9850612517',
-	null);
-INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
-    VALUES(
-	'bb3c4fcc-d17d-4341-a4b5-30b373e78f8a',
-	'fd0f280d-12f4-4561-96b8-8a9850612517',
-	null);
-INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
-    VALUES(
-	'af593913-a5b2-4938-b14b-8073b873b5e8',
-	'fd0f280d-12f4-4561-96b8-8a9850612517',
-	null);
+-- INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
+--     VALUES(
+-- 	'af1a2bf9-ea02-4462-9731-ad387891f591',
+-- 	'fd0f280d-12f4-4561-96b8-8a9850612517',
+-- 	null);
+-- INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
+--     VALUES(
+-- 	'bb3c4fcc-d17d-4341-a4b5-30b373e78f8a',
+-- 	'fd0f280d-12f4-4561-96b8-8a9850612517',
+-- 	null);
+-- INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
+--     VALUES(
+-- 	'af593913-a5b2-4938-b14b-8073b873b5e8',
+-- 	'fd0f280d-12f4-4561-96b8-8a9850612517',
+-- 	null);
 
 --casero pisos
 INSERT INTO inmuebles(inmueble_uuid, usr_casero_uuid, id_inmueble)
