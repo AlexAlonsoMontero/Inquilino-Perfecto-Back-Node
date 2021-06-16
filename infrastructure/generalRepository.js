@@ -28,11 +28,8 @@ const save = async (entity, table) => {
 
 const getItems = async (table) => {
     const sentencia = `SELECT * FROM ${table}`
-    
     const connection = getConnection()
-    
     const consulta = await connection.query(sentencia)
-    
     return consulta[0]
 
 }
@@ -59,11 +56,12 @@ const updateItem = async (newItem, oldItem, table) => {
     return rows
 }
 
-const dropItem = async(item, table)=>{
+const deleteItem = async(item, table)=>{
     const connection = getConnection()
     const sentencia = `DELETE FROM ${table} WHERE ${Object.keys(item)}=?`
     const consulta = await connection.query(sentencia,Object.values(item))
-    return (consulta[0].affectedRows>0)
+    return (consulta[0].affectedRows >1 ? true : false )
+    //return (consulta[0].affectedRows>0)
 
 }
 //TODO VER FILTER PARA GENERAL Y USUARIOS
@@ -77,6 +75,6 @@ module.exports = {
     getItems,
     findItem,
     updateItem,
-    dropItem
+    deleteItem
 }
 
