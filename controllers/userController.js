@@ -1,5 +1,5 @@
 require('dotenv').config()
-const { validateNewUser, validateUser, validateLogin, validateUpdateUser } = require('../validators/uservalidator')
+const { validateNewUser, validateUser, validateLogin, validateUpdateUser } = require('../validators/userValidator')
 const { save, findItem, updateItem, deleteItem } = require('../infrastructure/generalRepository')
 const { selectUsersNoPass } = require('../infrastructure/userRepository')
 // const { findUser, findUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
@@ -36,7 +36,7 @@ const createNewUser = async (request, response) => {
  * @param {*} request
  * @param {*} response
  * @param {*} next
- * @descriptions midleware, verify user login
+ * @descriptions middleware, verify user login
  */
 const login = async (request, response, next) => {//TODO Ver la posibilidad de añadir morgan
     let userLogin = {}
@@ -87,7 +87,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
  * 
  * @param {token,user} request 
  * @param {} response 
- * @description Confirm validate user an show user data
+ * @description Confirm validate user and shows user data
  */
 const showUser = (request, response) => {
     try {
@@ -112,7 +112,7 @@ const showUser = (request, response) => {
  * 
  * @param {*} request 
  * @param {*} response 
- * @description get all users from database, only adminuse
+ * @description get all users from database, only usable by ADMIN
  */
 
 const getUsers = async(request, response) => {
@@ -134,7 +134,7 @@ const getUsers = async(request, response) => {
  * 
  * @param {*} request 
  * @param {*} response 
- * @description get users , use request.param
+ * @description get users, uses request.params
  */
 const findUser = (request, response) => {
 
@@ -145,7 +145,7 @@ const findUser = (request, response) => {
  * 
  * @param {*} request 
  * @param {*} response 
- * @description get users, use request.query
+ * @description get users, uses request.query
  */
 const filterUser = (request, response) => {
 }
@@ -178,7 +178,7 @@ const updateUser = async (request, response) => {
  * 
  * @param {user_uuid: string} request 
  * @param {*} response 
- * @description drop db user, user request.param
+ * @description drop user from database, user request.param
  */
 const deleteUser = async (request, response) => {
     try {

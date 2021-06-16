@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { dropItem, findItem, getItems, save, updateItem} = require('../infrastructure/generalRepository')
-const { validateNewProp,    validatePropByUser,    validateUpdateProp,    validatePropQP,    validatePropByProp} = require('../validators/propValidators.js')
+const { deleteItem, findItem, getItems, save, updateItem} = require('../infrastructure/generalRepository')
+const { validatePropByUserAndProp, validateNewProp,    validatePropByUser,    validateUpdateProp,    validatePropQP,    validatePropByProp} = require('../validators/propValidators.js')
 
 
 const createNewProperty = async(req, res) =>{
@@ -24,10 +24,14 @@ const getProperty = async(req, res) =>{
     try {
         const prop = validatePropByProp(req.params)
         const foundProp = await findItem(prop, 'inmuebles')
-        res.status(200).send({Info:"Inmuebles encontrados", Data:foundProp})
+        if (!foundProp){
+            res.status(404).send({Error:"No se ha encontrado el inmueble "+req.params.inmueble_uuid})
+        }else{
+            res.status(200).send({Info:"Inmueble encontrado", Data:foundProp})
+        }
     } catch (error) {
         console.warn(error.message)
-        res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
+        res.status(500).send({Error:"No se ha podido resolver la petición"})
     }
 }
 
@@ -40,9 +44,14 @@ const getAllProperties = async(req, res) =>{
     try {
         const allProp = await getItems('inmuebles');
         res.status(200).send({Info:"Inmuebles encontrados", Data:allProp})
+        if (!allProp){
+            res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
+        }else{
+            res.status(200).send({Info:"Inmueble encontrado", Data:foundProp})
+        }
     } catch (error) {
         console.warn(error.message)
-        res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
+        res.status(500).send({Error:"No se ha podido resolver la petición"})
     }
 }
 
@@ -53,12 +62,24 @@ const getAllProperties = async(req, res) =>{
  */
 const getUserProperties = async(req, res) =>{
     try {
-        const props = validatePropByUser(req.params)
-        const propsByUser = await findItem(props, 'inmuebles')
-        res.status(200).send({Info:"Inmueble mostrado", Data:propsByUser})
+        let propsByUser = undefined;
+        if(req.params.usr_casero_uuid==='all'){
+            console.log(`${req.params.usr_casero_uuid} es all`);
+            propsByUser = await findItem(validatePropByUser(req.params), 'inmuebles')
+        }else{
+            throw error;
+            // TODO + de un parámetro en where
+            // console.log(`${req.params.usr_casero_uuid} es numero`);
+            // propsByUser = await findItem(validatePropByUserAndProp(req.params), 'inmuebles')
+        }
+        if (!propsByUser){
+            res.status(404).send({Error:"No se ha encontrado el inmueble "+req.params.usr_casero_uuid})
+        }else{
+            res.status(200).send({Info:"Inmueble encontrado", Data:propsByUser})
+        }
     } catch (error) {
         console.warn(error.message)
-        res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
+        res.status(500).send({Error:"No se ha podido resolver la petición"})
     }
 }
 
@@ -88,12 +109,17 @@ const modifyProperty = async(req, res) =>{
  */
 const deleteProperty = async(req, res) =>{
     try{
-        let deleteProp = validatePropByProp(request.body)
-        const deletedProp = await dropItem(deleteProp, 'inmuebles')
-        res.status(200).send({info:"Inmueble eliminado", data:deletedProp})
+        let prop = validatePropByProp(req.body)
+        const deletedProp = await deleteItem(prop, 'inmuebles')
+        console.log(deletedProp);
+        if(deletedProp){
+            res.status(200).send({Info:"Inmueble eliminado", Delete:deletedProp})
+        }else{
+            res.status(404).send({Info:"El inmueble que quieres borrar no existe.", Delete:deletedProp})
+        }
     }catch(error){
         console.warn(error.message)
-        res.status(400).send("No se ha podido actualizar el inmueble")
+        res.status(400).send("No se ha podido eliminar el inmueble")
     }
 }
 
