@@ -8,7 +8,7 @@ const createNewProperty = async(req, res) =>{
     try {
         const newProp = validateNewProp(req.body)
         const createdProp = await save(newProp, 'inmuebles')
-        res.status(201).send({Info:"Inmueble creado",createdProp})
+        res.status(201).send({Info:"Inmueble creado",Data:createdProp})
     } catch (error) {
         console.warn(error.message)
         res.status(400).send({Error:"No se ha podido crear el inmueble"})
