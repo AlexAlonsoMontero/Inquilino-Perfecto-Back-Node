@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express')
-const { createAdvertisemenet, findAdvertisement } = require('./controllers/advertisementController')
+const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdvertisements, deleteAdvertisement } = require('./controllers/advertisementController')
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { validateAuthorization } = require('./controllers/generalControlers')
@@ -11,7 +11,8 @@ app.use(express.json())
 
 
 //ENDPOINTS ADVERTISEMENT
-const endpointAdv = "/api/adv";
+const endpointAdvByUuid = "/api/adv/:anuncio_uuid";
+const endpointAdv = '/api/adv/'
 //ENDPOINTS LOGIN
 const endpointLogin = '/login';
 //ENDPOINTS PROPERTIES
@@ -47,10 +48,11 @@ app.delete(endpointProperties, deleteProperty);
 
 
 // //ANUNCIOS
-// app.get(endpointAdv, findAdvertisement);
+app.get(endpointAdvByUuid, findAdvertisement);
 app.post(endpointAdv, createAdvertisemenet);
-// app.put(endpointAdv, modifyAdvertisement);
-// app.delete(endpointAdv, deleteAdvertisement);
+app.put(endpointAdvByUuid, modifyAdvertisement);
+app.get(endpointAdv, getAllAdvertisements);
+app.delete(endpointAdv, deleteAdvertisement);
 
 
 //REVIEWS

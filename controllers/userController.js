@@ -1,6 +1,6 @@
 require('dotenv').config()
 const { validateNewUser, validateUser, validateLogin, validateUpdateUser } = require('../validators/uservalidator')
-const { save, findItem, updateItem, dropItem } = require('../infrastructure/generalRepository')
+const { save, findItem, updateItem, deleteItem } = require('../infrastructure/generalRepository')
 const { selectUsersNoPass } = require('../infrastructure/userRepository')
 // const { findUser, findUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
@@ -118,7 +118,7 @@ const showUser = (request, response) => {
 const getUsers = async(request, response) => {
     try{
         const users = await selectUsersNoPass()
-        if(users.length >1){
+        if(users.length < 1){
             throw new Error ("No existen usuarios en la base de datos")
         }else{
             response.status(201).send({info:"Usuarios localizados", users})
@@ -163,7 +163,6 @@ const updateUser = async (request, response) => {
         const newUser = request.body
         validateUpdateUser(newUser)
         const oldUser = { user_uuid: request.auth.token.user_uuid }
-        console.log(request.auth.token.user_uuid)
         const consulta = await updateItem(newUser, oldUser, 'usuarios')
         response.statusCode = 200
         response.send({ info: "Usuario modificado", data: consulta })
@@ -183,10 +182,13 @@ const updateUser = async (request, response) => {
  */
 const deleteUser = async (request, response) => {
     try {
-        await dropItem(request.body,'usuarios')
+        const sentence = await deleteItem(request.body,'usuarios')
+        if(sentence){
         response.statusCode = 200
         response.send("Borrado de usuario realizado correctamente")
-
+        }else{
+            throw new Error ("No se ha eliminado el usuario")
+        }
     } catch (error) {
         response.statusCode = 400
         console.warn(error.message)
