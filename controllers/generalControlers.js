@@ -2,12 +2,12 @@
 const jwt = require('jsonwebtoken')
 const { findUserNoPass } = require('../infrastructure/userRepository')
 
+
 /**
- * 
- * @param {*} request 
- * @param {*} response 
- * @param {*} next 
- * @description validate user
+ * Middleware that's gonna determine if the user's is logged in
+ * @param {json} request json object coming from the petition url .auth contains the user token
+ * @param {json} response json object from the that contains more data
+ * @param {meth} next executes the following method
  */
 const validateAuthorization = async (request, response,next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {

@@ -48,19 +48,42 @@ const validatePropQP = (prop) => {
     }
 }
 
-const propByUserSchema = Joi.object({
+const allPropByUserSchema = Joi.object({
     usr_casero_uuid:Joi.string().guid({
         version: [
             'uuidv4',
             'uuidv5'
         ]
     }),
+    inmueble_uuid:Joi.string().valid('all').required()
 })
 const validatePropByUser = (prop) => {
-    if (!propByUserSchema.validate(prop).error) {
+    if (!allPropByUserSchema.validate(prop).error) {
         return prop
     } else {
-        throw propByUserSchema.validate(prop).error
+        throw allPropByUserSchema.validate(prop).error
+    }
+}
+
+const propByUserAndProp = Joi.object({
+    usr_casero_uuid:Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    }),
+    inmueble_uuid:Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    })
+})
+const validatePropByUserAndProp = (prop) => {
+    if (!propByUserAndProp.validate(prop).error) {
+        return prop
+    } else {
+        throw propByPropSchema.validate(prop).error
     }
 }
 
@@ -111,6 +134,7 @@ const validateUpdateProp = (prop) => {
 module.exports = {
     validateNewProp,
     validatePropByUser,
+    validatePropByUserAndProp,
     validateUpdateProp,
     validatePropQP,
     validatePropByProp

@@ -18,7 +18,7 @@ const endpointLogin = '/login';
 //ENDPOINTS PROPERTIES
 const endpointProperties = "/api/properties";
 const endpointPropertiesByProp = "/api/properties/:inmueble_uuid";
-const endpointPropertiesByUser = '/api/properties/:usr_casero_uuid';
+const endpointPropertiesByUser = '/api/properties/:usr_casero_uuid/:inmueble_uuid';
 //ENDPOINTS RESERVATIONS
 const endpointReservations = "/api/reservations";
 //ENDPOINTS REVIEWS
