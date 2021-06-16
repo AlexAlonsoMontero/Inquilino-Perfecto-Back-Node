@@ -16,6 +16,7 @@ const endpointAdv = "/api/adv";
 const endpointLogin = '/login';
 //ENDPOINTS PROPERTIES
 const endpointProperties = "/api/properties";
+const endpointPropertiesByProp = "/api/properties/:inmueble_uuid";
 const endpointPropertiesByUser = '/api/properties/:usr_casero_uuid';
 //ENDPOINTS RESERVATIONS
 const endpointReservations = "/api/reservations";
@@ -39,10 +40,11 @@ app.delete(endpointUser, deleteUser);
 
 
 //INMUEBLES
-app.get(endpointProperties, getProperty);
-app.post(endpointProperties, createNewProperty);
+app.get(endpointProperties, getAllProperties);
+app.get(endpointPropertiesByProp, getProperty);
 app.get(endpointPropertiesByUser, getUserProperties);
-app.put(endpointProperties, modifyProperty);
+app.post(endpointProperties, createNewProperty);
+app.put(endpointPropertiesByProp, modifyProperty);
 app.delete(endpointProperties, deleteProperty);
 
 
