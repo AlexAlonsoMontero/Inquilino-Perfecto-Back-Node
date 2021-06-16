@@ -44,9 +44,9 @@ const getAllProperties = async(req, res) =>{
  */
 const getUserProperties = async(req, res) =>{
     try {
-        const foundProps = validateProp(req.params.username)
-        const foundProps = await findItem(foundProps.usr_casero_uuid, 'inmuebles')
-        res.status(200).send({Info:"Inmueble mostrado", foundProps})
+        const props = validateProp(req.params.username)
+        const propsByUser = await findItem(props, 'inmuebles')
+        res.status(200).send({Info:"Inmueble mostrado", propsByUser})
     } catch (error) {
         console.warn(error.message)
         res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
