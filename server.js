@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express')
 const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdvertisements, deleteAdvertisement } = require('./controllers/advertisementController')
-const { createNewUser, login, showUser, updateUser, deleteUser, getUsers } = require ('./controllers/userController')
+const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { validateAuthorization } = require('./controllers/generalControlers')
 
@@ -15,6 +15,7 @@ const endpointAdvByUuid = "/api/adv/:anuncio_uuid";
 const endpointAdv = '/api/adv/'
 //ENDPOINTS LOGIN
 const endpointLogin = '/login';
+const endpointLogout = '/logout'
 //ENDPOINTS PROPERTIES
 const endpointProperties = "/api/properties";
 const endpointPropertiesByProp = "/api/properties/:inmueble_uuid";
@@ -29,7 +30,8 @@ const endpointUserProfile = "/api/users/:username"
 
 
 //RUTES
-app.post(endpointLogin,login)
+app.post(endpointLogin, login)
+app.post(endpointLogout, validateAuthorization, logout)
 
 
 //USUARIOS

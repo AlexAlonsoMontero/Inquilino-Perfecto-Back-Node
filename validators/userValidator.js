@@ -7,7 +7,7 @@ const { updateItem } = require('../infrastructure/generalRepository')
 /**
  * CREA LOS ESQUEMAS DE VALIDACIÓN Y LAS FUNCIONES CORRESPONDIENTES
  */
-
+//TODO REVISAR JOI PASSWORD
 //SCHEMAS
 const userSchema = Joi.object({
     user_uuid: Joi.string().guid({
@@ -16,7 +16,7 @@ const userSchema = Joi.object({
             'uuidv5'
         ]
     }),
-    username: Joi.string().min(8).max(64).required(),
+    username: Joi.string().alphanum().min(8).max(64).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
 })
@@ -28,7 +28,7 @@ const newUserSchema = Joi.object({
             'uuidv5'
         ]
     }),
-    username: Joi.string().min(8).max(64).required(),
+    username: Joi.string().alphanum().min(8).max(64).required(),
     password: Joi.string().min(8).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
@@ -36,7 +36,7 @@ const newUserSchema = Joi.object({
 
 
 const updateUserSchema =Joi.object({
-    username: Joi.string().min(8).max(64).required(),
+    username: Joi.string().alphanum().min(8).max(64).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
 })
