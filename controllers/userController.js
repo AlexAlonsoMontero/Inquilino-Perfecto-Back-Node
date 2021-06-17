@@ -6,7 +6,7 @@ const { selectUsersNoPass } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
-const { validateAuthorization } = require('./generalControlers')
+
 
 
 //********************************* POST  */
@@ -50,7 +50,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
 
     }
     try {
-        let user = await findItem(userLogin, 'usuarios')        
+        let user = await findItem(userLogin, 'usuarios')
         if (!user) {
             const error = new Error('No existe el usuario');
             console.warn('No existe el usuario entra aqui')
