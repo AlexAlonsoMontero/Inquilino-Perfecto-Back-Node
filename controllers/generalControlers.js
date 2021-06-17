@@ -1,6 +1,8 @@
 
+const { request, response } = require('express')
 const jwt = require('jsonwebtoken')
 const { findUserNoPass } = require('../infrastructure/userRepository')
+
 
 
 /**
@@ -9,7 +11,7 @@ const { findUserNoPass } = require('../infrastructure/userRepository')
  * @param {json} response json object from the that contains more data
  * @param {meth} next executes the following method
  */
-const validateAuthorization = async (request, response,next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
+const validateAuthorization = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {
 
         const { authorization } = request.headers
@@ -22,10 +24,12 @@ const validateAuthorization = async (request, response,next) => { //TEST .env SE
 
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
-        const [user]  = await findUserNoPass(decodedToken.user_uuid)
+        console.log(decodedToken)
+        const [user] = await findUserNoPass(decodedToken.user_uuid)
         response.statusCode = 200
         request.auth = { token: decodedToken, user }
-        
+        console.log(request.auth)
+
         next()
 
     } catch (error) {
@@ -34,9 +38,60 @@ const validateAuthorization = async (request, response,next) => { //TEST .env SE
     }
 }
 
+const validateRolAdmin = (request, response, next) => {
+    try{
+        if (request.auth.user.tipo === 'ADMIN'){
+            response.statusCode = 200
+            next()
+        }else{
+            const error = new Error('No tiene permioisos para realizar esta acción')
+            error.code = 401
+            throw error
+        }
+    }catch(error){
+        console.warn(error)
+        response.status(401).send('No tiene permioisos para realizar esta acción')
+    }
+    
+}
 
+const validateRolCasero =(requeset, response, next) => {
+    try{
+        if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'CASERO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
+            response.statusCode = 200
+            next()
+        }else{
+            const error = new Error('No tiene permioisos para realizar esta acción')
+            error.code = 401
+            throw error
+        }
+    }catch(error){
+        console.warn(error)
+        response.status(401).send('No tiene permioisos para realizar esta acción')
+    }
+}
+
+const validateRolInquilino = (request, response, next) => {
+    try{
+        if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
+            response.statusCode = 200
+            next()
+        }else{
+            const error = new Error('No tiene permioisos para realizar esta acción')
+            error.code = 401
+            throw error
+        }
+    }catch(error){
+        console.warn(error)
+        response.status(401).send('No tiene permioisos para realizar esta acción')
+    }
+
+}
 
 
 module.exports = {
     validateAuthorization,
+    validateRolAdmin,
+    // validateRolCasero,
+    // ValidateRolInquilino
 }

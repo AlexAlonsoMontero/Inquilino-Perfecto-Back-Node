@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken')
 const { response } = require('express')
 
 
+
 //********************************* POST  */
 /**
  * 
@@ -50,13 +51,13 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
     }
     try {
         let user = await findItem(userLogin, 'usuarios')
-        user = user[0]
         if (!user) {
             const error = new Error('No existe el usuario');
             console.warn('No existe el usuario entra aqui')
             error.code = 404
             throw error
         } else {
+            user = user[0   ]
             if (!await bcrypt.compare(request.body.password, user.password)) {
                 console.warn('Password incorrecto')
                 const error = new Error('El password es incorrecto')
@@ -197,7 +198,23 @@ const deleteUser = async (request, response) => {
 
 }
 
+const logout = (request, response) => {
+    try{
+        if (request.headers){
+            request.headers=undefined
+            request.body=undefined
+            console.log(request.headers)
+            response.status(200).send("Logout existoso")
+        }else{
+            throw new Error ("El usuario no est logado")
+        }
 
+        
+    }catch(error){
+        console.warn(error.message)
+        response.status(401).send("Logout incorrecto")
+    }
+}
 
 
 module.exports = {
@@ -208,7 +225,8 @@ module.exports = {
     findUser,
     filterUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    logout
 }
 
 

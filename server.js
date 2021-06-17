@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express')
 const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdvertisements, deleteAdvertisement } = require('./controllers/advertisementController')
-const { createNewUser, login, showUser, updateUser, deleteUser, getUsers } = require ('./controllers/userController')
+const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
-const { validateAuthorization } = require('./controllers/generalControlers')
+const { validateAuthorization,validateRolAdmin } = require('./controllers/generalControlers')
 
 
 const app = express()
@@ -15,6 +15,7 @@ const endpointAdvByUuid = "/api/adv/:anuncio_uuid";
 const endpointAdv = '/api/adv/'
 //ENDPOINTS LOGIN
 const endpointLogin = '/login';
+const endpointLogout = '/logout'
 //ENDPOINTS PROPERTIES
 const endpointProperties = "/api/properties";
 const endpointPropertiesByProp = "/api/properties/:inmueble_uuid";
@@ -29,15 +30,16 @@ const endpointUserProfile = "/api/users/:username"
 
 
 //RUTES
-app.post(endpointLogin,login)
+app.post(endpointLogin, login)
+app.post(endpointLogout, validateAuthorization, logout)
 
 
 //USUARIOS
 app.get(endpointUserProfile, validateAuthorization,showUser);
 app.post(endpointUser, createNewUser);
-app.get(endpointUser,getUsers)
+app.get(endpointUser,validateAuthorization, getUsers) 
 app.put(endpointUserProfile, validateAuthorization, updateUser);
-app.delete(endpointUser, deleteUser);
+app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
 
 
 //INMUEBLES

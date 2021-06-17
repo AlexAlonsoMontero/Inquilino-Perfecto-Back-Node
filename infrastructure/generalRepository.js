@@ -10,7 +10,6 @@ const save = async (entity, table) => {
     if (entity.password) {
         entity.password = bcrypt.hashSync(entity.password, 10)
     }
-
     const cont = Object.values(entity).length
     let cadena = '?'
     for (let i = 1; i < cont; i++) {
@@ -21,6 +20,7 @@ const save = async (entity, table) => {
     let sentencia = `INSERT INTO ${table} (${keys}) VALUES (${cadena})`
     const values = Object.values(entity).map(value => (typeof (value) === 'string' ? value = "'" + value + "'" : value))
     const consulta = await connection.query(sentencia, Object.values(entity))
+    
     return consulta[0][0]
 }
 
