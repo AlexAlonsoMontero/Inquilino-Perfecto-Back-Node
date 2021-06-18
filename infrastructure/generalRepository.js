@@ -20,7 +20,7 @@ const save = async (entity, table) => {
     let sentencia = `INSERT INTO ${table} (${keys}) VALUES (${cadena})`
     const values = Object.values(entity).map(value => (typeof (value) === 'string' ? value = "'" + value + "'" : value))
     const consulta = await connection.query(sentencia, Object.values(entity))
-    
+
     return consulta[0][0]
 }
 
@@ -43,16 +43,21 @@ const getItems = async (table) => {
  * @param {string} table srting name of the table where we are gonna search
  * @returns the query selected rows, otherwise 'undefined'
  */
-const findItem = async(item, table) => {
-    const connection = getConnection()
-    const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
-    const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
-    return rows.length > 0 ? rows : undefined
+const findItem = async (item, table) => {
+    try {
+        const connection = getConnection()
+        const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
+        const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
+        return rows.length > 0 ? rows : undefined
+    }catch(error){
+       console.warn(error.message) 
+    }
+    
 }
 
 //TODO REALIZAR BUSQUEDA POR VARIOS PARAMETROS EN EL WHERE
 //TODO VER FILTER PARA GENERAL Y USUARIOS
-const filterItem = async(item, table) => {}
+const filterItem = async (item, table) => { }
 
 /**
  * Generic update for every given entity
@@ -66,12 +71,12 @@ const updateItem = async (newItem, oldItem, table) => {
     let sentencia = `UPDATE ${table} SET `
     const numValues = Object.keys(newItem).length
     for (let i = 0; i < numValues; i++) {
-        sentencia += Object.keys(newItem)[i].toString() +"=?"
-        i<numValues-1 ? sentencia +="," : sentencia+=""
+        sentencia += Object.keys(newItem)[i].toString() + "=?"
+        i < numValues - 1 ? sentencia += "," : sentencia += ""
 
     }
     sentencia += ` WHERE ${Object.keys(oldItem)} =?`
-    const [rows,fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
+    const [rows, fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
     return rows
 }
 
@@ -82,11 +87,11 @@ const updateItem = async (newItem, oldItem, table) => {
  * @param {string} table name of the table where we are gonna delete
  * @returns if no deletion has been done FALSE, otherwise TRUE
  */
-const deleteItem = async(item, table)=>{
+const deleteItem = async (item, table) => {
     const connection = getConnection()
     const sentencia = `DELETE FROM ${table} WHERE ${Object.keys(item)}=?`
-    const consulta = await connection.query(sentencia,Object.values(item))
-    return (consulta[0].affectedRows > 0 ? true : false )
+    const consulta = await connection.query(sentencia, Object.values(item))
+    return (consulta[0].affectedRows > 0 ? true : false)
 }
 
 

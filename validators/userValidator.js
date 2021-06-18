@@ -35,8 +35,16 @@ const newUserSchema = Joi.object({
 })
 
 
-const updateUserSchema =Joi.object({
+const updateUserSchemaNoPass =Joi.object({
     username: Joi.string().alphanum().min(8).max(64).required(),
+    email: Joi.string().email({ minDomainSegments: 2 }).required(),
+    tipo: Joi.string()
+})
+
+
+const updateUserForAdminSchema = Joi.object({
+    username: Joi.string().alphanum().min(8).max(64).required(),
+    password: Joi.string().min(8).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
 })
@@ -50,7 +58,6 @@ const loginSchema = Joi.object({
 const validateNewUser =(object) => {
     object.user_uuid = v4()
     if (!newUserSchema.validate(object).error) {
-        
         return object
     } else {
         throw newUserSchema.validate(object).error
@@ -58,34 +65,22 @@ const validateNewUser =(object) => {
 
 }
 
-const validateUser = (object) => {
-    if (!userSchema.validate(object).error) {
-        
-        return object
-    } else {
-        throw userSchema.validate(object).error
-    }
-}
 
-const validateUpdateUser = (user) =>{
-    if(!updateUserSchema.validate(user).error){
-        return user
-    }else{
-        throw updateUserSchema.validate(user).error
-    }
-}
-
-
-
-
-const validateLogin = (user) => {
-    if (!loginSchema.validate(user).error) {
+const genericValidateUser = (user,schema) =>{
+    if (!schema.validate(user).error) {
         return user
     } else {
-        throw loginSchema.validate(user).error
-
+        throw schema.validate(user).error
     }
 }
+
+
+
+//Funciones validate llaman al a función genérica  validateUser para evitar la redundancia de código
+const validateUser = user =>  genericValidateUser(user,userSchema)
+const validateUpdateUser = user => genericValidateUser(user,updateUserSchemaNoPass)
+const validateLogin = user => genericValidateUser(user, loginSchema)
+const validateAdminUpdateUser = user => genericValidateUser(user,updateUserForAdminSchema)
 
 
 
@@ -94,5 +89,6 @@ module.exports = {
     validateNewUser,
     validateUser,
     validateLogin,
-    validateUpdateUser
+    validateUpdateUser,
+    validateAdminUpdateUser
 }
