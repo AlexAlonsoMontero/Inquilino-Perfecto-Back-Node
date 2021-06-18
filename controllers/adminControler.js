@@ -30,7 +30,6 @@ const updateUserForAdmin = async (request, response) => {
 const getUsersForAdmin = async(request, response) => {
     try{
         let users=""
-        console.log(request.query)
         if(Object.keys(request.query).length===0){
             users = await getItems('usuarios')
         }else{

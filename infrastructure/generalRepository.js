@@ -33,7 +33,6 @@ const getItems = async (table) => {
     const sentencia = `SELECT * FROM ${table}`
     const connection = getConnection()
     const consulta = await connection.query(sentencia)
-    console.log(consulta[0])
     return consulta[0]
 
 }
