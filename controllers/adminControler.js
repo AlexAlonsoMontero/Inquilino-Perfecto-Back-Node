@@ -1,0 +1,53 @@
+require('dotenv').config()
+const bcrypt = require('bcryptjs')
+const { validateAdminUpdateUser } = require('../validators/userValidator')
+const { updateItem, findItem, getItems } = require('../infrastructure/generalRepository')
+/**
+ * 
+ * @param {newUser,uuidOlduiser} request 
+ * @param {*} response 
+ * @description Update user in BD
+ */
+const updateUserForAdmin = async (request, response) => {
+    try {
+
+        const newUser = request.body.newUser
+        validateAdminUpdateUser(newUser)
+        newUser.password = bcrypt.hashSync(newUser.password)
+        const oldUser = { user_uuid: request.auth.token.user_uuid }
+        const consulta = await updateItem(request.body.newUser, request.body.oldUser,'usuarios')
+        response.statusCode = 200
+        response.send({ info: "Usuario modificado", data: consulta })
+    } catch (error) {
+        response.statusCode = 400
+        console.warn(error.message)
+        response.send("No se ha podido actualizar el usuario")
+    }
+
+}
+
+
+const getUsersForAdmin = async(request, response) => {
+    try{
+        let users=""
+        if(Object.keys(request.query).length===0){
+            
+            users = await getItems('usuarios')
+            console.log("entra")
+        }else{
+            users = await findItem(request.query,'usuarios')
+        }
+        
+        response.status(200).send({ info: "Usuarios localizados",   data: users})
+
+    }catch(error){
+        console.warn(error.message)
+        response.status(400).response.send("No se han localizado usuarios por los parametros sollicitados")
+    }
+}
+
+
+module.exports = {
+    updateUserForAdmin,
+    getUsersForAdmin
+}
