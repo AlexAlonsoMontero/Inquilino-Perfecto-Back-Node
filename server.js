@@ -31,6 +31,7 @@ const endpointUserProfile = "/api/users/:username"
 //ENDPOINTS ADMIN USER
 const endpointAdminUsers='/api/admin/users'
 //RUTES
+
 app.post(endpointLogin, login)
 app.post(endpointLogout, validateAuthorization, logout)
 
