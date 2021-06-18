@@ -47,6 +47,8 @@ app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
 //USUARIOS
 app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser)
 app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin)
+app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser)
+
 
 //INMUEBLES
 
