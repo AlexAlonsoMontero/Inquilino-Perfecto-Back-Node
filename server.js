@@ -27,7 +27,8 @@ const endpointReviews = "/api/reviews";
 //ENDPOINTS USER
 const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
-
+//ENDPOINTS ADMIN USER
+const endpointAdminCreateUser='/api/users/admin'
 
 //RUTES
 app.post(endpointLogin, login)
@@ -40,6 +41,23 @@ app.post(endpointUser, createNewUser);
 app.get(endpointUser,validateAuthorization, getUsers) 
 app.put(endpointUserProfile, validateAuthorization, updateUser);
 app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
+
+
+//************************************USER ADMIN
+//USUARIOS
+app.post(endpointAdminCreateUser,validateAuthorization, validateRolAdmin, createNewUser)
+
+
+//INMUEBLES
+
+
+
+//RESEÑAS
+
+
+//************************************************ */
+
+
 
 
 //INMUEBLES
