@@ -30,15 +30,18 @@ const updateUserForAdmin = async (request, response) => {
 const getUsersForAdmin = async(request, response) => {
     try{
         let users=""
+        console.log(request.query)
         if(Object.keys(request.query).length===0){
-            
             users = await getItems('usuarios')
-            console.log("entra")
         }else{
             users = await findItem(request.query,'usuarios')
         }
-        
-        response.status(200).send({ info: "Usuarios localizados",   data: users})
+        if(!users){
+            console.warn("No se ha localizado usuario")
+            response.status(400).send("No existen usuarios para los parametros de búsqueda")
+        }else{
+            response.status(200).send({ info: "Usuarios localizados",   data: users})
+        }
 
     }catch(error){
         console.warn(error.message)
