@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const { getConnection } = require('./bd/db')
-
+const connection = getConnection()
 /**
  * CREA la entidad dado en la BDD
  * @param {json} entity json correspondiente al dato a insertar
@@ -16,7 +16,6 @@ const save = async (entity, table) => {
         cadena = cadena + ', ?'
     }
     const keys = Object.keys(entity).toString()
-    const connection = getConnection()
     let sentencia = `INSERT INTO ${table} (${keys}) VALUES (${cadena})`
     const values = Object.values(entity).map(value => (typeof (value) === 'string' ? value = "'" + value + "'" : value))
     const consulta = await connection.query(sentencia, Object.values(entity))
@@ -31,7 +30,6 @@ const save = async (entity, table) => {
  */
 const getItems = async (table) => {
     const sentencia = `SELECT * FROM ${table}`
-    const connection = getConnection()
     const consulta = await connection.query(sentencia)
     return consulta[0]
 
@@ -45,7 +43,6 @@ const getItems = async (table) => {
  */
 const findItem = async (item, table) => {
     try {
-        const connection = getConnection()
         const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
         const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
         return rows.length > 0 ? rows : undefined
@@ -67,7 +64,6 @@ const filterItem = async (item, table) => { }
  * @returns ??
  */
 const updateItem = async (newItem, oldItem, table) => {
-    const connection = getConnection()
     let sentencia = `UPDATE ${table} SET `
     const numValues = Object.keys(newItem).length
     for (let i = 0; i < numValues; i++) {
@@ -88,11 +84,67 @@ const updateItem = async (newItem, oldItem, table) => {
  * @returns if no deletion has been done FALSE, otherwise TRUE
  */
 const deleteItem = async (item, table) => {
-    const connection = getConnection()
     const sentencia = `DELETE FROM ${table} WHERE ${Object.keys(item)}=?`
     const consulta = await connection.query(sentencia, Object.values(item))
     return (consulta[0].affectedRows > 0 ? true : false)
 }
+
+//CONSULTAS AVANZADAS
+
+/**
+ * 
+ * @param {object json} params 
+ * @param {string} table 
+ * @returns Array Object
+ * @description Searchess in a table ny multiple parameters
+ */
+const getItemsMultiParams = async(params, table) => {
+    try{
+
+        const sentence = `SELECT * FROM ${table} ` + whereCreator(params)
+        console.log(sentence)
+        console.log(Object.values(params))
+        const rows = await connection.query(sentence,Object.values(params))
+        console.log(rows[0])
+        return rows[0]
+
+    }catch(error){
+        console.warn(error.message)
+    }
+}
+
+/**
+ * 
+ * @param {object json} params 
+ * @returns string
+ * @description return where for SQL query
+ */
+const whereCreator = (params) => {
+    let key, operator, aux =""
+    let sentence = 'WHERE '
+    for (let i = 0; i< Object.keys(params).length; i++){
+        key = Object.keys(params)[i]
+        if(key.split('_')){
+            aux = key.split('_')[0]
+            if (aux ==="from"){
+                operator='>'
+            }else if(aux==="until"){
+                operator='<'
+            }else{
+                operator='='
+            }
+        }
+
+        if(i===0){
+            sentence += `${Object.keys(params)[i]} ${operator} ?`
+        }else{
+            sentence += ` AND ${Object.keys(params)[i]} ${operator} ?`
+        }
+    }
+    return sentence
+
+}
+
 
 
 module.exports = {
@@ -101,6 +153,7 @@ module.exports = {
     findItem,
     filterItem,
     updateItem,
-    deleteItem
+    deleteItem,
+    getItemsMultiParams
 }
 

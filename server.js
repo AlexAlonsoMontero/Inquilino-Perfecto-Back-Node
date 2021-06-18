@@ -3,9 +3,8 @@ const express = require('express')
 const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdvertisements, deleteAdvertisement } = require('./controllers/advertisementController')
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
-const { validateAuthorization,validateRolAdmin } = require('./controllers/generalControlers')
+const { validateAuthorization,validateRolAdmin, searchMultiParams } = require('./controllers/generalControlers')
 const { updateUserForAdmin, getUsersForAdmin } = require('./controllers/adminControler')
-
 
 const app = express()
 app.use(express.json())
@@ -30,6 +29,11 @@ const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
 //ENDPOINTS ADMIN USER
 const endpointAdminUsers='/api/admin/users'
+//ENDPOSINTS SEARCHER
+const endpointGenericSearcher='/search'
+
+
+
 //RUTES
 
 app.post(endpointLogin, login)
@@ -95,6 +99,9 @@ app.delete(endpointAdv, deleteAdvertisement);
 // app.post(endpointReservations, cretateNewReservation);
 // app.put(endpointReservations, modifyReservation);
 // app.delete(endpointReservations, deleteReservation);
+
+//SEARCHER
+app.get(endpointGenericSearcher, searchMultiParams)
 
 
 let port = process.env.WEB_PORT

@@ -2,6 +2,7 @@
 const { request, response } = require('express')
 const jwt = require('jsonwebtoken')
 const { findUserNoPass } = require('../infrastructure/userRepository')
+const { getItemsMultiParams } = require('../infrastructure/generalRepository')
 
 
 
@@ -85,10 +86,28 @@ const validateRolInquilino = (request, response, next) => {
 
 }
 
+const searchMultiParams = async(request, response) => {
+    try{
+        const result = await getItemsMultiParams(request.query,'usuarios')
+        if(result.length >0){
+            response.status(200).send({ info: "Busqueda ok", data: result })
+        }else{
+            new Error ("No se han encontrado resultados para la búsqueda")
+            throw error
+        }
+
+    }catch(error){
+        console.warn(error.message)
+        response.status(400).send("No se han encontrado resultados para la búsqueda")
+    }
+
+}
+
 
 module.exports = {
     validateAuthorization,
     validateRolAdmin,
     // validateRolCasero,
     // ValidateRolInquilino
+    searchMultiParams
 }
