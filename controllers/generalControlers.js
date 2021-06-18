@@ -24,12 +24,9 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
 
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
-        console.log(decodedToken)
         const [user] = await findUserNoPass(decodedToken.user_uuid)
         response.statusCode = 200
         request.auth = { token: decodedToken, user }
-        console.log(request.auth)
-
         next()
 
     } catch (error) {

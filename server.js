@@ -4,6 +4,7 @@ const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdve
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { validateAuthorization,validateRolAdmin } = require('./controllers/generalControlers')
+const { updateUserForAdmin } = require('./controllers/adminControler')
 
 
 const app = express()
@@ -28,8 +29,7 @@ const endpointReviews = "/api/reviews";
 const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
 //ENDPOINTS ADMIN USER
-const endpointAdminCreateUser='/api/users/admin'
-
+const endpointAdminUsers='/api/admin/users'
 //RUTES
 app.post(endpointLogin, login)
 app.post(endpointLogout, validateAuthorization, logout)
@@ -45,8 +45,8 @@ app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
 
 //************************************USER ADMIN
 //USUARIOS
-app.post(endpointAdminCreateUser,validateAuthorization, validateRolAdmin, createNewUser)
-
+app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser)
+app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin)
 
 //INMUEBLES
 

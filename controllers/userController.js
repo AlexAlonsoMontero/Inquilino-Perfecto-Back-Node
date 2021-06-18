@@ -2,7 +2,6 @@ require('dotenv').config()
 const { validateNewUser, validateUser, validateLogin, validateUpdateUser } = require('../validators/userValidator')
 const { save, findItem, updateItem, deleteItem } = require('../infrastructure/generalRepository')
 const { selectUsersNoPass } = require('../infrastructure/userRepository')
-// const { findUser, findUserBDD, updateUser, dropUser } = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { response } = require('express')
@@ -174,6 +173,9 @@ const updateUser = async (request, response) => {
     }
 }
 
+
+
+
 //********************************* DELETE */
 /**
  * 
@@ -203,7 +205,7 @@ const logout = (request, response) => {
         if (request.headers){
             request.headers=undefined
             request.body=undefined
-            console.log(request.headers)
+            
             response.status(200).send("Logout existoso")
         }else{
             throw new Error ("El usuario no est logado")
@@ -215,6 +217,11 @@ const logout = (request, response) => {
         response.status(401).send("Logout incorrecto")
     }
 }
+
+
+
+
+
 
 
 module.exports = {
