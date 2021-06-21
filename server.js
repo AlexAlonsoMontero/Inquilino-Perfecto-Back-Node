@@ -29,7 +29,7 @@ const endpointReservations = "/api/reservations";
 //ENDPOINTS REVIEWS
 const endpointReviews = "/api/reviews";
 //ENDPOSINTS SEARCHER
-const endpointGenericSearcher='/search'
+const endpointGenericSearcher='/search/:table'
 //ENDPOINTS USER
 const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
@@ -71,19 +71,18 @@ app.delete(endpointProperties, deleteProperty);
 
 //ANUNCIOS
 app.get(endpointAdvAdmin, validateAuthorization, validateRolAdmin, getAllAdvertisements);
-app.get(enpointAdvByUser, getAdvertisementByUser);
-app.get(enpointAdvByUser, getAdvertisementByUser);
-app.get(enpointAdvByAdv, getAdvertisementByAdv);
-app.get(endpointAdv, getAllVisibleAdvertisements);
-app.post(endpointAdv, createAdvertisemenet);
-app.put(enpointAdvByAdv, modifyAdvertisement);
-app.delete(endpointAdv, deleteAdvertisement);
+// app.get(enpointAdvByUser, getAdvertisementByUser);
+// app.get(enpointAdvByAdv, getAdvertisementByAdv);
+// app.get(endpointAdv, getAllVisibleAdvertisements);
+// app.post(endpointAdv, createAdvertisemenet);
+// app.put(enpointAdvByAdv, modifyAdvertisement);
+// app.delete(endpointAdv, deleteAdvertisement);
 
 
 
 //RESERVAS
-app.get(endpointAdminReservations, getAllReservations);
-app.get(endpointReservationsUsers, getReservation);
+// app.get(endpointAdminReservations, getAllReservations);
+// app.get(endpointReservationsUsers, getReservation);
 // app.post(endpointReservations, cretateNewReservation);
 // app.put(endpointReservations, modifyReservation);
 // app.delete(endpointReservations, deleteReservation);

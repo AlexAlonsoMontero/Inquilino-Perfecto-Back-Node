@@ -88,11 +88,11 @@ const validateRolInquilino = (request, response, next) => {
 
 const searchMultiParams = async(request, response) => {
     try{
-        const result = await getItemsMultiParams(request.query,'usuarios')
+        const result = await getItemsMultiParams(request.query,request.params.table)
         if(result.length >0){
             response.status(200).send({ info: "Busqueda ok", data: result })
         }else{
-            new Error ("No se han encontrado resultados para la búsqueda")
+            const error = new Error ("No se han encontrado resultados para la búsqueda")
             throw error
         }
 
