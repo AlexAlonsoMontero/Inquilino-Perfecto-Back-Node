@@ -46,10 +46,10 @@ const findItem = async (item, table) => {
         const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
         const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
         return rows.length > 0 ? rows : undefined
-    }catch(error){
-       console.warn(error.message) 
+    } catch (error) {
+        console.warn(error.message)
     }
-    
+
 }
 
 //TODO REALIZAR BUSQUEDA POR VARIOS PARAMETROS EN EL WHERE
@@ -98,17 +98,15 @@ const deleteItem = async (item, table) => {
  * @returns Array Object
  * @description Searchess in a table ny multiple parameters
  */
-const getItemsMultiParams = async(params, table) => {
-    try{
-
+const getItemsMultiParams = async (params, table) => {
+    try {
+        console.log(table)
         const sentence = `SELECT * FROM ${table} ` + whereCreator(params)
-        console.log(sentence)
-        console.log(Object.values(params))
-        const rows = await connection.query(sentence,Object.values(params))
-        console.log(rows[0])
+        const rows = await connection.query(sentence, Object.values(params))
+
         return rows[0]
 
-    }catch(error){
+    } catch (error) {
         console.warn(error.message)
     }
 }
@@ -120,28 +118,35 @@ const getItemsMultiParams = async(params, table) => {
  * @description return where for SQL query
  */
 const whereCreator = (params) => {
-    let key, operator, aux =""
+    let key, operator, aux = ""
+    let queryKeys = []
     let sentence = 'WHERE '
-    for (let i = 0; i< Object.keys(params).length; i++){
+    for (let i = 0; i < Object.keys(params).length; i++) {
         key = Object.keys(params)[i]
-        if(key.split('_')){
-            aux = key.split('_')[0]
-            if (aux ==="from"){
-                operator='>'
-            }else if(aux==="until"){
-                operator='<'
-            }else{
-                operator='='
+        if (key.split('-').length > 1) {
+            aux = key.split('-')[0]
+            if (aux === "from") {
+                queryKeys.push([key.split('-')[1]])
+                operator = '>='
+            } else if (aux === "until") {
+                
+                queryKeys.push([key.split('-')[1]])
+                operator = '<='
             }
+        } else {
+            operator = '='
+            queryKeys.push(key)
+            
         }
 
-        if(i===0){
-            sentence += `${Object.keys(params)[i]} ${operator} ?`
-        }else{
-            sentence += ` AND ${Object.keys(params)[i]} ${operator} ?`
+        if (i === 0) {
+            sentence += `${queryKeys[i]} ${operator} ?`
+        } else {
+            sentence += ` AND ${queryKeys[i]} ${operator} ?`
         }
     }
-    return sentence
+
+return sentence
 
 }
 
