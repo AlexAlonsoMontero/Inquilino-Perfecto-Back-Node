@@ -120,6 +120,7 @@ const propUpdateSchema = Joi.object({
             'uuidv5'
         ]
     }).required(),
+    disponibilidad:Joi.boolean(),
     direccion:Joi.string(),
     metros_2:Joi.number().positive()
 })

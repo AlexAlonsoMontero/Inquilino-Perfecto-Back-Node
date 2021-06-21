@@ -14,7 +14,9 @@ const newAdvertisementSchema = Joi.object({
             'uuidv4'
         ]
     }),
-    fecha_inicio: Joi.date().format(["DD-MM-YYYY"],["YYYY-MM-DD"])
+    fecha_disponibilidad: Joi.date().format(["DD-MM-YYYY"],["YYYY-MM-DD"]),
+    fecha_inicio: Joi.date().format(["DD-MM-YYYY"],["YYYY-MM-DD"]),
+    fecha_fin: Joi.date().format(["DD-MM-YYYY"],["YYYY-MM-DD"])
 })
 
 //TODO VALICADIOENS ADVERTISESMENTE
@@ -26,7 +28,10 @@ const advertisementUpdateScheme = Joi.object({
 
 /*TODO Crear método para, ajustar la hora a la local si hacen la consulta desde otro sitio y validar que hay que restarle 1 al mes */
 const validateNewAdevertisement = (advertisement)=>{
-    advertisement.fecha_inicio  = format(new Date(advertisement.fecha_inicio.year, advertisement.fecha_inicio.month-1, advertisement.fecha_inicio.day),"yyyy-MM-dd")
+    advertisement.fecha_inicio = 
+        format(
+            new Date(advertisement.fecha_inicio.year, advertisement.fecha_inicio.month-1, advertisement.fecha_inicio.day),
+            "YYYY-MM-DD")
     return newAdvertisementSchema.validate(advertisement) ? advertisement : newAdvertisementSchema.validate(advertisement).error
 }
 

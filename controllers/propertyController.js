@@ -43,11 +43,10 @@ const getProperty = async(req, res) =>{
 const getAllProperties = async(req, res) =>{
     try {
         const allProp = await getItems('inmuebles');
-        res.status(200).send({Info:"Inmuebles encontrados", Data:allProp})
         if (!allProp){
             res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
         }else{
-            res.status(200).send({Info:"Inmueble encontrado", Data:foundProp})
+            res.status(200).send({Info:"Inmueble encontrado", Data:allProp})
         }
     } catch (error) {
         console.warn(error.message)
@@ -63,10 +62,10 @@ const getAllProperties = async(req, res) =>{
 const getUserProperties = async(req, res) =>{
     try {
         let propsByUser = undefined;
-        if(req.params.usr_casero_uuid==='all'){
-            console.log(`${req.params.usr_casero_uuid} es all`);
+        if(req.params.inmueble_uuid==='all'){
             propsByUser = await findItem(validatePropByUser(req.params), 'inmuebles')
         }else{
+            console.warn('Necesito método SELECT CON VARIOS PARÁMETROS')
             throw error;
             // TODO + de un parámetro en where
             // console.log(`${req.params.usr_casero_uuid} es numero`);
@@ -91,9 +90,7 @@ const getUserProperties = async(req, res) =>{
 const modifyProperty = async(req, res) =>{
     try{
         let modifyProp = validatePropByProp(req.params)
-        console.log(modifyProp);
         let newProp = validateUpdateProp(req.body)
-        console.log(newProp);
         const updatedProp = await updateItem(newProp, modifyProp,'inmuebles')
         res.status(200).send({Info:"Inmueble modificado", Data:updatedProp})
     }catch(error){
@@ -111,7 +108,6 @@ const deleteProperty = async(req, res) =>{
     try{
         let prop = validatePropByProp(req.body)
         const deletedProp = await deleteItem(prop, 'inmuebles')
-        console.log(deletedProp);
         if(deletedProp){
             res.status(200).send({Info:"Inmueble eliminado", Delete:deletedProp})
         }else{
