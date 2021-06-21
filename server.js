@@ -10,8 +10,12 @@ const app = express()
 app.use(express.json())
 
 
+//ENDPOINTS ADMIN USER
+const endpointAdvAdmin = '/api/admin/adv'
+const endpointAdminUsers='/api/admin/users'
 //ENDPOINTS ADVERTISEMENT
-const endpointAdvByUuid = "/api/adv/:anuncio_uuid";
+const enpointAdvByUser = "/api/adv/:usr_casero_uuid/:estado";
+const enpointAdvByAdv = "/api/adv/:anuncio_uuid";
 const endpointAdv = '/api/adv/'
 //ENDPOINTS LOGIN
 const endpointLogin = '/login';
@@ -24,13 +28,11 @@ const endpointPropertiesByUser = '/api/properties/:usr_casero_uuid/:inmueble_uui
 const endpointReservations = "/api/reservations";
 //ENDPOINTS REVIEWS
 const endpointReviews = "/api/reviews";
+//ENDPOSINTS SEARCHER
+const endpointGenericSearcher='/search'
 //ENDPOINTS USER
 const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
-//ENDPOINTS ADMIN USER
-const endpointAdminUsers='/api/admin/users'
-//ENDPOSINTS SEARCHER
-const endpointGenericSearcher='/search'
 
 
 
@@ -43,30 +45,17 @@ app.post(endpointLogout, validateAuthorization, logout)
 //USUARIOS
 app.get(endpointUserProfile, validateAuthorization,showUser);
 app.post(endpointUser, createNewUser);
-app.get(endpointUser,validateAuthorization, getUsers) 
+app.get(endpointUser,validateAuthorization, getUsers);
 app.put(endpointUserProfile, validateAuthorization, updateUser);
 app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
 
 
-//************************************USER ADMIN
-//USUARIOS
+
+//USER ADMIN
 app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser)
 app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin)
 app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser)
 app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin)
-
-
-
-
-//INMUEBLES
-
-
-
-//RESEÑAS
-
-
-//************************************************ */
-
 
 
 
@@ -79,12 +68,26 @@ app.put(endpointPropertiesByProp, modifyProperty);
 app.delete(endpointProperties, deleteProperty);
 
 
-// //ANUNCIOS
-app.get(endpointAdvByUuid, findAdvertisement);
+
+//ANUNCIOS
+app.get(endpointAdvAdmin, validateAuthorization, validateRolAdmin, getAllAdvertisements);
+app.get(enpointAdvByUser, getAdvertisementByUser);
+app.get(enpointAdvByUser, getAdvertisementByUser);
+app.get(enpointAdvByAdv, getAdvertisementByAdv);
+app.get(endpointAdv, getAllVisibleAdvertisements);
 app.post(endpointAdv, createAdvertisemenet);
-app.put(endpointAdvByUuid, modifyAdvertisement);
-app.get(endpointAdv, getAllAdvertisements);
+app.put(enpointAdvByAdv, modifyAdvertisement);
 app.delete(endpointAdv, deleteAdvertisement);
+
+
+
+//RESERVAS
+app.get(endpointAdminReservations, getAllReservations);
+app.get(endpointReservationsUsers, getReservation);
+// app.post(endpointReservations, cretateNewReservation);
+// app.put(endpointReservations, modifyReservation);
+// app.delete(endpointReservations, deleteReservation);
+
 
 
 //REVIEWS
@@ -94,14 +97,10 @@ app.delete(endpointAdv, deleteAdvertisement);
 // app.delete(endpointReviews, deleteReview);
 
 
-//RESERVAS
-// app.get(endpointReservations, getReservation);
-// app.post(endpointReservations, cretateNewReservation);
-// app.put(endpointReservations, modifyReservation);
-// app.delete(endpointReservations, deleteReservation);
 
 //SEARCHER
 app.get(endpointGenericSearcher, searchMultiParams)
+
 
 
 let port = process.env.WEB_PORT
