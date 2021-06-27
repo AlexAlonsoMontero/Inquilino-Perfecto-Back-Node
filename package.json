@@ -1,14 +1,8 @@
 {
-  "name": "proyecto2",
+  "name": "web_project_inquilinoperfecto",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js",
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "ISC",
+  "description": "",
+  "main": "server.js",
   "dependencies": {
     "@joi/date": "^2.1.0",
     "bcrypt": "^5.0.1",
@@ -16,22 +10,28 @@
     "date-fns": "^2.22.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "jasonwbetoken": "^6.0.0",
     "joi": "^17.4.0",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.2.5",
+    "mysql2-promise": "^0.1.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
   },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto.git"
   },
+  "author": "",
+  "license": "ISC",
   "bugs": {
     "url": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto/issues"
   },
-  "homepage": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto#readme",
-  "description": ""
+  "homepage": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto#readme"
 }

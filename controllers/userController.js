@@ -56,7 +56,7 @@ const login = async (request, response, next) => {//TODO Ver la posibilidad de a
             error.code = 404
             throw error
         } else {
-            user = user[0   ]
+            user = user[0]
             if (!await bcrypt.compare(request.body.password, user.password)) {
                 console.warn('Password incorrecto')
                 const error = new Error('El password es incorrecto')
