@@ -3,7 +3,7 @@ const express = require('express')
 const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdvertisements, deleteAdvertisement } = require('./controllers/advertisementController')
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
-const { validateAuthorization,validateRolAdmin, searchMultiParams } = require('./controllers/generalControlers')
+const { validateAuthorization,validateRolAdmin, searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControlers')
 const { updateUserForAdmin, getUsersForAdmin } = require('./controllers/adminControler')
 
 const app = express()
@@ -30,6 +30,7 @@ const endpointReservations = "/api/reservations";
 const endpointReviews = "/api/reviews";
 //ENDPOSINTS SEARCHER
 const endpointGenericSearcher='/search/:table'
+const endpointGenericMultiSearcher='/searches/:table1/:table2'
 //ENDPOINTS USER
 const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
@@ -99,6 +100,7 @@ app.get(endpointAdvAdmin, validateAuthorization, validateRolAdmin, getAllAdverti
 
 //SEARCHER
 app.get(endpointGenericSearcher, searchMultiParams)
+app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
 
 
 

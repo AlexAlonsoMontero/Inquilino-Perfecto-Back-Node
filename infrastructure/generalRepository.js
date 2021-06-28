@@ -111,6 +111,20 @@ const getItemsMultiParams = async (params, table) => {
     }
 }
 
+const getItemsMultiTable = async( {table1, table2}, params) =>{
+    const sentence = `SELECT * FROM ${table1}`+
+                        ` INNER JOIN ${table2} ON ${table1}.${params.t1key} = ${table2}.${params.t2key}`
+    console.log(sentence)
+    const rows = await connection.query(sentence)
+    console.log(rows[0])
+    return rows[0]
+    
+}
+
+
+
+
+
 /**
  * 
  * @param {object json} params 
@@ -159,6 +173,7 @@ module.exports = {
     filterItem,
     updateItem,
     deleteItem,
-    getItemsMultiParams
+    getItemsMultiParams,
+    getItemsMultiTable
 }
 
