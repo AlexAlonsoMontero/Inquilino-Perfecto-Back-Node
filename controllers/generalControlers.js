@@ -2,7 +2,7 @@
 const { request, response } = require('express')
 const jwt = require('jsonwebtoken')
 const { findUserNoPass } = require('../infrastructure/userRepository')
-const { getItemsMultiParams } = require('../infrastructure/generalRepository')
+const { getItemsMultiParams, getItemsMultiTable } = require('../infrastructure/generalRepository')
 
 
 
@@ -103,11 +103,24 @@ const searchMultiParams = async(request, response) => {
 
 }
 
+const searchMultiTableMultiParams  = async(request,response) =>{
+    try{
+        const result = await getItemsMultiTable(request.params, request.query)
+        response.status(200).send({info: "Datos localizados",data: result})
+    }catch(error){
+        // console.warn(error.message)
+        response.status(401).send("No se ha localizado los datos solicitados")
+    }
+    
+}
+
+
 
 module.exports = {
     validateAuthorization,
     validateRolAdmin,
     // validateRolCasero,
     // ValidateRolInquilino
-    searchMultiParams
+    searchMultiParams,
+    searchMultiTableMultiParams
 }
