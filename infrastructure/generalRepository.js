@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs')
-const { getConnection } = require('./bd/db')
+const {
+    getConnection
+} = require('./bd/db')
 const connection = getConnection()
 /**
  * CREA la entidad dado en la BDD
@@ -54,7 +56,7 @@ const findItem = async (item, table) => {
 
 //TODO REALIZAR BUSQUEDA POR VARIOS PARAMETROS EN EL WHERE
 //TODO VER FILTER PARA GENERAL Y USUARIOS
-const filterItem = async (item, table) => { }
+const filterItem = async (item, table) => {}
 
 /**
  * Generic update for every given entity
@@ -111,14 +113,21 @@ const getItemsMultiParams = async (params, table) => {
     }
 }
 
-const getItemsMultiTable = async( {table1, table2}, params) =>{
-    const sentence = `SELECT * FROM ${table1}`+
-                        ` INNER JOIN ${table2} ON ${table1}.${params.t1key} = ${table2}.${params.t2key}`
+const getItemsMultiTable = async ({table1,table2, t1key, t2key}, params) => {
+    let rows =""
+    let sentence = `SELECT * FROM ${table1}` +
+                    ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
+    if( Object.keys(params).length === 0){console.log("entra")
     console.log(sentence)
-    const rows = await connection.query(sentence)
-    console.log(rows[0])
-    return rows[0]
+        rows = await connection.query(sentence)
+    }else{
+        const whereCondition = whereCreator(params)
+        sentence += whereCondition
+        rows= await connection.query(sentence,Object.values(Object.values(params)))
+        
+    }
     
+    return rows[0]
 }
 
 
@@ -128,7 +137,7 @@ const getItemsMultiTable = async( {table1, table2}, params) =>{
 /**
  * 
  * @param {object json} params 
- * @returns string
+ * @returns string  
  * @description return where for SQL query
  */
 const whereCreator = (params) => {
@@ -143,14 +152,14 @@ const whereCreator = (params) => {
                 queryKeys.push([key.split('-')[1]])
                 operator = '>='
             } else if (aux === "until") {
-                
+
                 queryKeys.push([key.split('-')[1]])
                 operator = '<='
             }
         } else {
             operator = '='
             queryKeys.push(key)
-            
+
         }
 
         if (i === 0) {
@@ -160,7 +169,7 @@ const whereCreator = (params) => {
         }
     }
 
-return sentence
+    return sentence
 
 }
 
@@ -176,4 +185,3 @@ module.exports = {
     getItemsMultiParams,
     getItemsMultiTable
 }
-

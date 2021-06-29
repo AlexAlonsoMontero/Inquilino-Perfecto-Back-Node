@@ -108,7 +108,7 @@ const searchMultiTableMultiParams  = async(request,response) =>{
         const result = await getItemsMultiTable(request.params, request.query)
         response.status(200).send({info: "Datos localizados",data: result})
     }catch(error){
-        console.warn(error.message)
+        // console.warn(error.message)
         response.status(401).send("No se ha localizado los datos solicitados")
     }
     

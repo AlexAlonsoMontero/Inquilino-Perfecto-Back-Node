@@ -30,7 +30,7 @@ const endpointReservations = "/api/reservations";
 const endpointReviews = "/api/reviews";
 //ENDPOSINTS SEARCHER
 const endpointGenericSearcher='/search/:table'
-const endpointGenericMultiSearcher='/searches/:table1/:table2'
+const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key'
 //ENDPOINTS USER
 const endpointUser = "/api/users";
 const endpointUserProfile = "/api/users/:username"
