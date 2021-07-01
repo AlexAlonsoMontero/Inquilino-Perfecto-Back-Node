@@ -4,7 +4,7 @@ const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdve
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { validateAuthorization,validateRolAdmin, searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControlers')
-const { updateUserForAdmin, getUsersForAdmin } = require('./controllers/adminControler')
+const { updateUserForAdmin, getUsersForAdmin,createNewAdminUser } = require('./controllers/adminControler')
 
 const app = express()
 app.use(express.json())
@@ -13,6 +13,7 @@ app.use(express.json())
 //ENDPOINTS ADMIN USER
 const endpointAdvAdmin = '/api/admin/adv'
 const endpointAdminUsers='/api/admin/users'
+
 //ENDPOINTS ADVERTISEMENT
 const enpointAdvByUser = "/api/adv/:usr_casero_uuid/:estado";
 const enpointAdvByAdv = "/api/adv/:anuncio_uuid";
@@ -37,6 +38,7 @@ const endpointUserProfile = "/api/users/:username"
 
 
 
+
 //RUTES
 
 app.post(endpointLogin, login)
@@ -53,10 +55,10 @@ app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
 
 
 //USER ADMIN
-app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser)
 app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin)
 app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser)
 app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin)
+app.post(endpointAdminUsers, validateAuthorization,validateRolAdmin,createNewAdminUser)
 
 
 
