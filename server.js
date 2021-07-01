@@ -1,10 +1,10 @@
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
-const { validateAuthorization,validateRolAdmin, searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControlers')
-const { updateUserForAdmin, getUsersForAdmin,createNewAdminUser } = require('./controllers/adminControler')
+const { validateAuthorization,validateRolAdmin, searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
+const { updateUserForAdmin, getUsersForAdmin, createNewAdminUser } = require('./controllers/adminController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
-const { createAdvertisemenet, findAdvertisement, modifyAdvertisement, getAllAdvertisements, deleteAdvertisement } = require('./controllers/advertisementController')
+const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } = require('./controllers/advertisementController')
 const { getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved, createNewReservation, modifyReservation, deleteReservation } = require('./controllers/reservationController')
-const { getReview, getAllReviews, createNewReview, modifyReview, deleteReview } = require('./controllers/reviewController')
+const { getReviewByRev, getAllReviews, createNewReview, modifyReview, deleteReview } = require('./controllers/reviewController')
 require('dotenv').config();
 const express = require('express')
 const app = express()
@@ -18,8 +18,8 @@ const endpointAdminReviews = '/api/admin/reviews';
 const endpointAdminReservations = '/api/admin/reservations';
 
 //ENDPOINTS ADVERTISEMENT
-const enpointAdvByUser = "/api/adv/:usr_casero_uuid/:estado";
-const enpointAdvByAdv = "/api/adv/:anuncio_uuid";
+const enpointAdvByUser = '/api/adv/:usr_casero_uuid/:estado';
+const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
 
 //ENDPOINTS LOGIN
@@ -27,8 +27,8 @@ const endpointLogin = '/login';
 const endpointLogout = '/logout';
 
 //ENDPOINTS PROPERTIES
-const endpointProperties = "/api/properties";
-const endpointPropertiesByProp = "/api/properties/:inmueble_uuid";
+const endpointProperties = '/api/properties';
+const endpointPropertiesByProp = '/api/properties/:inmueble_uuid';
 const endpointPropertiesByUser = '/api/properties/:usr_casero_uuid/:inmueble_uuid';
 
 //ENDPOINTS RESERVATIONS
@@ -37,7 +37,8 @@ const endpointReservationsByUsers = '/api/reservations/:usr_casero_uuid/:usr_inq
 const endpointReservationsByRes = '/api/reservations/:alquiler_uuid';
 
 //ENDPOINTS REVIEWS
-const endpointReviews = "/api/reviews";
+const endpointReviews = '/api/reviews';
+const endpointReviewByRev = '/api/reviews/:resena_uuid';
 
 
 //ENDPOSINTS SEARCHER
@@ -45,12 +46,12 @@ const endpointGenericSearcher='/search/:table';
 const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
 //ENDPOINTS USER
-const endpointUser = "/api/users";
-const endpointUserProfile = "/api/users/:username";
+const endpointUser = '/api/users';
+const endpointUserProfile = '/api/users/:username';
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/user/:username/advertisements';
-const endpointSelfProfile = "/api/users/me";
+const endpointSelfProfile = '/api/users/me';
 const endpointSelfProperties = '/api/user/:username/properties';
 const endpointSelfReservations = '/api/user/:username/reservations';
 const endpointSelfReviews = '/api/user/:username/reviews';
@@ -72,17 +73,10 @@ app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
 
 
 //USER ADMIN
-<<<<<<< HEAD
 app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
 app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
 app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
 app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
-=======
-app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin)
-app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser)
-app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin)
-app.post(endpointAdminUsers, validateAuthorization,validateRolAdmin,createNewAdminUser)
->>>>>>> d6e41b87c03721b0fc248917bd8a0a577800c507
 
 
 
@@ -122,7 +116,7 @@ app.delete(endpointReservations, deleteReservation);
 
 //REVIEWS
 app.get(endpointAdminReviews,  getAllReviews);
-app.get(endpointReviews,  getReview);
+app.get(endpointReviews,  getReviewByRev);
 // app.post(endpointReviews, createNewReview);
 // app.put(endpointReviews, modifyReview);
 // app.delete(endpointReviews, deleteReview);
