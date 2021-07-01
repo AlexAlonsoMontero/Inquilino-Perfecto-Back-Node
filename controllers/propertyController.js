@@ -4,7 +4,7 @@ const { deleteItem, findItem, getItems, save, updateItem} = require('../infrastr
 const { validatePropByUserAndProp, validateNewProp,    validatePropByUser,    validateUpdateProp,    validatePropQP,    validatePropByProp} = require('../validators/propValidators.js')
 
 /**
- * #LAND_FUNCTION
+ * #CASERO_FUNCTION
  * Creates a new property in the database
  * @param {json} req 
  * @param {json} res 
@@ -21,7 +21,7 @@ const createNewProperty = async(req, res) =>{
 }
 
 /**
- * #LAND_FUNCTION
+ * #CASERO_FUNCTION
  * Gets a property using a determined property uuid, expected as param
  * @param {json} req param 'inmueble_uuid'
  * @param {json} res :  Codes
