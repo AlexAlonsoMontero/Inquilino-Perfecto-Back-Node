@@ -1,7 +1,8 @@
 require('dotenv').config()
 const bcrypt = require('bcryptjs')
-const { validateAdminUpdateUser } = require('../validators/userValidator')
-const { updateItem, findItem, getItems } = require('../infrastructure/generalRepository')
+const { validateAdminUpdateUser,validateNewUser } = require('../validators/userValidator')
+const { updateItem, findItem, getItems,save } = require('../infrastructure/generalRepository')
+
 /**
  * 
  * @param {newUser,uuidOlduiser} request 
@@ -48,8 +49,30 @@ const getUsersForAdmin = async(request, response) => {
     }
 }
 
+const createNewAdminUser = async (request, response) => {
+    try {
+        console.log("entra")
+        const newUser = validateNewUser(request.body)
+        await save(newUser, 'usuarios')
+        response.statusCode = 201
+        response.send({
+            info: "usuario guardado",
+            newUser
+        })
+    
+    } catch (error) {
+
+        response.statusCode = 400
+        console.warn(error.message)
+        response.send("No se ha podido añadir el usuario")
+
+    }
+
+}
+
 
 module.exports = {
     updateUserForAdmin,
-    getUsersForAdmin
+    getUsersForAdmin,
+    createNewAdminUser
 }

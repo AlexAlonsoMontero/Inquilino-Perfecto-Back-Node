@@ -33,13 +33,20 @@ const {
  */
 const createNewUser = async (request, response) => {
     try {
-        const newUser = validateNewUser(request.body)
-        await save(newUser, 'usuarios')
-        response.statusCode = 201
-        response.send({
-            info: "usuario guardado",
-            newUser
-        })
+        if(request.body.tipo==="ADMIN"){
+            const error = new Error("No tiene permisos para esta acción")
+            error.code= 501
+            throw error
+        }else{
+            console.log()
+            const newUser = validateNewUser(request.body)
+            await save(newUser, 'usuarios')
+            response.statusCode = 201
+            response.send({
+                info: "usuario guardado",
+                newUser
+            })
+        }
     } catch (error) {
 
         response.statusCode = 400
