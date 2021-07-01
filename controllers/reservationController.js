@@ -154,7 +154,7 @@ const createNewReservation = async(req, res) =>{
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}
-        isStatus = 500
+        isStatus = 400
     }finally{
         res.status(isStatus).send(sendMessage)
     }

@@ -39,7 +39,7 @@ const endpointReservationsByRes = '/api/reservations/:alquiler_uuid';
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews/:resena_uuid';
-
+const endpointReviewByUsr = '/api/reviews/:usr_casero_uuid/:usr_inquilino_uuid';
 
 //ENDPOSINTS SEARCHER
 const endpointGenericSearcher='/search/:table';
@@ -116,10 +116,10 @@ app.delete(endpointReservations, deleteReservation);
 
 //REVIEWS
 app.get(endpointAdminReviews,  getAllReviews);
-app.get(endpointReviews,  getReviewByRev);
-// app.post(endpointReviews, createNewReview);
-// app.put(endpointReviews, modifyReview);
-// app.delete(endpointReviews, deleteReview);
+app.get(endpointReviewByRev,  getReviewByRev);
+app.post(endpointReviews, createNewReview);
+app.put(endpointReviewByRev, modifyReview);
+app.delete(endpointReviews, deleteReview);
 
 
 //SEARCHER
