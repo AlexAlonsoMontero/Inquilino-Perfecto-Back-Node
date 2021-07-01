@@ -3,7 +3,12 @@ const jwt = require('jsonwebtoken')
 const { deleteItem, findItem, getItems, save, updateItem} = require('../infrastructure/generalRepository')
 const { validatePropByUserAndProp, validateNewProp,    validatePropByUser,    validateUpdateProp,    validatePropQP,    validatePropByProp} = require('../validators/propValidators.js')
 
-
+/**
+ * #CASERO_FUNCTION
+ * Creates a new property in the database
+ * @param {json} req 
+ * @param {json} res 
+ */
 const createNewProperty = async(req, res) =>{
     try {
         const newProp = validateNewProp(req.body)
@@ -11,14 +16,18 @@ const createNewProperty = async(req, res) =>{
         res.status(201).send({Info:"Inmueble creado",Data:createdProp})
     } catch (error) {
         console.warn(error.message)
-        res.status(400).send({Error:"No se ha podido crear el inmueble"})
+        res.status(500).send({Error:"Internal error, no se ha podido crear el inmueble"})
     }
 }
 
 /**
+ * #CASERO_FUNCTION
  * Gets a property using a determined property uuid, expected as param
- * @param {json} req json object from which we are gonna use the 'inmueble_uuid'
- * @param {json} res json object we are gonna send back
+ * @param {json} req param 'inmueble_uuid'
+ * @param {json} res :  Codes
+ *                      200 When the property is found
+ *                      404 When the property is not found
+ *                      500 When there's an internal error
  */
 const getProperty = async(req, res) =>{
     try {
@@ -27,6 +36,7 @@ const getProperty = async(req, res) =>{
         if (!foundProp){
             res.status(404).send({Error:"No se ha encontrado el inmueble "+req.params.inmueble_uuid})
         }else{
+            throw {not_found_error:[]}
             res.status(200).send({Info:"Inmueble encontrado", Data:foundProp})
         }
     } catch (error) {
@@ -55,6 +65,7 @@ const getAllProperties = async(req, res) =>{
 }
 
 /**
+ * #ADMIN_FUNCTION
  * Gets the properties of a determined landlord uuid, expected as param
  * @param {json} req json object from which we are gonna use the 'usr_casero_uuid'
  * @param {json} res json object we are gonna send back
@@ -65,6 +76,7 @@ const getUserProperties = async(req, res) =>{
         if(req.params.inmueble_uuid==='all'){
             propsByUser = await findItem(validatePropByUser(req.params), 'inmuebles')
         }else{
+
             console.warn('Necesito método SELECT CON VARIOS PARÁMETROS')
             throw error;
             // TODO + de un parámetro en where
@@ -81,6 +93,9 @@ const getUserProperties = async(req, res) =>{
         res.status(500).send({Error:"No se ha podido resolver la petición"})
     }
 }
+
+// const getOwnProps = async(req, res){
+// }
 
 /**
  * Updates the property with a determined property uuid, expected as param
