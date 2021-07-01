@@ -54,6 +54,11 @@ const loginSchema = Joi.object({
     password: Joi.string().min(5).required()
 })
 
+const mailSchema =  Joi.string().email({ minDomainSegments: 2 }).min(8)
+const passwordSchema =  Joi.string().min(5)
+
+
+
 //VALIDACIONES
 const validateNewUser =(object) => {
     object.user_uuid = v4()
@@ -82,13 +87,19 @@ const validateUpdateUser = user => genericValidateUser(user,updateUserSchemaNoPa
 const validateLogin = user => genericValidateUser(user, loginSchema)
 const validateAdminUpdateUser = user => genericValidateUser(user,updateUserForAdminSchema)
 
+const validateUserMail = userMail => (mailSchema.validate(userMail).error ? false : true)
+
+const validateUserPassword = userPass => (passwordSchema.validate(userPass).error ? false : true)
 
 
+//TODO DELTE LOGINCHEMA SI NO SE USA
 
 module.exports = {
     validateNewUser,
     validateUser,
     validateLogin,
     validateUpdateUser,
-    validateAdminUpdateUser
+    validateAdminUpdateUser,
+    validateUserMail,
+    validateUserPassword
 }
