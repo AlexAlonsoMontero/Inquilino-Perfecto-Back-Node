@@ -1,5 +1,6 @@
 const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
-const { validateAuthorization,validateRolAdmin, searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
+const { searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
+const { validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino} = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin, createNewAdminUser } = require('./controllers/adminController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } = require('./controllers/advertisementController')
