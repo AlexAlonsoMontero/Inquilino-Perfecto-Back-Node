@@ -1,129 +1,170 @@
 require('dotenv').config()
-const {
-    validateNewUser,
-    validateUser,
-    validateLogin,
-    validateUpdateUser,
-    validateUserMail,
-    validateUserPassword
-} = require('../validators/userValidator')
-const {
-    save,
-    findItem,
-    updateItem,
-    deleteItem
-} = require('../infrastructure/generalRepository')
-const {
-    selectUsersNoPass
-} = require('../infrastructure/userRepository')
+const {    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,    validateUserMail,    validateUserPassword} = require('../validators/userValidator')
+const {    save,    findItem,    updateItem,    deleteItem } = require('../infrastructure/generalRepository')
+const {    selectUsersNoPass} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const {
-    response
-} = require('express')
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization') 
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
+const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
 
-
-
-//********************************* POST  */
 /**
- * 
- * @param {*} request 
- * @param {*} response 
- * @description Create and save user in database
+ * #GUEST_FUNCTION // Admin
+ * Creates a new user [POST]
+ * throws error if tries to create an admin user
+ * @param {*} request request.body has new user data
+ * @param {*} response
  */
 const createNewUser = async (request, response) => {
+    let isStatus, sendMessage;
     try {
         if(request.body.tipo==="ADMIN"){
-            const error = new Error("No tiene permisos para esta acción")
-            error.code= 501
-            throw error
+            throw new errorNoAuthorization('guest','guest', 'user creation', 'tried to create admin')
         }else{
-            console.log()
-            const newUser = validateNewUser(request.body)
-            await save(newUser, 'usuarios')
-            response.statusCode = 201
-            response.send({
-                info: "usuario guardado",
-                newUser
-            })
+            const newUser = validateNewUser(request.body) //TODO check joi
+            if(newUser.error){
+                throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
+            }else{
+                const creation = await save(newUser, 'usuarios')
+                isStatus = 201
+                sendMessage = {
+                    Info: "User created",
+                    Data: newUser
+                }
+                console.warn(`Created new user`)
+            }
         }
     } catch (error) {
-
-        response.statusCode = 400
-        console.warn(error.message)
-        response.send("No se ha podido añadir el usuario")
-
+        console.warn(error)
+        sendMessage = {error: error.message}
+        if(error instanceof errorNoAuthorization){
+            isStatus = 403
+        }else if(error instanceof errorInvalidField){
+            isStatus = 401
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
     }
-
 }
 
+//TODO posibilidad de añadir morgan
+//TODO posibilidad de logear con username
 /**
- * 
+ * #GUEST_FUNCTION
+ * Verifies user login
+ * needs to check password 
+ * it uses the 'all data retrieving method'
  * @param {*} request
  * @param {*} response
  * @param {*} next
- * @descriptions middleware, verify user login
  */
-const login = async (request, response, next) => { //TODO Ver la posibilidad de añadir morgan
-    
+const login = async (request, response, next) => { 
+    let isStatus, sendMessage;
     try {
         if (!validateUserMail(request.body.email)) {
-
-            const error = new Error('Formato de email incorrecto')
-            console.log("mail incorrecto")
-            error.code = 401
-            throw (error)
+            throw new errorInvalidField('user login','mail validation failed in joi','mail',request.body.email)
         } else if (!validateUserPassword(request.body.password)) {
-            const error = new Error('Formato de password incorrecto')
-            error.code = 401
-            throw (error)
+            throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
-
-            
             let user = await findItem(request.body, 'usuarios')
-            console.log(userLogin)
-            if (!user) {
-                const error = new Error('No existe el usuario');
-                console.warn('No existe el usuario entra aqui')
-                error.code = 404
-                throw error
+            if (user.length === 0) {
+                console.warn('Incorrect mail')
+                throw new errorInvalidUser(request.body.email,request.body.password,false)
+            } else if (!await bcrypt.compare(request.body.password, user.password)) {
+                console.warn('Incorrect password')
+                const error = new Error('El password es incorrecto')
+                throw new errorInvalidUser(request.body.email,request.body.password,true)
             } else {
-                user = user[0]
-                if (!await bcrypt.compare(request.body.password, user.password)) {
-                    console.warn('Password incorrecto')
-                    const error = new Error('El password es incorrecto')
-                    error.code = 404
-
-                    throw error
-
-                } else {
-                    const tokenPayload = {
-                        user_uuid: user.user_uuid
+                const tokenPayload = {
+                    user_uuid: user.user_uuid,
+                    username: user.username,
+                    tipo: user.tipo
+                }
+                const token = jwt.sign(
+                    tokenPayload,
+                    process.env.SECRET, {
+                        expiresIn: '1d'
                     }
-                    const token = jwt.sign(
-                        tokenPayload,
-                        process.env.SECRET, {
-                            expiresIn: '1d'
-                        }
-                    )
-                    response.statusCode = 200
-                    response.send({
-                        token,
-                        user
-                    })
+                )
+                isStatus = 200
+                sendMessage = {
+                    token,
+                    user
                 }
             }
-
         }
     } catch (error) {
-        
-        response.statusCode = error.code
-        response.send(error.message)
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorInvalidField
+        || error instanceof errorInvalidUser){
+            isStatus = 401
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
     }
 }
 
+// const login = async (request, response, next) => { //TODO Ver la posibilidad de añadir morgan
+    
+//     try {
+//         if (!validateUserMail(request.body.email)) {
 
-//********************************* GET  */
+//             const error = new Error('Formato de email incorrecto')
+//             console.log("mail incorrecto")
+//             error.code = 401
+//             throw (error)
+//         } else if (!validateUserPassword(request.body.password)) {
+//             const error = new Error('Formato de password incorrecto')
+//             error.code = 401
+//             throw (error)
+//         } else {
+//             let user = await findItem(request.body, 'usuarios')
+//             console.log(userLogin)
+//             if (!user) {
+//                 const error = new Error('No existe el usuario');
+//                 console.warn('No existe el usuario entra aqui')
+//                 error.code = 403
+//                 throw error
+//             } else {
+//                 user = user[0]
+//                 if (!await bcrypt.compare(request.body.password, user.password)) {
+//                     console.warn('Password incorrecto')
+//                     const error = new Error('El password es incorrecto')
+//                     error.code = 403
+
+//                     throw error
+//                 } else {
+//                     const tokenPayload = {
+//                         user_uuid: user.user_uuid
+//                     }
+//                     const token = jwt.sign(
+//                         tokenPayload,
+//                         process.env.SECRET, {
+//                             expiresIn: '1d'
+//                         }
+//                     )
+//                     response.statusCode = 200
+//                     response.send({
+//                         token,
+//                         user
+//                     })
+//                 }
+//             }
+
+//         }
+//     } catch (error) {
+        
+//         response.statusCode = error.code
+//         response.send(error.message)
+//     }
+// }
+
 /**
  * 
  * @param {token,user} request 
@@ -150,8 +191,6 @@ const showUser = (request, response) => {
 }
 
 
-//TODO Revisar y realizar validación de admin
-
 /**
  * 
  * @param {*} request 
@@ -177,35 +216,19 @@ const getUsers = async (request, response) => {
     }
 }
 
-/**
- * 
- * @param {*} request 
- * @param {*} response 
- * @description get users, uses request.params
- */
 const findUser = (request, response) => {
 
 
 }
 
-/**
- * 
- * @param {*} request 
- * @param {*} response 
- * @description get users, uses request.query
- */
-const filterUser = (request, response) => {}
+const filterUser = (request, response) => {
 
-//********************************* PUT */
 
-/**
- * 
- * @param {*} request 
- * @param {*} response 
- */
+
+}
+
 const updateUser = async (request, response) => {
     try {
-
         const newUser = request.body
         validateUpdateUser(newUser)
         const oldUser = {

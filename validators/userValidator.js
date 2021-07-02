@@ -86,9 +86,7 @@ const validateUser = user =>  genericValidateUser(user,userSchema)
 const validateUpdateUser = user => genericValidateUser(user,updateUserSchemaNoPass)
 const validateLogin = user => genericValidateUser(user, loginSchema)
 const validateAdminUpdateUser = user => genericValidateUser(user,updateUserForAdminSchema)
-
 const validateUserMail = userMail => (mailSchema.validate(userMail).error ? false : true)
-
 const validateUserPassword = userPass => (passwordSchema.validate(userPass).error ? false : true)
 
 

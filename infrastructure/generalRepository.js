@@ -43,14 +43,16 @@ const getItems = async (table) => {
  * @returns the query selected rows, otherwise 'undefined'
  */
 const findItem = async (item, table) => {
-    try {
-        const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
-        const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
-        return rows.length > 0 ? rows : undefined
-    } catch (error) {
-        console.warn(error.message)
-    }
-
+    // try {
+    //     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
+    //     const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
+    //     return rows.length > 0 ? rows : undefined
+    // } catch (error) {
+    //     console.warn(error.message)
+    // }
+    const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
+    const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
+    return rows[0]
 }
 
 /**

@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken')
-const { findUserNoPass } = require('../infrastructure/userRepository')
 
 /**
  * Middleware that's gonna determine if the user's is logged in
