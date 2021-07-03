@@ -3,6 +3,7 @@ class errorInvalidUser extends Error {
  * 
  * @param {string} mailValue 
  * @param {string} passwordValue 
+ * @param {boolean} mailInDB true when pass fails
  */
     constructor(mailValue, passwordValue, mailInDB) {
         super();

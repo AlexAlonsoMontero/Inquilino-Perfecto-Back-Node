@@ -16,7 +16,6 @@ const searchMultiParams = async(request, response) => {
         console.warn(error.message)
         response.status(400).send("No se han encontrado resultados para la búsqueda")
     }
-
 }
 
 /**
@@ -32,7 +31,6 @@ const searchMultiTableMultiParams  = async(request,response) =>{
         // console.warn(error.message)
         response.status(400).send("Bad request")
     }
-    
 }
 
 

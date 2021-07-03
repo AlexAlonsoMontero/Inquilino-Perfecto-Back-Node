@@ -33,7 +33,6 @@ const getItems = async (table) => {
     const sentencia = `SELECT * FROM ${table}`
     const consulta = await connection.query(sentencia)
     return consulta[0]
-
 }
 
 /**
@@ -72,7 +71,7 @@ const updateItem = async (newItem, oldItem, table) => {
     }
     sentencia += ` WHERE ${Object.keys(oldItem)} =?`
     const [rows, fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
-    return rows
+    return rows.affectedRows
 }
 
 

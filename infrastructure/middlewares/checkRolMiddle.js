@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const { errorInvalidToken } = require('../../customErrors/errorInvalidToken')
 
 /**
  * Middleware that's gonna determine if the user's is logged in
@@ -8,13 +9,9 @@ const jwt = require('jsonwebtoken')
  */
  const validateAuthorization = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {
-
         const { authorization } = request.headers
         if (!authorization || !authorization.startsWith('Bearer ')) {
-
-            const error = new Error('Authorization header required')
-            error.code = 401
-            throw error
+            throw new errorInvalidUser()
         }
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)

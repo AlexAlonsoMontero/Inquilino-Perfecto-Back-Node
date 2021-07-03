@@ -1,7 +1,6 @@
 {
   "name": "web_project_inquilinoperfecto",
   "version": "1.0.0",
-  "description": "",
   "main": "server.js",
   "dependencies": {
     "@joi/date": "^2.1.0",
@@ -33,5 +32,6 @@
   "bugs": {
     "url": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto/issues"
   },
-  "homepage": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto#readme"
+  "homepage": "https://gitlab.com/web-inquilino-perfecto/web_project_inquilinoperfecto#readme",
+  "description": ""
 }

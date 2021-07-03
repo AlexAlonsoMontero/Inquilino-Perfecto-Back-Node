@@ -1,4 +1,4 @@
-const { createNewUser, login, showUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
+const { createNewUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
 const { validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino} = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin, createNewAdminUser } = require('./controllers/adminController')
@@ -47,8 +47,9 @@ const endpointGenericSearcher='/search/:table';
 const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
 //ENDPOINTS USER
+const endpointUserProfile = '/api/user/:username';
 const endpointUser = '/api/users';
-const endpointUserProfile = '/api/users/:username';
+const endpointUserByUuid = '/api/users/:user_uuid';
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/user/:username/advertisements';
@@ -65,11 +66,14 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 
 //USUARIOS
-app.get(endpointUserProfile, validateAuthorization,showUser);
+app.get(endpointUserProfile, validateAuthorization, getSelfUser);
 app.post(endpointUser, createNewUser);
-app.get(endpointUser,validateAuthorization, getUsers);
-app.put(endpointUserProfile, validateAuthorization, updateUser);
-app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
+// app.get(endpointUser,validateAuthorization, getUsers);
+app.get(endpointUser, getUsers);
+// app.put(endpointUserProfile, validateAuthorization, updateUser);
+app.put(endpointUserByUuid, updateUser);
+// app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
+app.delete(endpointUser, deleteUser);
 
 
 
@@ -126,8 +130,6 @@ app.delete(endpointReviews, deleteReview);
 //SEARCHER
 app.get(endpointGenericSearcher, searchMultiParams)
 app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
-
-
 
 let port = process.env.WEB_PORT
 let host = process.env.WEB_HOST

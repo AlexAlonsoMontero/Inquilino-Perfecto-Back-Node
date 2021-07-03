@@ -38,7 +38,7 @@ const newUserSchema = Joi.object({
 const updateUserSchemaNoPass =Joi.object({
     username: Joi.string().alphanum().min(8).max(64).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
-    tipo: Joi.string()
+    tipo: Joi.string().valid(...['INQUILINO','CASERO','INQUILINO_CASERO'])
 })
 
 
@@ -60,14 +60,19 @@ const passwordSchema =  Joi.string().min(5)
 
 
 //VALIDACIONES
-const validateNewUser =(object) => {
-    object.user_uuid = v4()
-    if (!newUserSchema.validate(object).error) {
-        return object
-    } else {
-        throw newUserSchema.validate(object).error
-    }
 
+/**
+ * This method creates the user uuid
+ * @param {json} user
+ * @returns validated user
+ */
+const validateNewUser =(user) => {
+    user.user_uuid = v4()
+    if (!newUserSchema.validate(user).error) {
+        return user
+    } else {
+        throw newUserSchema.validate(user).error
+    }
 }
 
 
@@ -93,11 +98,6 @@ const validateUserPassword = userPass => (passwordSchema.validate(userPass).erro
 //TODO DELTE LOGINCHEMA SI NO SE USA
 
 module.exports = {
-    validateNewUser,
-    validateUser,
-    validateLogin,
-    validateUpdateUser,
-    validateAdminUpdateUser,
-    validateUserMail,
-    validateUserPassword
+    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,
+    validateAdminUpdateUser,    validateUserMail,    validateUserPassword
 }
