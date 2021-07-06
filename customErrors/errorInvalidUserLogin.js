@@ -1,4 +1,4 @@
-class errorInvalidUser extends Error {
+class errorInvalidUserLogin extends Error {
 /**
  * 
  * @param {string} mailValue 
@@ -15,5 +15,5 @@ class errorInvalidUser extends Error {
 }
 
 module.exports = {
-    errorInvalidUser:errorInvalidUser
+    errorInvalidUserLogin:errorInvalidUserLogin
 }
