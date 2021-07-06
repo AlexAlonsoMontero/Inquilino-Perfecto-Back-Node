@@ -28,7 +28,7 @@ const newUserSchema = Joi.object({
             'uuidv5'
         ]
     }),
-    username: Joi.string().alphanum().min(8).max(64).required(),
+    username: Joi.string().alphanum().min(4).max(64).required(),
     password: Joi.string().min(8).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
@@ -38,7 +38,7 @@ const newUserSchema = Joi.object({
 const updateUserSchemaNoPass =Joi.object({
     username: Joi.string().alphanum().min(8).max(64).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
-    tipo: Joi.string()
+    tipo: Joi.string().valid(...['INQUILINO','CASERO','INQUILINO_CASERO'])
 })
 
 
@@ -54,20 +54,25 @@ const loginSchema = Joi.object({
     password: Joi.string().min(5).required()
 })
 
-const mailSchema =  Joi.string().email({ minDomainSegments: 2 }).min(8)
+const mailSchema =  Joi.string() // TODO: FIX .email({ minDomainSegments: 2 }).min(8)
 const passwordSchema =  Joi.string().min(5)
 
 
 
 //VALIDACIONES
-const validateNewUser =(object) => {
-    object.user_uuid = v4()
-    if (!newUserSchema.validate(object).error) {
-        return object
-    } else {
-        throw newUserSchema.validate(object).error
-    }
 
+/**
+ * This method creates the user uuid
+ * @param {json} user
+ * @returns validated user
+ */
+const validateNewUser =(user) => {
+    // user.user_uuid = v4() nunca crear datos en la validación
+    if (!newUserSchema.validate(user).error) {
+        return user
+    } else {
+        throw newUserSchema.validate(user).error
+    }
 }
 
 
@@ -86,20 +91,13 @@ const validateUser = user =>  genericValidateUser(user,userSchema)
 const validateUpdateUser = user => genericValidateUser(user,updateUserSchemaNoPass)
 const validateLogin = user => genericValidateUser(user, loginSchema)
 const validateAdminUpdateUser = user => genericValidateUser(user,updateUserForAdminSchema)
-
 const validateUserMail = userMail => (mailSchema.validate(userMail).error ? false : true)
-
 const validateUserPassword = userPass => (passwordSchema.validate(userPass).error ? false : true)
 
 
 //TODO DELTE LOGINCHEMA SI NO SE USA
 
 module.exports = {
-    validateNewUser,
-    validateUser,
-    validateLogin,
-    validateUpdateUser,
-    validateAdminUpdateUser,
-    validateUserMail,
-    validateUserPassword
+    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,
+    validateAdminUpdateUser,    validateUserMail,    validateUserPassword
 }

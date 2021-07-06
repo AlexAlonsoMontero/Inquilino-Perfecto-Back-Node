@@ -18,8 +18,8 @@ const getAllReservations = async(req, res) =>{
         }else{
             isStatus = 200
             sendMessage =   {
-                "Tuple": "all",
-                "Data": foundRes
+                Tuple: "all",
+                Data: foundRes
             }
             console.warn(`Successful query on ${tName}`);
         }
@@ -67,8 +67,8 @@ const getReservationsByUsers = async(req, res) =>{
         }else{
             isStatus = 200
             sendMessage =   {
-                "Tuple": validatedUsers,
-                "Data": foundRes
+                Tuple: validatedUsers,
+                Data: foundRes
             }
             console.warn(`Successful query on ${tName}`);
         }
@@ -114,8 +114,8 @@ const getReservationByRes = async(req, res) =>{
         }else{
             isStatus = 200
             sendMessage =   {
-                "Tuple": validatedRes,
-                "Data": foundRes
+                Tuple: validatedRes,
+                Data: foundRes
             }
             console.warn(`Successful query on ${tName}`);
         }
@@ -147,8 +147,8 @@ const createNewReservation = async(req, res) =>{
 
         isStatus = 201
         sendMessage =   {
-            "Tuple": req.body.reserva_uuid,
-            "New_Data": validatedNewRes
+            Tuple: req.body.reserva_uuid,
+            New_Data: validatedNewRes
         }
         console.warn(`Created new element in ${tName}`)
     }catch(error){
@@ -178,9 +178,9 @@ const modifyReservation = async(req, res) =>{
         }else{
             isStatus = 200
             sendMessage =   {
-                "Tuple": oldResRef,
-                "Info_Query": updatedRes,
-                "New_Data": newResData
+                Tuple: oldResRef,
+                Info_Query: updatedRes,
+                New_Data: newResData
             }
             console.warn(`Successfully updated for ${Object.keys(oldResRef)[0]} with ${oldResRef}`);
         }
@@ -208,8 +208,8 @@ const deleteReservation = async(req, res) =>{
         }else{
             isStatus = 200
             sendMessage =   {
-                "Tuple": delRes,
-                "Delete": isRedDel
+                Tuple: delRes,
+                Delete: isRedDel
             }
             console.warn(`Successfully deletion for ${Object.keys(delRes)[0]} with ${delRes}`);
         }

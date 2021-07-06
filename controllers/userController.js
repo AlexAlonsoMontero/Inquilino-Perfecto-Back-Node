@@ -1,293 +1,319 @@
 require('dotenv').config()
-const {
-    validateNewUser,
-    validateUser,
-    validateLogin,
-    validateUpdateUser,
-    validateUserMail,
-    validateUserPassword
-} = require('../validators/userValidator')
-const {
-    save,
-    findItem,
-    updateItem,
-    deleteItem
-} = require('../infrastructure/generalRepository')
-const {
-    selectUsersNoPass
-} = require('../infrastructure/userRepository')
+const {    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,    validateUserMail,    validateUserPassword} = require('../validators/userValidator')
+const {    save,    findItem,    updateItem,    deleteItem } = require('../infrastructure/generalRepository')
+const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const {
-    response
-} = require('express')
+const { v4 } = require('uuid')
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
+const { errorInvalidUser } = require('../customErrors/errorInvalidUserLogin')
+const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 
+//TODO Update self
+//TODO CREAR FIND USER USANDO PARAMS
+//TODO posibilidad de añadir morgan
+//TODO posibilidad de loggear con username
 
-
-//********************************* POST  */
 /**
- * 
- * @param {*} request 
- * @param {*} response 
- * @description Create and save user in database
+ * #GUEST_FUNCTION // Admin
+ * Creates a new user [POST]
+ * throws error if tries to create an admin user
+ * @param {*} request request.body has new user data
+ * @param {*} response
  */
 const createNewUser = async (request, response) => {
+    let isStatus, sendMessage;
     try {
-        if(request.body.tipo==="ADMIN"){
-            const error = new Error("No tiene permisos para esta acción")
-            error.code= 501
-            throw error
+        // ESTO DEBERÍA SER UN MIDDLEWARE PARA comprobar rol del solicitante
+        // if(request.body.tipo==="ADMIN"){
+        //     throw new errorNoAuthorization('guest','guest', 'user creation', 'tried to create admin')
+        // }else{
+        // }
+            // let newUser = undefined
+            // if(!request.body.user_uuid){ 
+            //     //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
+            // }
+            let newUser = validateNewUser(request.body) //TODO check joi
+            if (!newUser.user_uuid){
+                newUser = {...newUser, user_uuid : v4()}
+            }
+            if(newUser.error){
+                throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
+            }else{
+                const creation = await save(newUser, 'usuarios')
+                delete newUser.password
+                isStatus = 201
+                sendMessage = {
+                    Info: "User created",
+                    Data: newUser
+                }
+                console.warn(`Created new user`)
+            }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error: error.message}
+        if(error instanceof errorNoAuthorization){
+            isStatus = 403
+        }else if(error instanceof errorInvalidField){
+            isStatus = 401
         }else{
-            console.log()
-            const newUser = validateNewUser(request.body)
-            await save(newUser, 'usuarios')
-            response.statusCode = 201
-            response.send({
-                info: "usuario guardado",
-                newUser
-            })
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
+
+/**
+ * #REGISTRED_FUNCTION [ALL/SELF]
+ * Retrieves self data
+ * @param {json} request
+ * @param {json} response
+ */
+const getSelfUser = (request, response) => {
+    let isStatus, sendMessage;
+    try {
+        if(request.auth.user){
+            isStatus = 200
+            sendMessage = {
+                Info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
+                user: {...request.auth.user}
+            }
+        }else {
+            throw new errorNoAuthorization(decodedUser.username,decodedUser.tipo,'showUser','tryed to get someone else data')
         }
     } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
 
-        response.statusCode = 400
-        console.warn(error.message)
-        response.send("No se ha podido añadir el usuario")
 
+/**
+ * #ADMIN_FUNCTION
+ * retrieves data of all users (no pass, no admins)
+ * @param {*} request 
+ * @param {*} response 
+ */
+const getUsers = async (request, response) => {
+    let isStatus, sendMessage;
+    try {
+        const users = await findUsersNoPass()
+        if (users.length === 0) {
+            throw new errorNoEntryFound('getting all users', 'empty result')
+        } else {
+            isStatus = 200
+            sendMessage = {
+                info: "Usuarios localizados",
+                users
+            }
+        }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
+
+/**
+ * #ADMIN FUNCTION
+ * updates any user
+ * @param {json} request user reference in params, new user data in body
+ * @param {json} response
+ */
+const updateUser = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'usuarios';
+    try {
+        const oldUser = request.params
+        // const oldUser = {
+            //     user_uuid: request.auth.token.user_uuid
+            // }
+            const newUser = request.body //TODO JOI
+            //(El anterior está mal, exige que cambien todos los datos que aparecen en el joi)
+            if(!newUser.error){
+                const consulta = await updateItem(newUser, oldUser, 'usuarios')
+                if(consulta>=1){
+                    isStatus = 200
+                    sendMessage = {
+                        Info: "Usuario modificado",
+                        NewData: newUser,
+                        Reference: oldUser
+                    }
+                }else{
+                    new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser)
+                }
+            }else{
+                new errorInvalidField('userUpdate(UserController)','joi verification failed')
+            }
+        } catch (error) {
+            console.warn(error)
+            sendMessage = {error:error.message}
+            if(error instanceof errorInvalidField){
+                isStatus = 401
+            }else if(error instanceof errorNoEntryFound){
+                isStatus = 404
+            }else{
+                isStatus = 500
+            }
+        }finally{
+            response.status(isStatus).send(sendMessage)
+        }
     }
 
+    /**
+     * #ADMIN FUNCTION
+     * deletes user from database
+     * @param {json} request
+     * @param {json} response
+     */
+    const deleteUser = async (request, response) => {
+        let isStatus, sendMessage;
+        const tName = 'usuarios';
+        try {
+            const delUser = request.body //TODO JOI
+            const isUserDel = await deleteItem(delUser, 'usuarios')
+            if (isUserDel) {
+                isStatus = 200
+                sendMessage = {
+                    "Tuple": delUser,
+                    "Delete": isUserDel
+                }
+                console.warn(`Successfully deletion for ${Object.keys(delUser)[0]} with ${delUSer}`);
+            } else {
+                throw new errorNoEntryFound(tName,'user not found','request.body',request.body.user_uuid)
+            }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
 }
 
 /**
- * 
+ * #GUEST_FUNCTION
+ * Verifies user login
+ * needs to check password 
+ * it uses the 'all data retrieving method'
  * @param {*} request
  * @param {*} response
  * @param {*} next
- * @descriptions middleware, verify user login
  */
-const login = async (request, response, next) => { //TODO Ver la posibilidad de añadir morgan
-    
+const login = async (request, response, next) => { 
+    let isStatus, sendMessage;
     try {
         if (!validateUserMail(request.body.email)) {
-
-            const error = new Error('Formato de email incorrecto')
-            console.log("mail incorrecto")
-            error.code = 401
-            throw (error)
+            throw new errorInvalidField('user login','mail validation failed in joi','mail',request.body.email)
         } else if (!validateUserPassword(request.body.password)) {
-            const error = new Error('Formato de password incorrecto')
-            error.code = 401
-            throw (error)
+            throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
-
-            
-            let user = await findItem(request.body, 'usuarios')
-            console.log(userLogin)
-            if (!user) {
-                const error = new Error('No existe el usuario');
-                console.warn('No existe el usuario entra aqui')
-                error.code = 404
-                throw error
-            } else {
-                user = user[0]
-                if (!await bcrypt.compare(request.body.password, user.password)) {
-                    console.warn('Password incorrecto')
-                    const error = new Error('El password es incorrecto')
-                    error.code = 404
-
-                    throw error
-
-                } else {
-                    const tokenPayload = {
-                        user_uuid: user.user_uuid
-                    }
-                    const token = jwt.sign(
-                        tokenPayload,
-                        process.env.SECRET, {
-                            expiresIn: '1d'
-                        }
-                    )
-                    response.statusCode = 200
-                    response.send({
-                        token,
-                        user
-                    })
-                }
+            console.log(JSON.stringify(request.body)+ ' is body');
+            let user = await findItem(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
+            console.log(JSON.stringify(user)+ ' is nice');
+            // const valid = await bcrypt.compare(request.body.password, user.password)
+            // console.log(valid);
+            if (!user || user.length === 0) {
+                throw new errorInvalidUser(request.body.email,request.body.password,false)
             }
-
+            else if (!await bcrypt.compare(request.body.password, user.password)) {
+                console.log('error will be thrown');
+                throw new errorInvalidUser(request.body.email,request.body.password,true)
+            } else {
+                delete user.password //añadida esta línea se soluciona
+                const tokenPayload = {
+                    user_uuid: user.user_uuid,
+                    username: user.username,
+                    tipo: user.tipo
+                }
+                const token = jwt.sign(
+                    tokenPayload,
+                    process.env.SECRET, {
+                        expiresIn: '1d'
+                    }
+                )
+                isStatus = 200
+                sendMessage = {
+                    token,
+                    user
+                }
+                response.status(isStatus).send(sendMessage)
+                //termina aquí el flujo si el logeo es correcto
+                console.warn('Successfully logged in');
+            }
         }
     } catch (error) {
-        
-        response.statusCode = error.code
-        response.send(error.message)
-    }
-}
-
-
-//********************************* GET  */
-/**
- * 
- * @param {token,user} request 
- * @param {} response 
- * @description Confirm validate user and shows user data
- */
-const showUser = (request, response) => {
-    try {
-        if (request.params.username === request.auth.user.username) {
-            const user = request.auth.user
-
-            response.status(200).send({
-                info: "Usuario verficado",
-                user
-            })
-        } else {
-            throw new Error("El usuario no coresponde on el acceso")
-
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorInvalidField
+        || error instanceof errorInvalidUser){
+            isStatus = 401
+        }else{
+            isStatus = 500
         }
-    } catch (error) {
-        console.warn(error.message)
-        response.status(401).send("Verificación de datos erronea")
-    }
-}
-
-
-//TODO Revisar y realizar validación de admin
-
-/**
- * 
- * @param {*} request 
- * @param {*} response 
- * @description get all users from database, only usable by ADMIN
- */
-
-const getUsers = async (request, response) => {
-    try {
-        const users = await selectUsersNoPass()
-        if (users.length < 1) {
-            throw new Error("No existen usuarios en la base de datos")
-        } else {
-            response.status(201).send({
-                info: "Usuarios localizados",
-                users
-            })
-        }
-
-    } catch (error) {
-        console.warn(error.message)
-        response.status(401).send("No se han podido cargar usuarios")
+    }finally{
+        response.status(isStatus).send(sendMessage)
+        //Si hago un send termina el flujo
+        // next(error, isStatus) //en caso de que lo queramos usar como middleware
+        //Llega aquí sólo si falla el logeo
     }
 }
 
 /**
  * 
- * @param {*} request 
- * @param {*} response 
- * @description get users, uses request.params
- */
-const findUser = (request, response) => {
-
-
-}
-
-/**
- * 
- * @param {*} request 
- * @param {*} response 
- * @description get users, uses request.query
- */
-const filterUser = (request, response) => {}
-
-//********************************* PUT */
-
-/**
- * 
- * @param {*} request 
+ * @param {json} request contains the loggin token
  * @param {*} response 
  */
-const updateUser = async (request, response) => {
-    try {
-
-        const newUser = request.body
-        validateUpdateUser(newUser)
-        const oldUser = {
-            user_uuid: request.auth.token.user_uuid
-        }
-        const consulta = await updateItem(newUser, oldUser, 'usuarios')
-        response.statusCode = 200
-        response.send({
-            info: "Usuario modificado",
-            data: consulta
-        })
-    } catch (error) {
-        response.statusCode = 400
-        console.warn(error.message)
-        response.send("No se ha podido actualizar el usuario")
-    }
-}
-
-
-
-
-//********************************* DELETE */
-/**
- * 
- * @param {user_uuid: string} request 
- * @param {*} response 
- * @description drop user from database, user request.param
- */
-const deleteUser = async (request, response) => {
-    try {
-        const sentence = await deleteItem(request.body, 'usuarios')
-        if (sentence) {
-            response.statusCode = 200
-            response.send("Borrado de usuario realizado correctamente")
-        } else {
-            throw new Error("No se ha eliminado el usuario")
-        }
-    } catch (error) {
-        response.statusCode = 400
-        console.warn(error.message)
-        response.send("No se ha podido eliminar el usuario")
-    }
-
-}
-
 const logout = (request, response) => {
+    let isStatus, sendMessage;
     try {
         if (request.headers) {
             request.headers = undefined
             request.body = undefined
-
-            response.status(200).send("Logout existoso")
+            
+            isStatus = 200
+            sendMessage = {
+                "Log out":"OK"
+            }
+            console.warn('Successfu logged out');
         } else {
-            throw new Error("El usuario no est logado")
+            throw new errorInvalidToken('user not logged')
         }
-
-
     } catch (error) {
         console.warn(error.message)
-        response.status(401).send("Logout incorrecto")
+        if(error instanceof errorInvalidToken){
+            isStatus = 400
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
     }
 }
 
-
-
-
-
-
-
 module.exports = {
-    createNewUser,
-    login,
-    getUsers,
-    showUser,
-    findUser,
-    filterUser,
-    updateUser,
-    deleteUser,
-    logout
+    createNewUser,    login,    getUsers,    getSelfUser,
+    updateUser,    deleteUser,  logout
 }
-
-
-//TODO COMENTAR METODOS
-//TODO REVISAR GETUSER QUE DEVUELVA TODOS LOS USUARIOS Y CREAR FIND USER USANDO PARAMS
-//TODO Revisar response codes
