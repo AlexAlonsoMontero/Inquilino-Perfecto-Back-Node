@@ -9,7 +9,7 @@ class errorNoAuthorization extends Error {
     constructor( who, whoRol ,where, why) {
         super();
         this.name = "errorNoAuthorization";
-        this.type = "permision";
+        this.type = "permission";
         this.message = `Not permission for ${who} with rol ${whoRol} in '${where}' because '${why}'`;
     }
 }

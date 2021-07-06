@@ -1,6 +1,6 @@
 const { createNewUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
-const { validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} = require('./infrastructure/middlewares/checkRolMiddle')
+const { detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin, createNewAdminUser } = require('./controllers/adminController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } = require('./controllers/advertisementController')
@@ -66,11 +66,12 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 
 //USUARIOS
-app.get(endpointUserProfile, validateSelfOrAdmin, getSelfUser);
-app.post(endpointUser, createNewUser);
-app.get(endpointUser,validateAuthorization, getUsers);
-app.put(endpointUserProfile, validateSelfOrAdmin, updateUser);
-app.delete(endpointUser, validateSelfOrAdmin, deleteUser);
+app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
+app.post(endpointUser, detectType, createNewUser);
+// app.post(endpointUser, createNewUser);
+app.get(endpointUser,validateAuthorization, validateRolAdmin, getUsers);
+app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateUser);
+app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
 
 
 

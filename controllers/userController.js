@@ -8,8 +8,8 @@ const { v4 } = require('uuid')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
-const { errorInvalidUser } = require('../customErrors/errorInvalidUserLogin')
 const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
+const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
 
 //TODO Update self
 //TODO CREAR FIND USER USANDO PARAMS
@@ -26,19 +26,18 @@ const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const createNewUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
-        // ESTO DEBERÍA SER UN MIDDLEWARE PARA comprobar rol del solicitante
-        // if(request.body.tipo==="ADMIN"){
-        //     throw new errorNoAuthorization('guest','guest', 'user creation', 'tried to create admin')
-        // }else{
-        // }
-            // let newUser = undefined
-            // if(!request.body.user_uuid){ 
-            //     //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
-            // }
-            let newUser = validateNewUser(request.body) //TODO check joi
+        let newUser = request.body
+        console.log( request.auth.user.tipo);
+        if(newUser.tipo==="ADMIN" && request.auth?.user.tipo !== 'ADMIN'){
+            throw new errorNoAuthorization('guest or unauthorized','guest or unauthorized', 'user creation', 'tried to create admin')
+        
+        }else{
+            //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
+            //En la versión definitiva no dejaremos que el post traiga uuid
             if (!newUser.user_uuid){
                 newUser = {...newUser, user_uuid : v4()}
             }
+            newUser = validateNewUser(newUser) //TODO check joi
             if(newUser.error){
                 throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
             }else{
@@ -51,6 +50,7 @@ const createNewUser = async (request, response) => {
                 }
                 console.warn(`Created new user`)
             }
+        }
     } catch (error) {
         console.warn(error)
         sendMessage = {error: error.message}
@@ -236,11 +236,11 @@ const login = async (request, response, next) => {
             // const valid = await bcrypt.compare(request.body.password, user.password)
             // console.log(valid);
             if (!user || user.length === 0) {
-                throw new errorInvalidUser(request.body.email,request.body.password,false)
+                throw new errorInvalidUserLogin(request.body.email,request.body.password,false)
             }
             else if (!await bcrypt.compare(request.body.password, user.password)) {
                 console.log('error will be thrown');
-                throw new errorInvalidUser(request.body.email,request.body.password,true)
+                throw new errorInvalidUserLogin(request.body.email,request.body.password,true)
             } else {
                 delete user.password //añadida esta línea se soluciona
                 const tokenPayload = {
@@ -251,7 +251,7 @@ const login = async (request, response, next) => {
                 const token = jwt.sign(
                     tokenPayload,
                     process.env.SECRET, {
-                        expiresIn: '1d'
+                        expiresIn: '30d'
                     }
                 )
                 isStatus = 200
@@ -259,8 +259,6 @@ const login = async (request, response, next) => {
                     token,
                     user
                 }
-                response.status(isStatus).send(sendMessage)
-                //termina aquí el flujo si el logeo es correcto
                 console.warn('Successfully logged in');
             }
         }
@@ -268,7 +266,7 @@ const login = async (request, response, next) => {
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorInvalidField
-        || error instanceof errorInvalidUser){
+        || error instanceof errorInvalidUserLogin){
             isStatus = 401
         }else{
             isStatus = 500
@@ -292,7 +290,7 @@ const logout = (request, response) => {
         if (request.headers) {
             request.headers = undefined
             request.body = undefined
-            
+
             isStatus = 200
             sendMessage = {
                 "Log out":"OK"
