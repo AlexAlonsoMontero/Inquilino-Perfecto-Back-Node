@@ -4,15 +4,15 @@ const {    save,    findItem,    updateItem,    deleteItem } = require('../infra
 const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization') 
+const { v4 } = require('uuid')
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
-const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
-const { invalid } = require('joi')
-const errorInvalidToken = require('../customErrors/errorInvalidToken')
+const { errorInvalidUser } = require('../customErrors/errorInvalidUserLogin')
+const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 
 //TODO Update self
-//TODO REVISAR GETUSER QUE DEVUELVA TODOS LOS USUARIOS Y CREAR FIND USER USANDO PARAMS
+//TODO CREAR FIND USER USANDO PARAMS
 //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
 
@@ -26,14 +26,24 @@ const errorInvalidToken = require('../customErrors/errorInvalidToken')
 const createNewUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
-        if(request.body.tipo==="ADMIN"){
-            throw new errorNoAuthorization('guest','guest', 'user creation', 'tried to create admin')
-        }else{
-            const newUser = validateNewUser(request.body) //TODO check joi
+        // ESTO DEBERÍA SER UN MIDDLEWARE PARA comprobar rol del solicitante
+        // if(request.body.tipo==="ADMIN"){
+        //     throw new errorNoAuthorization('guest','guest', 'user creation', 'tried to create admin')
+        // }else{
+        // }
+            // let newUser = undefined
+            // if(!request.body.user_uuid){ 
+            //     //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
+            // }
+            let newUser = validateNewUser(request.body) //TODO check joi
+            if (!newUser.user_uuid){
+                newUser = {...newUser, user_uuid : v4()}
+            }
             if(newUser.error){
                 throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
             }else{
                 const creation = await save(newUser, 'usuarios')
+                delete newUser.password
                 isStatus = 201
                 sendMessage = {
                     Info: "User created",
@@ -41,7 +51,6 @@ const createNewUser = async (request, response) => {
                 }
                 console.warn(`Created new user`)
             }
-        }
     } catch (error) {
         console.warn(error)
         sendMessage = {error: error.message}
@@ -67,14 +76,13 @@ const createNewUser = async (request, response) => {
 const getSelfUser = (request, response) => {
     let isStatus, sendMessage;
     try {
-        const decodedUser = request.auth.user
-        if (request.params.username === decodedUser.username) {
+        if(request.auth.user){
             isStatus = 200
             sendMessage = {
-                Info: "Usuario verficado",
-                user: {...decodedUser}
+                Info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
+                user: {...request.auth.user}
             }
-        } else {
+        }else {
             throw new errorNoAuthorization(decodedUser.username,decodedUser.tipo,'showUser','tryed to get someone else data')
         }
     } catch (error) {
@@ -146,7 +154,8 @@ const updateUser = async (request, response) => {
                     isStatus = 200
                     sendMessage = {
                         Info: "Usuario modificado",
-                        Data: consulta
+                        NewData: newUser,
+                        Reference: oldUser
                     }
                 }else{
                     new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser)
@@ -187,9 +196,9 @@ const updateUser = async (request, response) => {
                     "Tuple": delUser,
                     "Delete": isUserDel
                 }
-                console.warn(`Successfully deletion for ${Object.keys(delUser)[0]} with ${delRes}`);
+                console.warn(`Successfully deletion for ${Object.keys(delUser)[0]} with ${delUSer}`);
             } else {
-                throw new errorNoEntryFound(tName,'user not found','request.body',request.body)
+                throw new errorNoEntryFound(tName,'user not found','request.body',request.body.user_uuid)
             }
     } catch (error) {
         console.warn(error)
@@ -221,12 +230,19 @@ const login = async (request, response, next) => {
         } else if (!validateUserPassword(request.body.password)) {
             throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
-            let user = await findItem(request.body, 'usuarios')
-            if (user.length === 0) {
+            console.log(JSON.stringify(request.body)+ ' is body');
+            let user = await findItem(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
+            console.log(JSON.stringify(user)+ ' is nice');
+            // const valid = await bcrypt.compare(request.body.password, user.password)
+            // console.log(valid);
+            if (!user || user.length === 0) {
                 throw new errorInvalidUser(request.body.email,request.body.password,false)
-            } else if (!await bcrypt.compare(request.body.password, user.password)) {
+            }
+            else if (!await bcrypt.compare(request.body.password, user.password)) {
+                console.log('error will be thrown');
                 throw new errorInvalidUser(request.body.email,request.body.password,true)
             } else {
+                delete user.password //añadida esta línea se soluciona
                 const tokenPayload = {
                     user_uuid: user.user_uuid,
                     username: user.username,
@@ -240,11 +256,10 @@ const login = async (request, response, next) => {
                 )
                 isStatus = 200
                 sendMessage = {
-                    // token: token,            Según el ejemplo no se mandanada más
-                    // user: {...tokenPayload}
-                    token
+                    token,
+                    user
                 }
-                res.status(isStatus).send(sendMessage)
+                response.status(isStatus).send(sendMessage)
                 //termina aquí el flujo si el logeo es correcto
                 console.warn('Successfully logged in');
             }
@@ -259,9 +274,9 @@ const login = async (request, response, next) => {
             isStatus = 500
         }
     }finally{
-        // res.status(isStatus).send(sendMessage)
+        response.status(isStatus).send(sendMessage)
         //Si hago un send termina el flujo
-        next(error, isStatus)
+        // next(error, isStatus) //en caso de que lo queramos usar como middleware
         //Llega aquí sólo si falla el logeo
     }
 }

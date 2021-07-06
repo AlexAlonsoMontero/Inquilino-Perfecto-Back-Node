@@ -3,9 +3,8 @@ const connection = getConnection()
 
 
 /**
- * 
- * @param {string} uuid_user 
- * @returns  user data in database without password
+ * @param {string} uuid_user admite SOLAMENTE el VALOR de la uuid
+ * @returns user data in database without password
  */
 const getUserNoPass = async (uuid_user) => {
     const sentence = 'SELECT user_uuid, username, email, tipo FROM usuarios WHERE user_uuid=?'

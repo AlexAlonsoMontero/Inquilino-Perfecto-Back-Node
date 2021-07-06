@@ -28,7 +28,7 @@ const newUserSchema = Joi.object({
             'uuidv5'
         ]
     }),
-    username: Joi.string().alphanum().min(8).max(64).required(),
+    username: Joi.string().alphanum().min(4).max(64).required(),
     password: Joi.string().min(8).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
     tipo: Joi.string()
@@ -54,7 +54,7 @@ const loginSchema = Joi.object({
     password: Joi.string().min(5).required()
 })
 
-const mailSchema =  Joi.string().email({ minDomainSegments: 2 }).min(8)
+const mailSchema =  Joi.string() // TODO: FIX .email({ minDomainSegments: 2 }).min(8)
 const passwordSchema =  Joi.string().min(5)
 
 
@@ -67,7 +67,7 @@ const passwordSchema =  Joi.string().min(5)
  * @returns validated user
  */
 const validateNewUser =(user) => {
-    user.user_uuid = v4()
+    // user.user_uuid = v4() nunca crear datos en la validación
     if (!newUserSchema.validate(user).error) {
         return user
     } else {

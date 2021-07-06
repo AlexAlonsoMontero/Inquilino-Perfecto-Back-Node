@@ -1,6 +1,6 @@
 const { createNewUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
-const { validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino} = require('./infrastructure/middlewares/checkRolMiddle')
+const { validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin, createNewAdminUser } = require('./controllers/adminController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } = require('./controllers/advertisementController')
@@ -47,9 +47,9 @@ const endpointGenericSearcher='/search/:table';
 const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
 //ENDPOINTS USER
-const endpointUserProfile = '/api/user/:username';
+const endpointUserProfile = '/api/users/:username';
+const endpointUserByUuid = '/api/user/:user_uuid';
 const endpointUser = '/api/users';
-const endpointUserByUuid = '/api/users/:user_uuid';
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/user/:username/advertisements';
@@ -66,14 +66,11 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 
 //USUARIOS
-app.get(endpointUserProfile, validateAuthorization, getSelfUser);
+app.get(endpointUserProfile, validateSelfOrAdmin, getSelfUser);
 app.post(endpointUser, createNewUser);
-// app.get(endpointUser,validateAuthorization, getUsers);
-app.get(endpointUser, getUsers);
-// app.put(endpointUserProfile, validateAuthorization, updateUser);
-app.put(endpointUserByUuid, updateUser);
-// app.delete(endpointUser, validateAuthorization, validateRolAdmin, deleteUser);
-app.delete(endpointUser, deleteUser);
+app.get(endpointUser,validateAuthorization, getUsers);
+app.put(endpointUserProfile, validateSelfOrAdmin, updateUser);
+app.delete(endpointUser, validateSelfOrAdmin, deleteUser);
 
 
 

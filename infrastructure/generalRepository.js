@@ -51,6 +51,7 @@ const findItem = async (item, table) => {
     // }
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
     const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
+    console.log(rows);
     return rows[0]
 }
 
