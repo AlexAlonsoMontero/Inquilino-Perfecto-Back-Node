@@ -10,9 +10,8 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
+const { request } = require('express')
 
-//TODO Update self
-//TODO CREAR FIND USER USANDO PARAMS
 //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
 
@@ -30,7 +29,6 @@ const createNewUser = async (request, response) => {
         console.log( request.auth.user.tipo);
         if(newUser.tipo==="ADMIN" && request.auth?.user.tipo !== 'ADMIN'){
             throw new errorNoAuthorization('guest or unauthorized','guest or unauthorized', 'user creation', 'tried to create admin')
-        
         }else{
             //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
             //En la versión definitiva no dejaremos que el post traiga uuid
@@ -48,24 +46,59 @@ const createNewUser = async (request, response) => {
                     Info: "User created",
                     Data: newUser
                 }
-                console.warn(`Created new user`)
+                console.log(`Created new user`)
             }
         }
     } catch (error) {
         console.warn(error)
-        sendMessage = {error: error.message}
         if(error instanceof errorNoAuthorization){
             isStatus = 403
+            sendMessage = {error: 'Servicio denegato, no tienes permisos para eso'}
         }else if(error instanceof errorInvalidField){
             isStatus = 401
+            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
         }else{
             isStatus = 500
+            sendMessage = {error: 'Error interno servidor'}
         }
     }finally{
         response.status(isStatus).send(sendMessage)
     }
 }
 
+/**
+ * #CASERO/ADMIN_FUNCTION
+ * TODO ADD QUERY CHECK
+ * retrieves data of all users (no pass, no admins)
+ * @param {*} request 
+ * @param {*} response 
+ */
+const getUsers = async (request, response) => {
+    let isStatus, sendMessage;
+    try {
+        const users = await findUsersNoPass()
+        if (users.length === 0) {
+            throw new errorNoEntryFound('getting all users', 'empty result')
+        } else {
+            isStatus = 200
+            sendMessage = {
+                info: "Usuarios localizados",
+                users
+            }
+        }
+    } catch (error) {
+        console.warn(error)
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+            sendMessage = {error:"No se han encontrado usuarios"}
+        }else{
+            isStatus = 500
+            sendMessage = {error:"Error interno del servidor"}
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
 
 /**
  * #REGISTRED_FUNCTION [ALL/SELF]
@@ -87,50 +120,33 @@ const getSelfUser = (request, response) => {
         }
     } catch (error) {
         console.warn(error)
-        sendMessage = {error:error.message}
-        if(error instanceof errorNoEntryFound){
+        if(error instanceof errorNoAuthorization){
             isStatus = 404
+            sendMessage = {error:'No tienes permisos para acceder a estos datos'}
         }else{
             isStatus = 500
+            sendMessage = {error: 'Error interno del servidor'}
         }
     }finally{
         response.status(isStatus).send(sendMessage)
     }
 }
 
-
 /**
- * #ADMIN_FUNCTION
- * retrieves data of all users (no pass, no admins)
+ * 
  * @param {*} request 
  * @param {*} response 
  */
-const getUsers = async (request, response) => {
-    let isStatus, sendMessage;
-    try {
-        const users = await findUsersNoPass()
-        if (users.length === 0) {
-            throw new errorNoEntryFound('getting all users', 'empty result')
-        } else {
-            isStatus = 200
-            sendMessage = {
-                info: "Usuarios localizados",
-                users
-            }
-        }
-    } catch (error) {
-        console.warn(error)
-        sendMessage = {error:error.message}
-        if(error instanceof errorNoEntryFound){
-            isStatus = 404
-        }else{
-            isStatus = 500
-        }
+const updateSelfUser = async (request, response) =>{
+    try{
+        console.log('TODO');
+
+    }catch(error){
+
     }finally{
-        response.status(isStatus).send(sendMessage)
+
     }
 }
-
 
 /**
  * #ADMIN FUNCTION
@@ -142,64 +158,74 @@ const updateUser = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'usuarios';
     try {
-        const oldUser = request.params
+        const oldUser = request.params //TODO joi
         // const oldUser = {
             //     user_uuid: request.auth.token.user_uuid
             // }
-            const newUser = request.body //TODO JOI
-            //(El anterior está mal, exige que cambien todos los datos que aparecen en el joi)
-            if(!newUser.error){
-                const consulta = await updateItem(newUser, oldUser, 'usuarios')
-                if(consulta>=1){
-                    isStatus = 200
-                    sendMessage = {
-                        Info: "Usuario modificado",
-                        NewData: newUser,
-                        Reference: oldUser
-                    }
-                }else{
-                    new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser)
-                }
-            }else{
-                new errorInvalidField('userUpdate(UserController)','joi verification failed')
+        if(!oldUser.error){
+            const existsOld = await getUserNoPass(oldUser.user_uuid)
+            if(existsOld.length === 0){
+                new errorNoEntryFound(
+                    'user update by admin or self',
+                    'old user uuid not found in database',
+                    'request.params.user_uuid',
+                    request.params.user_uuid
+                )
             }
-        } catch (error) {
-            console.warn(error)
-            sendMessage = {error:error.message}
-            if(error instanceof errorInvalidField){
-                isStatus = 401
-            }else if(error instanceof errorNoEntryFound){
-                isStatus = 404
-            }else{
-                isStatus = 500
-            }
-        }finally{
-            response.status(isStatus).send(sendMessage)
         }
-    }
-
-    /**
-     * #ADMIN FUNCTION
-     * deletes user from database
-     * @param {json} request
-     * @param {json} response
-     */
-    const deleteUser = async (request, response) => {
-        let isStatus, sendMessage;
-        const tName = 'usuarios';
-        try {
-            const delUser = request.body //TODO JOI
-            const isUserDel = await deleteItem(delUser, 'usuarios')
-            if (isUserDel) {
+        const newUser = request.body //TODO JOI
+        if(!newUser.error){
+            const consulta = await updateItem(newUser, oldUser, 'usuarios')
+            if(consulta>=1){
                 isStatus = 200
                 sendMessage = {
-                    "Tuple": delUser,
-                    "Delete": isUserDel
+                    Info: "Usuario modificado",
+                    NewData: newUser,
+                    Reference: oldUser
                 }
-                console.warn(`Successfully deletion for ${Object.keys(delUser)[0]} with ${delUSer}`);
-            } else {
-                throw new errorNoEntryFound(tName,'user not found','request.body',request.body.user_uuid)
+            }else{
+                new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser)
             }
+        }else{
+            new errorInvalidField('userUpdate(UserController)','joi verification failed')
+        }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorInvalidField){
+            isStatus = 401
+        }else if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
+/**
+ * #ADMIN FUNCTION
+ * deletes user from database
+ * @param {json} request
+ * @param {json} response
+ */
+const deleteUser = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'usuarios';
+    try {
+        const delUser = request.body //TODO JOI
+        const isUserDel = await deleteItem(delUser, 'usuarios')
+        if (isUserDel) {
+            isStatus = 200
+            sendMessage = {
+                "Tuple": delUser,
+                "Delete": isUserDel
+            }
+            console.log(`Successfully deletion for ${Object.keys(delUser)[0]} with ${delUSer}`);
+        } else {
+            throw new errorNoEntryFound(tName,'user not found','request.body',request.body.user_uuid)
+        }
     } catch (error) {
         console.warn(error)
         sendMessage = {error:error.message}
@@ -259,7 +285,7 @@ const login = async (request, response, next) => {
                     token,
                     user
                 }
-                console.warn('Successfully logged in');
+                console.log('Successfully logged in');
             }
         }
     } catch (error) {
@@ -295,7 +321,7 @@ const logout = (request, response) => {
             sendMessage = {
                 "Log out":"OK"
             }
-            console.warn('Successfu logged out');
+            console.log('Successfu logged out');
         } else {
             throw new errorInvalidToken('user not logged')
         }
@@ -313,5 +339,5 @@ const logout = (request, response) => {
 
 module.exports = {
     createNewUser,    login,    getUsers,    getSelfUser,
-    updateUser,    deleteUser,  logout
+    updateSelfUser, updateUser,    deleteUser,  logout
 }

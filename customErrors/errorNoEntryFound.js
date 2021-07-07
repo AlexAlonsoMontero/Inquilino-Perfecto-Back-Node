@@ -4,7 +4,7 @@ class errorNoEntryFound extends Error {
      * @param {string} where in which part of the code is the error
      * @param {string} why guess why
      * @param {string} what1 element that could detonate the error
-     * @param {string} what2 value of 'what1
+     * @param {string} what2 value of 'what1'
      */
     constructor(where, why, what1, what2) {
         super();
