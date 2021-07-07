@@ -3,6 +3,7 @@ const { errorInvalidUser } = require('../../customErrors/errorInvalidUser')
 const { errorNoEntryFound } = require('../../customErrors/errorNoEntryFound')
 const { errorNoAuthorization } = require('../../customErrors/errorNoAuthorization')
 const { getUserNoPass } = require('../userRepository')
+const { errorInvalidToken } = require('../../customErrors/errorInvalidToken')
 
 /**
  * Middleware that's gonna determine if the user's is logged in
@@ -15,7 +16,7 @@ const { getUserNoPass } = require('../userRepository')
     try {
         const { authorization } = request.headers
         if (!authorization || !authorization.startsWith('Bearer ')) {
-            throw new errorInvalidUser('invalid token')
+            throw new errorInvalidToken('token null or not Bearer token')
         }
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
@@ -27,18 +28,18 @@ const { getUserNoPass } = require('../userRepository')
         }
         next()
     } catch (error) {
-        console.warn(error.message)
+        console.warn(error)
         if (error instanceof errorNoEntryFound){
             isStatus = 404
             sendMessage = "token correcto, usuario no encontrado en la base de datos"
-        }else if(error instanceof errorInvalidUser){
+        }else if(error instanceof errorInvalidToken){
             isStatus = 403
             sendMessage = "validación de token fallida"
         }else{
             isStatus = 500
             sendMessage = "error interno del servidor"
         }
-        response.status(isStatus).send(sendMessage)
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 
@@ -47,6 +48,7 @@ const validateRolAdmin = (request, response, next) => {
     let isStatus, sendMessage
     try{
         if (request.auth.user.tipo === 'ADMIN'){
+            console.log('validated admin');
             next()
         }else{
             throw new errorNoAuthorization(
@@ -63,7 +65,7 @@ const validateRolAdmin = (request, response, next) => {
             sendMessage = 'Error interno del servidor'
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 
@@ -72,6 +74,7 @@ const validateRolCasero =(requeset, response, next) => {
     try{
         // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'CASERO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
         if (request.auth.user.tipo !== 'INQUILINO'){
+            console.log('validated casero/inquilino_casero/admin');
             next()
         }else{
             throw new errorNoAuthorization(
@@ -88,7 +91,7 @@ const validateRolCasero =(requeset, response, next) => {
             sendMessage = 'Error interno del servidor'
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 
@@ -97,6 +100,7 @@ const validateRolInquilino = (request, response, next) => {
     try{
         // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
         if (request.auth.user.tipo !== 'CASERO'){
+            console.log('validated inquilino/inquilino_casero/admin');
             next()
         }else{
             throw new errorNoAuthorization(
@@ -113,7 +117,7 @@ const validateRolInquilino = (request, response, next) => {
             sendMessage = 'Error interno del servidor'
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 
@@ -122,6 +126,7 @@ const validateRolInquiCas = (request, response, next) => {
     try{
         // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
         if (request.auth.user.tipo !== 'CASERO' && request.auth.user.tipo !== 'INQUILINO'){
+            console.log('validated inquilino_casero/admin');
             next()
         }else{
             throw new errorNoAuthorization(request.auth.user.username,request.auth.user.tipo, '?', 'area restringida a inquilino_casero o admin')
@@ -137,7 +142,7 @@ const validateRolInquiCas = (request, response, next) => {
             sendMessage = 'Error interno del servidor'
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 
@@ -168,7 +173,7 @@ const validateRolInquiCas = (request, response, next) => {
             sendMessage = 'Error interno del servidor'
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 
@@ -192,8 +197,8 @@ const detectType = async (request, response, next) => {
             }else{
                 throw new errorNoEntryFound('detectType','token bearer not found in db',JSON.stringify(decodedToken),decodedToken.username)
             }
-            //no se determina el status porque de aquí va a next
         }
+        //allows guests
         next()
     }catch(error){
         console.warn(error)
@@ -204,7 +209,8 @@ const detectType = async (request, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-        response.status(isStatus).send(sendMessage)
+    }finally{
+        response.status(isStatus).send({'Error': sendMessage})
     }
 }
 

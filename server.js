@@ -1,20 +1,24 @@
-const { createNewUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
+const { createNewUser, updateSelfUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
 const { detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} = require('./infrastructure/middlewares/checkRolMiddle')
-const { updateUserForAdmin, getUsersForAdmin, createNewAdminUser } = require('./controllers/adminController')
+const { updateUserForAdmin, getUsersForAdmin } = require('./controllers/adminController')
 const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
 const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } = require('./controllers/advertisementController')
 const { getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved, createNewReservation, modifyReservation, deleteReservation } = require('./controllers/reservationController')
 const { getReviewByRev, getAllReviews, createNewReview, modifyReview, deleteReview } = require('./controllers/reviewController')
-require('dotenv').config();
+
 const express = require('express')
+const cors = require('cors')
 const app = express()
 app.use(express.json())
+app.use(cors())
 
+require('dotenv').config();
 
 //ENDPOINTS ADMIN USER
 const endpointAdminAdv = '/api/admin/adv';
 const endpointAdminUsers='/api/admin/users';
+const endpointAdminUsersUuid='/api/admin/users/:user_uuid';
 const endpointAdminReviews = '/api/admin/reviews';
 const endpointAdminReservations = '/api/admin/reservations';
 
@@ -48,7 +52,6 @@ const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
-const endpointUserByUuid = '/api/user/:user_uuid';
 const endpointUser = '/api/users';
 
 //ENDPOINTS SELF
@@ -69,8 +72,9 @@ app.post(endpointLogout, validateAuthorization, logout);
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 app.post(endpointUser, detectType, createNewUser);
 // app.post(endpointUser, createNewUser); necesario para crear el primer admin
-app.get(endpointUser, validateAuthorization, validateRolAdmin, getUsers);
-app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateUser);
+app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
+app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
+app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
 app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
 //TODO get por tipo de usuario
 
