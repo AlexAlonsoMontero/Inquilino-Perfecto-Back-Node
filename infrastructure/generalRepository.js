@@ -148,14 +148,12 @@ const whereCreator = (queryParams) => {
                 queryKeys.push([key.split('-')[1]])
                 operator = '>='
             } else if (aux === "until") {
-
                 queryKeys.push([key.split('-')[1]])
                 operator = '<='
             }
         } else {
             operator = '='
             queryKeys.push(key)
-
         }
 
         if (i === 0) {
