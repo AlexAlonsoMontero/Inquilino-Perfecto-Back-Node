@@ -26,7 +26,6 @@ const createNewUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
         let newUser = request.body
-        console.log( request.auth.user.tipo);
         if(newUser.tipo==="ADMIN" && request.auth?.user.tipo !== 'ADMIN'){
             throw new errorNoAuthorization('guest or unauthorized','guest or unauthorized', 'user creation', 'tried to create admin')
         }else{

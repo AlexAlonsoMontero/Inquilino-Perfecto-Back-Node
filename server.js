@@ -55,11 +55,11 @@ const endpointUserProfile = '/api/users/:username';
 const endpointUser = '/api/users';
 
 //ENDPOINTS SELF
-const endpointSelfAdvertisements = '/api/user/:username/advertisements';
-const endpointSelfProfile = '/api/users/me';
-const endpointSelfProperties = '/api/user/:username/properties';
-const endpointSelfReservations = '/api/user/:username/reservations';
-const endpointSelfReviews = '/api/user/:username/reviews';
+const endpointSelfAdvertisements = '/api/users/advertisements';
+const endpointSelfProfile = '/api/users';
+const endpointSelfProperties = '/api/users/properties';
+const endpointSelfReservations = '/api/users/reservations';
+const endpointSelfReviews = '/api/users/reviews';
 
 
 //RUTES
@@ -70,14 +70,13 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 //USUARIOS
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
-app.post(endpointUser, detectType, createNewUser);
-// app.post(endpointUser, createNewUser); necesario para crear el primer admin
+// app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
+app.post(endpointUser, createNewUser);
+//TODO get por tipo de usuario
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
 app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
 app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
-//TODO get por tipo de usuario
-
 
 //USER ADMIN
 app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
