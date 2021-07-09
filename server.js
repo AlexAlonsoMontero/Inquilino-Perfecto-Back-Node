@@ -7,8 +7,10 @@ const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertise
 const { getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved, createNewReservation, modifyReservation, deleteReservation } = require('./controllers/reservationController')
 const { getReviewByRev, getAllReviews, createNewReview, modifyReview, deleteReview } = require('./controllers/reviewController')
 
+const multer= require('multer')
 const express = require('express')
 const cors = require('cors')
+const upload = multer()
 const app = express()
 app.use(express.json())
 app.use(cors())
@@ -71,7 +73,7 @@ app.post(endpointLogout, validateAuthorization, logout);
 //USUARIOS
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
-app.post(endpointUser, detectType, createNewUser);
+app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
 //TODO get por tipo de usuario
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);

@@ -31,7 +31,8 @@ const newUserSchema = Joi.object({
     username: Joi.string().alphanum().min(4).max(64).required(),
     password: Joi.string().min(8).required(),
     email: Joi.string().email({ minDomainSegments: 2 }).required(),
-    tipo: Joi.string()
+    tipo: Joi.string(),
+    avatar: Joi.string()
 })
 
 
