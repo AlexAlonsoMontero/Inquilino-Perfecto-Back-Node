@@ -1,4 +1,5 @@
 class errorInvalidUserLogin extends Error {
+
 /**
  * 
  * @param {string} mailValue 
@@ -9,8 +10,8 @@ class errorInvalidUserLogin extends Error {
         super();
         this.name = "errorInvalidUser";
         this.type = "login";
-        const mailExists = mailInDB ? 'exists':'not exists'
-        this.message = `Failed to log in as '${mailValue}' which ${mailExists}, with password '${passwordValue}'`;
+        this.mailInDB = mailInDB
+        this.message = `Failed to log in as '${mailValue}' which ${mailInDB  ? 'exists':'not exists'}, with password '${passwordValue}'`;
     }
 }
 
