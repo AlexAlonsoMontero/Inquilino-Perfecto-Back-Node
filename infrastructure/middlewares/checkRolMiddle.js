@@ -209,7 +209,6 @@ const detectType = async (request, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-    }finally{
         response.status(isStatus).send({'Error': sendMessage})
     }
 }

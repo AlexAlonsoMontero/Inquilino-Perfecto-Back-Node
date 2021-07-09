@@ -76,12 +76,13 @@ const getUsers = async (request, response) => {
     let isStatus, sendMessage;
     try {
         const users = await findUsersNoPass()
-        if (users.length === 0) {
+        // if (users.length === 0) {
+        if (!users) {
             throw new errorNoEntryFound('getting all users', 'empty result')
         } else {
             isStatus = 200
             sendMessage = {
-                info: "Usuarios localizados",
+                info: users.length >= 1 ? 'Usuarios localizados' : 'No de han encontrado usuarios',
                 users
             }
         }
@@ -158,9 +159,6 @@ const updateUser = async (request, response) => {
     const tName = 'usuarios';
     try {
         const oldUser = request.params //TODO joi
-        // const oldUser = {
-            //     user_uuid: request.auth.token.user_uuid
-            // }
         if(!oldUser.error){
             const existsOld = await getUserNoPass(oldUser.user_uuid)
             if(existsOld.length === 0){
@@ -182,6 +180,7 @@ const updateUser = async (request, response) => {
                     NewData: newUser,
                     Reference: oldUser
                 }
+            console.log(`Successfully update for ${JSON.stringify(oldUser)} with ${JSON.stringify(newUser)}`);
             }else{
                 new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser)
             }
@@ -255,19 +254,14 @@ const login = async (request, response, next) => {
         } else if (!validateUserPassword(request.body.password)) {
             throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
-            console.log(JSON.stringify(request.body)+ ' is body');
             let user = await findItem(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
-            console.log(JSON.stringify(user)+ ' is nice');
-            // const valid = await bcrypt.compare(request.body.password, user.password)
-            // console.log(valid);
             if (!user || user.length === 0) {
                 throw new errorInvalidUserLogin(request.body.email,request.body.password,false)
             }
             else if (!await bcrypt.compare(request.body.password, user.password)) {
-                console.log('error will be thrown');
                 throw new errorInvalidUserLogin(request.body.email,request.body.password,true)
             } else {
-                delete user.password //añadida esta línea se soluciona
+                delete user.password
                 const tokenPayload = {
                     user_uuid: user.user_uuid,
                     username: user.username,
@@ -289,12 +283,14 @@ const login = async (request, response, next) => {
         }
     } catch (error) {
         console.warn(error)
-        sendMessage = {error:error.message}
         if(error instanceof errorInvalidField
-        || error instanceof errorInvalidUserLogin){
+            || error instanceof errorInvalidUserLogin){
             isStatus = 401
+            sendMessage = {error: error?.mailInDB ? 'La contraseña es incorrecta' : 'El mail es incorrecto'}
+            console.warn(`${error.type !== 'login' ? 'Error de Joi' : error?.mailInDB ? 'contraseña mal':'mail mal'}`)
         }else{
             isStatus = 500
+            sendMessage = {error:'Error interno del servidor'}
         }
     }finally{
         response.status(isStatus).send(sendMessage)
@@ -327,9 +323,11 @@ const logout = (request, response) => {
     } catch (error) {
         console.warn(error.message)
         if(error instanceof errorInvalidToken){
-            isStatus = 400
+            isStatus = 401
+            sendMessage = {error:'Token inválido o inexistente'}
         }else{
             isStatus = 500
+            sendMessage = {error:'Error interno del servidor'}
         }
     }finally{
         response.status(isStatus).send(sendMessage)

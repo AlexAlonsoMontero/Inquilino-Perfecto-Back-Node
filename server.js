@@ -71,7 +71,7 @@ app.post(endpointLogout, validateAuthorization, logout);
 //USUARIOS
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
-app.post(endpointUser, createNewUser);
+app.post(endpointUser, detectType, createNewUser);
 //TODO get por tipo de usuario
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
