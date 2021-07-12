@@ -11,6 +11,8 @@ const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
 const { request } = require('express')
+const fs = require('fs')
+const path = require('path')
 
 //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
@@ -26,6 +28,7 @@ const createNewUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
         let newUser = request.body
+        newUser.avatar= 'uploadAvatars/user-'+ request.body.username +'.jpg'
         if(newUser.tipo==="ADMIN" && request.auth?.user.tipo !== 'ADMIN'){
             throw new errorNoAuthorization('guest or unauthorized','guest or unauthorized', 'user creation', 'tried to create admin')
         }else{
@@ -45,8 +48,13 @@ const createNewUser = async (request, response) => {
                     Info: "User created",
                     Data: newUser
                 }
+                if (request.file){
+                    fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
+                    
+                }
                 console.log(`Created new user`)
             }
+            
         }
     } catch (error) {
         console.warn(error)
