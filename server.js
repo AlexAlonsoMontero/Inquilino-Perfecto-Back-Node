@@ -134,6 +134,10 @@ app.delete(endpointReviews, deleteReview);
 app.get(endpointGenericSearcher, searchMultiParams)
 app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
 
+// Servimos los ficheros estáticos de la carpeta uploads
+app.use('/uploadAvatars', express.static('uploadAvatars'))
+
+
 let port = process.env.WEB_PORT
 let host = process.env.WEB_HOST
 app.listen(port, host, () => {
