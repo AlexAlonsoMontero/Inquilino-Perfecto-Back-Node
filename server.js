@@ -14,6 +14,7 @@ const upload = multer()
 const app = express()
 app.use(express.json())
 app.use(cors())
+app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 require('dotenv').config();
 
