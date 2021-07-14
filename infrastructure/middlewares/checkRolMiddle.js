@@ -11,7 +11,7 @@ const { errorInvalidToken } = require('../../customErrors/errorInvalidToken')
  * @param {json} response contains more data
  * @param {meth} next executes the following method
  */
- const validateAuthorization = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
+const validateAuthorization = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     let isStatus, sendMessage
     try {
         const { authorization } = request.headers
@@ -20,13 +20,18 @@ const { errorInvalidToken } = require('../../customErrors/errorInvalidToken')
         }
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
-        const [user] = await getUserNoPass(decodedToken.user_uuid)
+        let user = await getUserNoPass(decodedToken.user_uuid)
+        
         if (user?.length > 0){
-            request.auth = { user, token: decodedToken }
+            user = user[0]
+            request.auth = {
+                user,
+                token: decodedToken
+            }
+            next()
         }else{
-            throw new errorNoEntryFound('validate authorization','token valid, user not in bd','user',user)
+            throw new errorNoEntryFound('validate authorization','token valid, user not in bd','user',JSON.stringify(user))
         }
-        next()
     } catch (error) {
         console.warn(error)
         if (error instanceof errorNoEntryFound){
@@ -41,10 +46,50 @@ const { errorInvalidToken } = require('../../customErrors/errorInvalidToken')
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
+    // finally{
+    // }
 }
 
+/**
+ * Adds token info to request, ALLOWING GUESTS to next()
+ * exception thrown when token is correct but user doesn't exists
+ * @param {json} request
+ * @param {json} response
+ * @param {function} next
+ */
+const detectType = async (request, response, next) => {
+    let isStatus, sendMessage;
+    try{
+        const { authorization } = request.headers
+        if (authorization?.startsWith('Bearer ')) {
+            const token = authorization.slice(7, authorization.length)
+            const decodedToken = jwt.verify(token, process.env.SECRET)
+            let user = await getUserNoPass(decodedToken.user_uuid)
+            if(user.length > 0){
+                user = user[0]
+                request.auth = {
+                    user: user[0][0],
+                    token: decodedToken }
+            }else{
+                throw new errorNoEntryFound('detectType','token bearer not found in db',JSON.stringify(decodedToken),decodedToken.username)
+            }
+        }
+        //allows guests
+        next()
+    }catch(error){
+        console.warn(error)
+        if (error instanceof errorNoEntryFound){
+            isStatus = 404
+            sendMessage = 'Token válido, pero usuario no encontrado en la base de datos'
+        }else{
+            isStatus = 500
+            sendMessage = 'Error interno del servidor'
+        }
+        response.status(isStatus).send({'Error': sendMessage})
+    }
+}
 
-const validateRolAdmin = (request, response, next) => {
+const validateRolAdmin = async (request, response, next) => {
     let isStatus, sendMessage
     try{
         if (request.auth.user.tipo === 'ADMIN'){
@@ -52,7 +97,7 @@ const validateRolAdmin = (request, response, next) => {
             next()
         }else{
             throw new errorNoAuthorization(
-                request.auth.user.username,request.auth.user.tipo, 
+                request.auth.user.username,request.auth.user.tipo,
                 '?', 'area restringida a casero, inquilino_casero o admin')
         }
     }catch(error){
@@ -64,21 +109,21 @@ const validateRolAdmin = (request, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-    }finally{
         response.status(isStatus).send({'Error': sendMessage})
     }
+    // finally{
+    // }
 }
 
-const validateRolCasero =(requeset, response, next) => {
+const validateRolCasero = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'CASERO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
-        if (request.auth.user.tipo !== 'INQUILINO'){
-            console.log('validated casero/inquilino_casero/admin');
+        if (request.auth?.user.tipo !== 'INQUILINO'){
+            // console.log('validated casero/inquilino_casero/admin');
             next()
         }else{
             throw new errorNoAuthorization(
-                request.auth.user.username,request.auth.user.tipo, 
+                request.auth?.user?.username,request.auth?.user?.tipo, 
                 '?', 'area restringida a inquilino, inquilino_casero o admin')
         }
     }catch(error){
@@ -90,12 +135,13 @@ const validateRolCasero =(requeset, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-    }finally{
         response.status(isStatus).send({'Error': sendMessage})
     }
+    // finally{
+    // }
 }
 
-const validateRolInquilino = (request, response, next) => {
+const validateRolInquilino = async (request, response, next) => {
     let isStatus, sendMessage
     try{
         // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
@@ -116,12 +162,13 @@ const validateRolInquilino = (request, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-    }finally{
         response.status(isStatus).send({'Error': sendMessage})
     }
+    // finally{
+    // }
 }
 
-const validateRolInquiCas = (request, response, next) => {
+const validateRolInquiCas = async (request, response, next) => {
     let isStatus, sendMessage
     try{
         // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
@@ -141,9 +188,10 @@ const validateRolInquiCas = (request, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-    }finally{
         response.status(isStatus).send({'Error': sendMessage})
     }
+    // finally{
+    // }
 }
 
 /**
@@ -154,6 +202,7 @@ const validateRolInquiCas = (request, response, next) => {
  */
  const validateSelfOrAdmin = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {
+        // console.log(request.auth);
         const {user} = request.auth
         if(request.params?.username === user.username
             || request.params?.user_uuid === user.user_uuid
@@ -172,46 +221,12 @@ const validateRolInquiCas = (request, response, next) => {
             isStatus = 500
             sendMessage = 'Error interno del servidor'
         }
-    }finally{
         response.status(isStatus).send({'Error': sendMessage})
     }
+    // finally{
+    // }
 }
 
-/**
- * Adds token info to request, ALLOWING GUESTS to next()
- * exception thrown when token is correct but user doesn't exists
- * @param {json} request
- * @param {json} response
- * @param {function} next
- */
-const detectType = async (request, response, next) => {
-    let isStatus, sendMessage;
-    try{
-        const { authorization } = request.headers
-        if (authorization?.startsWith('Bearer ')) {
-            const token = authorization.slice(7, authorization.length)
-            const decodedToken = jwt.verify(token, process.env.SECRET)
-            const [user] = await getUserNoPass(decodedToken.user_uuid)
-            if(user){
-                request.auth = { user, token: decodedToken }
-            }else{
-                throw new errorNoEntryFound('detectType','token bearer not found in db',JSON.stringify(decodedToken),decodedToken.username)
-            }
-        }
-        //allows guests
-        next()
-    }catch(error){
-        console.warn(error)
-        if (error instanceof errorNoEntryFound){
-            isStatus = 404
-            sendMessage = 'Token válido, pero usuario no encontrado en la base de datos'
-        }else{
-            isStatus = 500
-            sendMessage = 'Error interno del servidor'
-        }
-        response.status(isStatus).send({'Error': sendMessage})
-    }
-}
 
 module.exports = {
     validateAuthorization,

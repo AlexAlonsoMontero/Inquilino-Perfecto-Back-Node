@@ -1,5 +1,6 @@
 const errorInvalidUser = require('../customErrors/errorInvalidUser');
-const { save, getItems, findItem, updateItem, deleteItem } = require('../infrastructure/generalRepository')
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
+const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
 const { validateNewAdevertisement, validateUpdateAdvertisemente } = require("../validators/advertisementeValidator")
 
 //TODO Realizar validacion de usuario cuando esté completa la base de datos
@@ -7,7 +8,7 @@ const { validateNewAdevertisement, validateUpdateAdvertisemente } = require("../
 //TODO JOI
 
 /**
- * 
+ * Creates an advertisement
  * @param {*} request 
  * @param {*} response 
  */
@@ -54,6 +55,9 @@ const createAdvertisemenet = async (request, response) => {
 
 /**
  * Replaced by query search
+ * 
+ * 
+ * 
  * Busqueda por un parametro, el campo por el que se busca key del object, el resultado se da en value
  * @param {*} request
  * @param {*} response
@@ -125,24 +129,52 @@ const getAdvertisementByUser = async (request, response) => {
     }finally{
         res.status(isStatus).send(sendMessage)
     }
-
-
-
-    
 }
 
+//TODO query params
 /**
- * Used only by ADMIN
+ * Used by searcher engine
  * @param {json} request not going to be used
  * @param {json} response object with all the advertisements in the database
  */
-const getAllAdvertisements = async (request, response) => {
+const getAdvertisements = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'anuncios';
     try {
-        const advertisements = await getItems('anuncios')
-        response.status(200).send({ info: "Anuncios localizados", data: advertisements })
+        const joinAdvPlusInmuebles = {
+            table1: tName,
+            table2: "inmuebles",
+            t1key: "inmueble_uuid",
+            t2key: "inmueble_uuid"
+        }
+        let advInm = undefined
+        console.log(JSON.stringify(request.query));
+
+        if(request?.query){
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles,request.query)
+        }else{
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, {})
+        }
+
+        if(advInm.length === 0){
+            throw new errorNoEntryFound("get advertisements","no advertisements found","advInv",JSON.stringify(advInm))
+        }else{
+            isStatus = 200
+            sendMessage = {
+                Tuple: JSON.stringify(request.query),
+                Data: advInm
+            }
+        }
     } catch (error) {
-        console.warn(error.message)
-        response.status(400).send("No se han localizado anuncios")
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if (error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
     }
 }
 
@@ -247,7 +279,7 @@ const deleteAdvertisement = async (request, response) => {
 
 module.exports = {
     createAdvertisemenet,
-    getAllAdvertisements,
+    getAdvertisements,
     getAllVisibleAdvertisements,
     getAdvertisementByUser,
     getAdvertisementByAdv,
