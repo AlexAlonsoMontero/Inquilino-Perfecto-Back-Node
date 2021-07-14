@@ -28,8 +28,7 @@ const createNewUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
         let newUser = request.body
-        newUser.avatar= 'uploadAvatars/user-'+ request.body.username +'.jpg'
-        if(newUser.tipo==="ADMIN" && request.auth?.user.tipo !== 'ADMIN'){
+        if(newUser?.tipo === 'ADMIN' && request.auth?.user.tipo !== 'ADMIN'){
             throw new errorNoAuthorization('guest or unauthorized','guest or unauthorized', 'user creation', 'tried to create admin')
         }else{
             //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
@@ -37,6 +36,8 @@ const createNewUser = async (request, response) => {
             if (!newUser.user_uuid){
                 newUser = {...newUser, user_uuid : v4()}
             }
+            newUser.avatar= 'uploadAvatars/user-'+ request.body.username +'.jpg'
+
             newUser = validateNewUser(newUser) //TODO check joi
             if(newUser.error){
                 throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
@@ -50,11 +51,9 @@ const createNewUser = async (request, response) => {
                 }
                 if (request.file){
                     fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
-                    
                 }
                 console.log(`Created new user`)
             }
-            
         }
     } catch (error) {
         console.warn(error)
@@ -84,8 +83,9 @@ const getUsers = async (request, response) => {
     let isStatus, sendMessage;
     try {
         const users = await findUsersNoPass()
-        // if (users.length === 0) {
-        if (!users) {
+        // console.log(users);
+        // console.log(users.length);
+        if (users.length < 1) {
             throw new errorNoEntryFound('getting all users', 'empty result')
         } else {
             isStatus = 200
@@ -103,7 +103,8 @@ const getUsers = async (request, response) => {
             isStatus = 500
             sendMessage = {error:"Error interno del servidor"}
         }
-    }finally{
+    }
+    finally{
         response.status(isStatus).send(sendMessage)
     }
 }
@@ -141,7 +142,7 @@ const getSelfUser = (request, response) => {
 }
 
 /**
- * 
+ * Actualiza los datos de usuario y devuelve un token nuevo
  * @param {*} request 
  * @param {*} response 
  */
@@ -171,7 +172,7 @@ const updateUser = async (request, response) => {
             const existsOld = await getUserNoPass(oldUser.user_uuid)
             if(existsOld.length === 0){
                 new errorNoEntryFound(
-                    'user update by admin or self',
+                    'user update by admin',
                     'old user uuid not found in database',
                     'request.params.user_uuid',
                     request.params.user_uuid
@@ -190,7 +191,7 @@ const updateUser = async (request, response) => {
                 }
             console.log(`Successfully update for ${JSON.stringify(oldUser)} with ${JSON.stringify(newUser)}`);
             }else{
-                new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser)
+                new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser.user_uuid)
             }
         }else{
             new errorInvalidField('userUpdate(UserController)','joi verification failed')

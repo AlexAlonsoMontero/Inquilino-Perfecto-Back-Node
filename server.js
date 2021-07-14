@@ -1,11 +1,19 @@
-const { createNewUser, updateSelfUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } = require ('./controllers/userController')
-const { searchMultiParams, searchMultiTableMultiParams } = require('./controllers/generalControllers')
-const { detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} = require('./infrastructure/middlewares/checkRolMiddle')
-const { updateUserForAdmin, getUsersForAdmin } = require('./controllers/adminController')
-const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAllAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } = require('./controllers/advertisementController')
-const { getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved, createNewReservation, modifyReservation, deleteReservation } = require('./controllers/reservationController')
-const { getReviewByRev, getAllReviews, createNewReview, modifyReview, deleteReview } = require('./controllers/reviewController')
+const { createNewUser, updateSelfUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } 
+= require ('./controllers/userController')
+const { searchMultiParams, searchMultiTableMultiParams } 
+= require('./controllers/generalControllers')
+const { detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
+= require('./infrastructure/middlewares/checkRolMiddle')
+const { updateUserForAdmin, getUsersForAdmin } 
+= require('./controllers/adminController')
+const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} 
+= require ('./controllers/propertyController')
+const { createAdvertisemenet,    getAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } 
+= require('./controllers/advertisementController')
+const { getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved, createNewReservation, modifyReservation, deleteReservation } 
+= require('./controllers/reservationController')
+const { getReviewByRev, getAllReviews, createNewReview, modifyReview, deleteReview } 
+= require('./controllers/reviewController')
 
 const multer= require('multer')
 const express = require('express')
@@ -14,6 +22,7 @@ const upload = multer()
 const app = express()
 app.use(express.json())
 app.use(cors())
+app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 require('dotenv').config();
 
@@ -76,9 +85,9 @@ app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelf
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
 //TODO get por tipo de usuario
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
-app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
-app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
-app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
+// app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
+// app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
+// app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
 
 //USER ADMIN
 app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
@@ -100,11 +109,11 @@ app.delete(endpointProperties, deleteProperty);
 
 //ANUNCIOS
 // app.get(endpointAdminAdv, validateAuthorization, validateRolAdmin, getAllAdvertisements);
-app.get(endpointAdminAdv, getAllAdvertisements);
-app.get(enpointAdvByUser, getAdvertisementByUser);
-app.get(enpointAdvByUser, getAdvertisementByUser);
-app.get(enpointAdvByAdv, getAdvertisementByAdv);
-app.get(endpointAdv, getAllVisibleAdvertisements);
+app.get(endpointAdv, getAdvertisements);
+// app.get(endpointAdminAdv, getAdvertisements);
+// app.get(enpointAdvByUser, getAdvertisementByUser);
+// app.get(enpointAdvByAdv, getAdvertisementByAdv);
+// app.get(endpointAdv, getAllVisibleAdvertisements);
 app.post(endpointAdv, createAdvertisemenet);
 app.put(enpointAdvByAdv, modifyAdvertisement);
 app.delete(endpointAdv, deleteAdvertisement); //check existencia de reserva

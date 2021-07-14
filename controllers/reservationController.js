@@ -148,9 +148,9 @@ const createNewReservation = async(req, res) =>{
         isStatus = 201
         sendMessage =   {
             Tuple: req.body.reserva_uuid,
-            New_Data: validatedNewRes
+            Data: validatedNewRes
         }
-        console.warn(`Created new element in ${tName}`)
+        console.log(`Created new element in ${tName}`)
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}

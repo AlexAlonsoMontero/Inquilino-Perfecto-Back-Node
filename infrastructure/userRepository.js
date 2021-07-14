@@ -9,7 +9,7 @@ const connection = getConnection()
 const getUserNoPass = async (uuid_user) => {
     const sentence = 'SELECT user_uuid, username, email, tipo FROM usuarios WHERE user_uuid=?'
     const user = await connection.query(sentence, uuid_user)
-    return (user[0])
+    return user[0]
 }
 
 /**
