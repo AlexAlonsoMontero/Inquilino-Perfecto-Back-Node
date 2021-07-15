@@ -111,8 +111,9 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     let rows =""
     let sentence = `SELECT * FROM ${table1}` +
                     ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
-    if( Object.keys(queryParams).length === 0){console.log("entra")
-    console.log(sentence)
+    if( Object.keys(queryParams).length === 0){
+        console.log(queryParams)
+        console.log(sentence)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)

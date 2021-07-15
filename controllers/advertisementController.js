@@ -103,7 +103,7 @@ const createAdvertisemenet = async (request, response) => {
 }
 
 /**
- * Used by searcher engine
+ * Used by searcher engine, only returns visible advs
  * @param {json} request not going to be used
  * @param {json} response object with all the advertisements in the database
  */
@@ -118,11 +118,13 @@ const getAdvertisements = async (request, response) => {
             t2key: "inmueble_uuid"
         }
         let advInm = undefined
+        const vis = {'visibilidad':true}
 
-        if(request?.query){ //TODO visibiliti handled in front o better in back
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles,request.query)
+        if(Object.keys(request.query).length !== 0){
+            const query = {...request.query, ...vis}
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
         }else{
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, {})
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
         }
 
         if(advInm.length === 0){
