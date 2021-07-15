@@ -44,7 +44,7 @@ const getItems = async (table) => {
 const findItem = async (item, table) => {
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
     const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
-    console.log(rows);
+    // console.log(rows);
     return rows[0]
 }
 
@@ -92,7 +92,6 @@ const deleteItem = async (item, table) => {
  */
 const getItemsMultiParams = async (params, table) => {
     try {
-        console.log(table)
         const sentence = `SELECT * FROM ${table} ` + whereCreator(params)
         const rows = await connection.query(sentence, Object.values(params))
 
@@ -112,8 +111,9 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     let rows =""
     let sentence = `SELECT * FROM ${table1}` +
                     ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
-    if( Object.keys(queryParams).length === 0){console.log("entra")
-    console.log(sentence)
+    if( Object.keys(queryParams).length === 0){
+        console.log(queryParams)
+        console.log(sentence)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)

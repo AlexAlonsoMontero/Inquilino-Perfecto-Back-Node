@@ -1,10 +1,10 @@
 const errorInvalidUser = require('../customErrors/errorInvalidUser');
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
-const { validateNewAdevertisement, validateUpdateAdvertisemente } = require("../validators/advertisementeValidator")
+const { validateNewAdevertisement, validateUpdateAdvertisemente } = require("../validators/advertisementeValidator");
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
 
-//TODO Realizar validacion de usuario cuando esté completa la base de datos
-//TODO configurar para que haga usuario correcto, logado admin, o casero
 //TODO JOI
 
 /**
@@ -54,35 +54,6 @@ const createAdvertisemenet = async (request, response) => {
 }
 
 /**
- * Replaced by query search
- * 
- * 
- * 
- * Busqueda por un parametro, el campo por el que se busca key del object, el resultado se da en value
- * @param {*} request
- * @param {*} response
- */
-const getAdvertisementByUser = async (request, response) => {
-    // try {
-    //     //check request.params.usr_casero_uuid exists
-    //     let advByUser = undefined
-    //     if(request.params.estado === 'all'){
-    //         advByUser = await findItem({usr_casero_uuid:request.params.usr_casero_uuid}, 'anuncios')
-    //     }else{// JOI VALIDATION }else if(request.params.estado === ('PENDIENTE','ACEPTADA','RECHAZADO','ALQUILER','FINALIZADA')){
-
-    //     }
-    //     if (!advByUser){
-    //         response.status(404).send({Error:"No se ha encontrado el anuncio "+req.params.anuncio_uuid})
-    //     }else{
-    //         response.status(200).send({Info:"Anuncio encontrado", Data:advByUser})
-    //     }
-    // } catch (error) {
-    //     console.warn(error.message)
-    //     response.status(400).send("Datos no localizados")
-    // }
-}
-
-/**
  * Shows the data of anuncio_uuid
  * @param {json} request contiene anuncio_uuid como path param
  * @param {json} response 
@@ -102,8 +73,8 @@ const getAdvertisementByUser = async (request, response) => {
                 validatedAdv.anuncio_uuid)
         }else{
             if(advByAdv.visibilidad ||
-            request?.auth.user.user_uuid === advByAdv.usr_casero_uuid ||
-            request?.auth.user.tipo === 'ADMIN'
+            request.auth?.user?.user_uuid === advByAdv.usr_casero_uuid ||
+            request.auth?.user?.tipo === 'ADMIN'
             ){
                 isStatus = 200
                 sendMessage =   {
@@ -131,9 +102,8 @@ const getAdvertisementByUser = async (request, response) => {
     }
 }
 
-//TODO query params
 /**
- * Used by searcher engine
+ * Used by searcher engine, only returns visible advs
  * @param {json} request not going to be used
  * @param {json} response object with all the advertisements in the database
  */
@@ -148,12 +118,13 @@ const getAdvertisements = async (request, response) => {
             t2key: "inmueble_uuid"
         }
         let advInm = undefined
-        console.log(JSON.stringify(request.query));
+        const vis = {'visibilidad':true}
 
-        if(request?.query){
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles,request.query)
+        if(Object.keys(request.query).length !== 0){
+            const query = {...request.query, ...vis}
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
         }else{
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, {})
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
         }
 
         if(advInm.length === 0){
@@ -179,21 +150,10 @@ const getAdvertisements = async (request, response) => {
 }
 
 /**
- * Announces availables in the casual search
- * @param {json} request no data retrieved from res
- * @param {json} response sends an object with all the visible advertisements of the database
+ * modifies the content of an advertisement
+ * @param {json} request anuncio_uuid as path param
+ * @param {json} response 
  */
-const getAllVisibleAdvertisements = async (request, response) => {
-    try {
-        const advertisements = await findItem({visibilidad:true},'anuncios')
-        response.status(200).send({ info: "Anuncios localizados", data: advertisements })
-    } catch (error) {
-        console.warn(error.message)
-        response.status(400).send("No se han localizado anuncios")
-    }
-}
-
-
 const modifyAdvertisement = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
@@ -209,7 +169,7 @@ const modifyAdvertisement = async (request, response) => {
                     request.params.anuncio_uuid
                     )
             }
-            if(request?.auth.user_uuid === existsAdv.usr_casero_uuid || request?.auth.tipo === 'ADMIN'){
+            if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
                 //Checks if the one updating is self or admin
                 const newAdv = request.body //TODO JOI
                 if(!newAdv.error){
@@ -226,9 +186,11 @@ const modifyAdvertisement = async (request, response) => {
                         new errorNoEntryFound(tName,'no entry found with the given id','anuncio_uuid',oldAdv.anuncio_uuid)
                     }
                 }else{
-                    new errorInvalidField('modifyAdv(AdvController)','joi verification failed')
+                    new errorInvalidField('modifyAdv(AdvController)','joi verification failed for newAdv content')
                 }
             }
+        }else{
+            new errorInvalidField('modifyAdv(AdvController)','joi verification failed for anuncio_uuid')
         }
     } catch (error) {
         console.warn(error)
@@ -250,25 +212,40 @@ const deleteAdvertisement = async (request, response) => {
     const tName = 'anuncios';
     try {
         const validatedDelAdv = request.body //TODO JOI
-        const existsAdv = await findItem(validatedDelAdv,tName)
-        if(request?.auth.user_uuid === existsAdv.usr_casero_uuid || request?.auth.tipo === 'ADMIN'){
-            const isAdvDel = await deleteItem(validatedDelAdv, tName)
-            if (isAdvDel) {
-                isStatus = 200
-                sendMessage = {
-                    "Tuple": validatedDelAdv,
-                    "Delete": isAdvDel
+        if(!validatedDelAdv.error){
+            const existsAdv = await findItem(validatedDelAdv,tName)
+            if(existsAdv >= 1){
+                if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
+                    const isAdvDel = await deleteItem(validatedDelAdv, tName)
+                    sendMessage = {
+                        "Tuple": validatedDelAdv,
+                        "Delete": isAdvDel
+                    }
+                    isStatus = 200
+                    console.log(isAdvDel ?
+                            `Successfully deletion for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`
+                            : `No tuple could be deleted for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`);
+                }else{
+                    throw new errorNoAuthorization(
+                        request.auth?.user?.user_uuid,
+                        request.auth?.user?.tipo,
+                        'delete advertisement',
+                        'only admin or adv creator can delete it')
+                    }
                 }
-                console.log(`Successfully deletion for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`);
-            } else {
-                throw new errorNoEntryFound(tName,'adv not found','request.body',request.body.anuncio_uuid)
-            }
+                else{
+                    throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
+                }
+        }else{
+            throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
         }
     } catch (error) {
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
             isStatus = 404
+        }else if(error instanceof errorNoAuthorization){
+            isStatus = 403
         }else{
             isStatus = 500
         }
@@ -280,8 +257,6 @@ const deleteAdvertisement = async (request, response) => {
 module.exports = {
     createAdvertisemenet,
     getAdvertisements,
-    getAllVisibleAdvertisements,
-    getAdvertisementByUser,
     getAdvertisementByAdv,
     modifyAdvertisement,
     deleteAdvertisement

@@ -20,13 +20,11 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
         }
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
-        let user = await getUserNoPass(decodedToken.user_uuid)
-        
-        if (user?.length > 0){
-            user = user[0]
+        const user = await getUserNoPass(decodedToken.user_uuid)
+        if (user){
             request.auth = {
-                user,
-                token: decodedToken
+                token: decodedToken,
+                user: user
             }
             next()
         }else{
@@ -118,8 +116,7 @@ const validateRolAdmin = async (request, response, next) => {
 const validateRolCasero = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        if (request.auth?.user.tipo !== 'INQUILINO'){
-            // console.log('validated casero/inquilino_casero/admin');
+        if (request.auth?.user?.tipo !== 'INQUILINO'){
             next()
         }else{
             throw new errorNoAuthorization(
@@ -137,14 +134,11 @@ const validateRolCasero = async (request, response, next) => {
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
-    // finally{
-    // }
 }
 
 const validateRolInquilino = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
         if (request.auth.user.tipo !== 'CASERO'){
             console.log('validated inquilino/inquilino_casero/admin');
             next()
@@ -164,20 +158,16 @@ const validateRolInquilino = async (request, response, next) => {
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
-    // finally{
-    // }
 }
 
 const validateRolInquiCas = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        // if (request.auth.user.tipo === 'ADMIN' || request.auth.user.tipo === 'INQUILINO' || request.auth.user.tipo === 'INQUILINO_CASERO'){
         if (request.auth.user.tipo !== 'CASERO' && request.auth.user.tipo !== 'INQUILINO'){
             console.log('validated inquilino_casero/admin');
             next()
         }else{
             throw new errorNoAuthorization(request.auth.user.username,request.auth.user.tipo, '?', 'area restringida a inquilino_casero o admin')
-            // throw new Error('No tiene permisos para realizar esta acción')
         }
     }catch(error){
         console.warn(error)
@@ -190,8 +180,6 @@ const validateRolInquiCas = async (request, response, next) => {
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
-    // finally{
-    // }
 }
 
 /**
@@ -202,7 +190,6 @@ const validateRolInquiCas = async (request, response, next) => {
  */
  const validateSelfOrAdmin = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {
-        // console.log(request.auth);
         const {user} = request.auth
         if(request.params?.username === user.username
             || request.params?.user_uuid === user.user_uuid
@@ -210,7 +197,6 @@ const validateRolInquiCas = async (request, response, next) => {
             next()
         }else{
             throw new errorNoAuthorization(user.username,user.tipo,'self auth check','trying to check others data without permision')
-            // throw new errorNoAuthorization(user.username,user.tipo,'check auth propia','intentar consultar datos de otros sin permisos')
         }
     } catch (error) {
         console.warn(error)
@@ -223,8 +209,6 @@ const validateRolInquiCas = async (request, response, next) => {
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
-    // finally{
-    // }
 }
 
 
