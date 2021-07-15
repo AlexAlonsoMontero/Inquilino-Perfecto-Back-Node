@@ -1,6 +1,6 @@
 require('dotenv').config()
 const {    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,    validateUserMail,    validateUserPassword} = require('../validators/userValidator')
-const {    save,    findItem,    updateItem,    deleteItem } = require('../infrastructure/generalRepository')
+const {    save,    findItem,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
 const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -74,25 +74,47 @@ const createNewUser = async (request, response) => {
 
 /**
  * #CASERO/ADMIN_FUNCTION
- * TODO ADD QUERY CHECK
  * retrieves data of all users (no pass, no admins)
  * @param {*} request 
  * @param {*} response 
  */
 const getUsers = async (request, response) => {
     let isStatus, sendMessage;
+    const tName = 'usuarios'
     try {
-        const users = await findUsersNoPass()
-        // console.log(users);
-        // console.log(users.length);
-        if (users.length < 1) {
-            throw new errorNoEntryFound('getting all users', 'empty result')
-        } else {
-            isStatus = 200
-            sendMessage = {
-                info: users.length >= 1 ? 'Usuarios localizados' : 'No de han encontrado usuarios',
-                users
+        if(Object.keys(request.query).length !== 0
+        && request.auth?.user?.tipo !== 'INQUILINO'){
+            let foundUsers = await getItemsMultiParams(request.query,tName)
+            foundUsers = foundUsers.map( (user) => {
+                delete user.password
+                return user
+            })
+            if (foundUsers) {
+                isStatus = 200
+                sendMessage = {
+                    info: foundUsers.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
+                    foundUsers
+                }
+            } else {
+                throw new errorNoEntryFound('getting all users with query params', 'empty result')
             }
+        }else if(request.auth?.user?.tipo !== 'INQUILINO'){
+            const users = await findUsersNoPass()
+            if (users) {
+                isStatus = 200
+                sendMessage = {
+                    info: users.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
+                    users
+                }
+            } else {
+                throw new errorNoEntryFound('getting all users', 'empty result')
+            }
+        }else{
+            throw new errorNoAuthorization(
+                request.auth?.user?.username,
+                request.auth?.user?.tipo,
+                'getUsers',
+                'INQUILINOS cannot query on users')
         }
     } catch (error) {
         console.warn(error)

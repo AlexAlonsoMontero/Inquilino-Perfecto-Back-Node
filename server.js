@@ -80,14 +80,14 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 
 //USUARIOS
+//TODO get por tipo de usuario
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
-//TODO get por tipo de usuario
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
-// app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
-// app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
-// app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
+app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
+app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
+app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
 
 //USER ADMIN
 app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
@@ -98,7 +98,7 @@ app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersFor
 
 
 //INMUEBLES
-app.get(endpointProperties, getAllProperties); //admin
+app.get(endpointProperties, getAllProperties);
 app.get(endpointPropertiesByProp, getProperty);
 app.get(endpointPropertiesByUser, getUserProperties);//done multi params search
 app.post(endpointProperties, createNewProperty);
@@ -108,15 +108,11 @@ app.delete(endpointProperties, deleteProperty);
 
 
 //ANUNCIOS
-// app.get(endpointAdminAdv, validateAuthorization, validateRolAdmin, getAllAdvertisements);
-app.get(endpointAdv, getAdvertisements);
-// app.get(endpointAdminAdv, getAdvertisements);
-// app.get(enpointAdvByUser, getAdvertisementByUser);
-// app.get(enpointAdvByAdv, getAdvertisementByAdv);
-// app.get(endpointAdv, getAllVisibleAdvertisements);
-app.post(endpointAdv, createAdvertisemenet);
-app.put(enpointAdvByAdv, modifyAdvertisement);
-app.delete(endpointAdv, deleteAdvertisement); //check existencia de reserva
+app.get(endpointAdv, detectType, getAdvertisements);
+app.get(endpointAdminAdv, detectType, getAdvertisements);
+app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
+app.put(enpointAdvByAdv, validateAuthorization, validateSelfOrAdmin, modifyAdvertisement);
+app.delete(endpointAdv, validateAuthorization, validateSelfOrAdmin, deleteAdvertisement);
 
 
 
