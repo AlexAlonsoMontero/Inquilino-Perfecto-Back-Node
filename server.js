@@ -1,4 +1,4 @@
-const { createNewUser, updateSelfUser, login, getSelfUser, updateUser, deleteUser, getUsers, logout } 
+const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout } 
 = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams } 
 = require('./controllers/generalControllers')
@@ -33,14 +33,16 @@ const endpointAdminUsersUuid='/api/admin/users/:user_uuid';
 const endpointAdminReviews = '/api/admin/reviews';
 const endpointAdminReservations = '/api/admin/reservations';
 
+
 //ENDPOINTS ADVERTISEMENT
 const enpointAdvByUser = '/api/adv/:usr_casero_uuid/:estado';
 const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
 
-//ENDPOINTS LOGIN
+//ENDPOINTS LOGIN  
 const endpointLogin = '/login';
 const endpointLogout = '/logout';
+
 
 //ENDPOINTS PROPERTIES
 const endpointProperties = '/api/properties';
@@ -64,6 +66,7 @@ const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
 const endpointUser = '/api/users';
+const endpointVerifiacionUser = '/verification'
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/users/advertisements';
@@ -84,6 +87,7 @@ app.post(endpointLogout, validateAuthorization, logout);
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
+app.get(endpointVerifiacionUser, activateValidationUser);  
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
 app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
