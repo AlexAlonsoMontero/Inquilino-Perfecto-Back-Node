@@ -6,13 +6,13 @@ const { detectType, validateAuthorization, validateRolAdmin, validateRolCasero, 
 = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin } 
 = require('./controllers/adminController')
-const { getProperty, getAllProperties, getUserProperties, createNewProperty, modifyProperty, deleteProperty} 
+const { getProperty, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAllVisibleAdvertisements,    getAdvertisementByUser,    getAdvertisementByAdv,    modifyAdvertisement,    deleteAdvertisement } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement } 
 = require('./controllers/advertisementController')
-const { getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved, createNewReservation, modifyReservation, deleteReservation } 
+const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
-const { getReviewByRev, getAllReviews, createNewReview, modifyReview, deleteReview } 
+const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview } 
 = require('./controllers/reviewController')
 
 const multer= require('multer')
@@ -27,7 +27,6 @@ app.use('/uploadAvatars', express.static('uploadAvatars'))
 require('dotenv').config();
 
 //ENDPOINTS ADMIN USER
-const endpointAdminAdv = '/api/admin/adv';
 const endpointAdminUsers='/api/admin/users';
 const endpointAdminUsersUuid='/api/admin/users/:user_uuid';
 const endpointAdminReviews = '/api/admin/reviews';
@@ -35,7 +34,6 @@ const endpointAdminReservations = '/api/admin/reservations';
 
 
 //ENDPOINTS ADVERTISEMENT
-const enpointAdvByUser = '/api/adv/:usr_casero_uuid/:estado';
 const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
 
@@ -47,17 +45,14 @@ const endpointLogout = '/logout';
 //ENDPOINTS PROPERTIES
 const endpointProperties = '/api/properties';
 const endpointPropertiesByProp = '/api/properties/:inmueble_uuid';
-const endpointPropertiesByUser = '/api/properties/:usr_casero_uuid/:inmueble_uuid';
 
 //ENDPOINTS RESERVATIONS
 const endpointReservations = '/api/reservations';
-const endpointReservationsByUsers = '/api/reservations/:usr_casero_uuid/:usr_inquilino_uuid';
 const endpointReservationsByRes = '/api/reservations/:alquiler_uuid';
 
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews/:resena_uuid';
-const endpointReviewByUsr = '/api/reviews/:usr_casero_uuid/:usr_inquilino_uuid';
 
 //ENDPOSINTS SEARCHER
 const endpointGenericSearcher='/search/:table';
@@ -70,7 +65,6 @@ const endpointVerifiacionUser = '/verification'
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/users/advertisements';
-const endpointSelfProfile = '/api/users';
 const endpointSelfProperties = '/api/users/properties';
 const endpointSelfReservations = '/api/users/reservations';
 const endpointSelfReviews = '/api/users/reviews';
@@ -102,18 +96,19 @@ app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersFor
 
 
 //INMUEBLES
-app.get(endpointProperties, getAllProperties);
-app.get(endpointPropertiesByProp, getProperty);
-app.get(endpointPropertiesByUser, getUserProperties);//done multi params search
-app.post(endpointProperties, createNewProperty);
-app.put(endpointPropertiesByProp, modifyProperty);
-app.delete(endpointProperties, deleteProperty);
+app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //TODO QUERY PARAMS
+app.get(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, getProperty);
+app.get(endpointSelfProperties, validateAuthorization, validateSelfOrAdmin, getPropertiesSelf); //TODO
+app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty);
+app.put(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, modifyProperty);
+app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, deleteProperty);
 
 
 
 //ANUNCIOS
 app.get(endpointAdv, detectType, getAdvertisements);
-app.get(endpointAdminAdv, detectType, getAdvertisements);
+app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
+app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf); //TODO
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv, validateAuthorization, validateSelfOrAdmin, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, validateSelfOrAdmin, deleteAdvertisement);
@@ -121,20 +116,24 @@ app.delete(endpointAdv, validateAuthorization, validateSelfOrAdmin, deleteAdvert
 
 
 //RESERVAS
-app.get(endpointAdminReservations, getAllReservations);
-app.get(endpointReservationsByUsers, getReservationsByUsers);
-app.get(endpointSelfReservations, getReservationsSelfInvolved);
-app.get(endpointReservationsByRes, getReservationByRes);
-app.post(endpointReservations,  createNewReservation);
-app.put(endpointReservationsByRes, modifyReservation);
-app.delete(endpointReservations, deleteReservation);
+app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations); //TODO query params
+app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
+app.get(endpointSelfReservations, validateAuthorization, validateSelfOrAdmin, getReservationsSelf);
+app.post(endpointReservations, detectType, createNewReservation);
+app.put(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, modifyReservation);
+app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, deleteReservation);
 
 
 
 //REVIEWS
-app.get(endpointAdminReviews,  getAllReviews);
-app.get(endpointReviewByRev,  getReviewByRev);
+app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //TODO QUERYS
+//create detect registred, restringe a no registrados
+app.get(endpointReviewByRev, detectType, getReviewByRev);
+app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
 app.post(endpointReviews, createNewReview);
+//create detect registred, restringe a no registrados
+//create repository middle where it checks user is involved with reservation
+//TODO CHECK IF USER HAS RESERVATION
 app.put(endpointReviewByRev, modifyReview);
 app.delete(endpointReviews, deleteReview);
 

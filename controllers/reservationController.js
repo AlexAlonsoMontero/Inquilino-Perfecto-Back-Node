@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken')
 const { getItems, findItem, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 
 /**
- * #ADMIN_FUNCTION
+ * #SELF / ADMIN
+ * TODO QUERY PARAMS
  * @param {json} req
  * @param {json} res all the database reservations
  */
@@ -91,7 +92,7 @@ const getReservationsByUsers = async(req, res) =>{
  * @param {json} req 
  * @param {json} res 
  */
-const getReservationsSelfInvolved = async(req, res) =>{
+const getReservationsSelf = async(req, res) =>{
     //TODO
     //Si el usuario es tipo inquilino_casero devuelve dos tablas
     
@@ -227,6 +228,6 @@ const deleteReservation = async(req, res) =>{
 }
 
 module.exports = {
-    getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelfInvolved,
+    getReservationsByUsers, getReservationByRes, getAllReservations, getReservationsSelf,
     createNewReservation, modifyReservation, deleteReservation
 }

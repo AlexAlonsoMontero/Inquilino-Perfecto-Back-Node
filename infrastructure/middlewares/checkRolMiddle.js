@@ -64,9 +64,8 @@ const detectType = async (request, response, next) => {
             const decodedToken = jwt.verify(token, process.env.SECRET)
             let user = await getUserNoPass(decodedToken.user_uuid)
             if(user.length > 0){
-                user = user[0]
                 request.auth = {
-                    user: user[0][0],
+                    user,
                     token: decodedToken }
             }else{
                 throw new errorNoEntryFound('detectType','token bearer not found in db',JSON.stringify(decodedToken),decodedToken.username)
@@ -120,7 +119,7 @@ const validateRolCasero = async (request, response, next) => {
             next()
         }else{
             throw new errorNoAuthorization(
-                request.auth?.user?.username,request.auth?.user?.tipo, 
+                request.auth?.user?.username,request.auth?.user?.tipo,
                 '?', 'area restringida a inquilino, inquilino_casero o admin')
         }
     }catch(error){
