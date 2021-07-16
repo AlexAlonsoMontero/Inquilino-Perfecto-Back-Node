@@ -13,7 +13,8 @@ const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin
 const { request } = require('express')
 const fs = require('fs')
 const path = require('path')
-
+const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
+const  cryptoRandomString  = require('crypto-random-string')
 //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
 
@@ -36,13 +37,14 @@ const createNewUser = async (request, response) => {
             if (!newUser.user_uuid){
                 newUser = {...newUser, user_uuid : v4()}
             }
-            newUser.avatar= 'uploadAvatars/user-'+ request.body.username +'.jpg'
+            newUser.avatar= '/uploadAvatars/user-'+ request.body.username +'.jpg'
 
             newUser = validateNewUser(newUser) //TODO check joi
             if(newUser.error){
                 throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
             }else{
-                const creation = await save(newUser, 'usuarios')
+                const verificationCode = await cryptoRandomString({length:64})
+                const creation = await save({...newUser, activated_code:verificationCode}, 'usuarios')
                 delete newUser.password
                 isStatus = 201
                 sendMessage = {
@@ -52,6 +54,8 @@ const createNewUser = async (request, response) => {
                 if (request.file){
                     fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
                 }
+                const data = await sendRegistrationMail(newUser.username, newUser.email,verificationCode)
+                console.log(data)
                 console.log(`Created new user`)
             }
         }
@@ -233,6 +237,49 @@ const updateUser = async (request, response) => {
     }
 }
 
+
+
+const activateValidationUser = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'usuarios';
+    
+    try {
+        const { verification_code } = request.query
+        if ( !verification_code){
+            throw new Error ('Código de verificación requerido')
+        }
+        
+        const newUser = {verificated_at: new Date()} //TODO joi
+        const oldUser = {activated_code: verification_code}
+        const affectedRows = await updateItem(newUser,oldUser,tName)
+        if (affectedRows===0){
+            throw new Error ('La cuenta no ha sido activada')
+        }
+        const user = await findItem (oldUser,tName)
+        await sendConfirmUserActivation(user.username, user.email)
+        
+        isStatus= 201
+        sendMessage ={message:"Cuenta activada"}
+
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorInvalidField){
+            isStatus = 401
+        }else if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
+
+
+
+
 /**
  * #ADMIN FUNCTION
  * deletes user from database
@@ -367,5 +414,6 @@ const logout = (request, response) => {
 
 module.exports = {
     createNewUser,    login,    getUsers,    getSelfUser,
-    updateSelfUser, updateUser,    deleteUser,  logout
+    updateSelfUser, updateUser,    deleteUser,  logout,
+    activateValidationUser
 }
