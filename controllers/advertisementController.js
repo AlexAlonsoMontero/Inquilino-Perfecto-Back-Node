@@ -4,6 +4,7 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
 const { validateNewAdevertisement, validateUpdateAdvertisemente } = require("../validators/advertisementeValidator");
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
+const { response } = require('express');
 
 //TODO JOI
 
@@ -56,9 +57,59 @@ const createAdvertisemenet = async (request, response) => {
 /**
  * Shows the data of anuncio_uuid
  * @param {json} request contiene anuncio_uuid como path param
- * @param {json} response 
+ * @param {json} response
+ * getAdvertisementSelf
  */
  const getAdvertisementByAdv = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'anuncios';
+    try {
+        const validatedAdv = request.params
+        const advByAdv = await findItem(validatedRes,'anuncios')
+
+        if (advByAdv.length === 0){
+            throw new errorNoEntryFound(
+                tName,
+                "no adv was found in getAdvByAdv",
+                Object.keys(validatedAdv)[0],
+                validatedAdv.anuncio_uuid)
+        }else{
+            if(advByAdv.visibilidad ||
+            request.auth?.user?.user_uuid === advByAdv.usr_casero_uuid ||
+            request.auth?.user?.tipo === 'ADMIN'
+            ){
+                isStatus = 200
+                sendMessage =   {
+                    Tuple: validatedAdv.anuncio_uuid,
+                    Info:"Anuncio encontrado",
+                    Data: advByAdv
+                }
+                console.warn(`Successful getAdvByAdv in ${tName}`);
+            }else{
+                throw new errorInvalidUser('the adv is not visible for you')
+            }
+        }
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
+    }
+}
+
+/**
+ * TODO
+ * @param {*} request 
+ * @param {*} response 
+ */
+ const getAdvertisementSelf = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
@@ -118,6 +169,7 @@ const getAdvertisements = async (request, response) => {
             t2key: "inmueble_uuid"
         }
         let advInm = undefined
+        //TODO: check if user is self or admin
         const vis = {'visibilidad':true}
 
         if(Object.keys(request.query).length !== 0){
@@ -258,6 +310,7 @@ module.exports = {
     createAdvertisemenet,
     getAdvertisements,
     getAdvertisementByAdv,
+    getAdvertisementSelf,
     modifyAdvertisement,
     deleteAdvertisement
 }
