@@ -242,18 +242,22 @@ const updateUser = async (request, response) => {
 const activateValidationUser = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'usuarios';
-
+    
     try {
-        const { verification_code } = request.query
-        if ( !verification_code){
+        const  activation_code  = request.query
+        console.log("code")
+        console.log(activation_code)
+        if ( !activation_code){
             throw new Error ('Código de verificación requerido')
         }
 
-        const newUser = {verificated_at: new Date()} //TODO joi
-        const oldUser = {activated_code: verification_code}
+        const newUser = {activated_at: new Date()} //TODO joi
+        const oldUser = activation_code
         const affectedRows = await updateItem(newUser,oldUser,tName)
         if (affectedRows===0){
             throw new Error ('La cuenta no ha sido activada')
+            isStatus =501
+            sendMessage = "La cuenta no ha sido activada..........."
         }
         const user = await findItem (oldUser,tName)
         await sendConfirmUserActivation(user.username, user.email)
