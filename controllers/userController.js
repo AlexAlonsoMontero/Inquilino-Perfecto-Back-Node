@@ -15,7 +15,9 @@ const fs = require('fs')
 const path = require('path')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
 const  cryptoRandomString  = require('crypto-random-string')
-//TODO posibilidad de añadir morgan
+const { errorNoActiveUser } = require('../customErrors/errorNoActiveuser')
+const { errorSendMail } = require('../customErrors/errorSendMail')
+ //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
 
 /**
@@ -38,12 +40,14 @@ const createNewUser = async (request, response) => {
                 newUser = {...newUser, user_uuid : v4()}
             }
             newUser.avatar= '/uploadAvatars/user-'+ request.body.username +'.jpg'
-
             newUser = validateNewUser(newUser) //TODO check joi
+            const verificationCode = await cryptoRandomString({length:64})
             if(newUser.error){
                 throw new errorInvalidField('user creation','invalid joi validation for data granted by guest','request.body',request.body)
-            }else{
-                const verificationCode = await cryptoRandomString({length:64})
+            }else if(await sendRegistrationMail(newUser.username, newUser.email,verificationCode).error){
+                throw new errorSendMail()
+            }
+            else{
                 const creation = await save({...newUser, activated_code:verificationCode}, 'usuarios')
                 delete newUser.password
                 isStatus = 201
@@ -54,8 +58,8 @@ const createNewUser = async (request, response) => {
                 if (request.file){
                     fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
                 }
-                const data = await sendRegistrationMail(newUser.username, newUser.email,verificationCode)
-                console.log(data)
+                
+                
                 console.log(`Created new user`)
             }
         }
@@ -67,7 +71,11 @@ const createNewUser = async (request, response) => {
         }else if(error instanceof errorInvalidField){
             isStatus = 401
             sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
-        }else{
+        }else if(error instanceof errorSendMail){
+            isStatus = 401
+            sendMessage = {error: "No se ha enviado mail, revise la dirección"}
+        }
+        else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}
         }
@@ -337,6 +345,10 @@ const login = async (request, response, next) => {
             throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
             let user = await findItem(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
+            if(user.activated_at===null){
+                throw new errorNoActiveUser("User no activate")
+                
+            }
             if (!user || user.length === 0) {
                 throw new errorInvalidUserLogin(request.body.email,request.body.password,false)
             }
@@ -370,7 +382,13 @@ const login = async (request, response, next) => {
             isStatus = 401
             sendMessage = {error: error?.mailInDB ? 'La contraseña es incorrecta' : 'El mail es incorrecto'}
             console.warn(`${error.type !== 'login' ? 'Error de Joi' : error?.mailInDB ? 'contraseña mal':'mail mal'}`)
-        }else{
+        }else if(error instanceof errorNoActiveUser){
+            isStatus =401
+            sendMessage ={error:"Usuario sin activar, revise su correo electrónico"}
+            console.warn("No active user")
+        }
+        
+        else{
             isStatus = 500
             sendMessage = {error:'Error interno del servidor'}
         }

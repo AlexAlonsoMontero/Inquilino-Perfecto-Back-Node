@@ -72,6 +72,7 @@ const validateNewUser =(user) => {
     if (!newUserSchema.validate(user).error) {
         return user
     } else {
+        console.log(newUserSchema.validate(user).error)
         throw newUserSchema.validate(user).error
     }
 }
