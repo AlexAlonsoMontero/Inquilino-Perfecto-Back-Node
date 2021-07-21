@@ -61,7 +61,7 @@ const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
 const endpointUser = '/api/users';
-const endpointVerifiacionUser = '/verification'
+const endpointVerifiacionUser = '/activation'
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/users/advertisements';
