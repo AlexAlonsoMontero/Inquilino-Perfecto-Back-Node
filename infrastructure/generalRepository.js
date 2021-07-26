@@ -118,6 +118,7 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     }else{
         const whereCondition = whereCreator(queryParams)
         sentence += whereCondition
+        console.log(sentence)
         rows= await connection.query(sentence,Object.values(Object.values(queryParams)))
     }
     return rows[0]
@@ -135,13 +136,13 @@ const whereCreator = (queryParams) => {
     let sentence = 'WHERE '
     for (let i = 0; i < Object.keys(queryParams).length; i++) {
         key = Object.keys(queryParams)[i]
-        if (key.split('-').length > 1) {
-            aux = key.split('-')[0]
+        if (key.split('_').length > 1) {
+            aux = key.split('_')[0]
             if (aux === "from") {
-                queryKeys.push([key.split('-')[1]])
+                queryKeys.push([key.split('_')[1]])
                 operator = '>='
             } else if (aux === "until") {
-                queryKeys.push([key.split('-')[1]])
+                queryKeys.push([key.split('_')[1]])
                 operator = '<='
             }
         } else {
