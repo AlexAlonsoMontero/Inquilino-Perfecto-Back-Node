@@ -180,7 +180,7 @@ const getAdvertisements = async (request, response) => {
         }
 
         if(advInm.length === 0){
-            throw new errorNoEntryFound("get advertisements","no advertisements found","advInv",JSON.stringify(advInm))
+            throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
         }else{
             isStatus = 200
             sendMessage = {
