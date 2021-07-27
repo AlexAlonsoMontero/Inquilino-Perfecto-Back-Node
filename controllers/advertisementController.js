@@ -106,8 +106,8 @@ const createAdvertisemenet = async (request, response) => {
 
 /**
  * TODO
- * @param {*} request 
- * @param {*} response 
+ * @param {*} request
+ * @param {*} response
  */
  const getAdvertisementSelf = async (request, response) => {
     let isStatus, sendMessage;
@@ -179,7 +179,7 @@ const getAdvertisements = async (request, response) => {
             advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
         }
 
-        if(advInm.length === 0){
+        if(!advInm){
             throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
         }else{
             isStatus = 200
