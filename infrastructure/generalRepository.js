@@ -134,15 +134,17 @@ const whereCreator = (queryParams) => {
     let key, operator, aux = ""
     let queryKeys = []
     let sentence = 'WHERE '
+    const separator = '__'
+
     for (let i = 0; i < Object.keys(queryParams).length; i++) {
         key = Object.keys(queryParams)[i]
-        if (key.split('_').length > 1) {
-            aux = key.split('_')[0]
+        if (key.split(separator).length > 1) {
+            aux = key.split(separator)[0]
             if (aux === "from") {
-                queryKeys.push([key.split('_')[1]])
+                queryKeys.push([key.split(separator)[1]])
                 operator = '>='
             } else if (aux === "until") {
-                queryKeys.push([key.split('_')[1]])
+                queryKeys.push([key.split(separator)[1]])
                 operator = '<='
             }
         } else {
