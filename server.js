@@ -37,7 +37,8 @@ const endpointAdminReservations = '/api/admin/reservations';
 const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
 
-//ENDPOINTS LOGIN  
+//ENDPOINTS NoApi
+const endpointVerifiacionUser = '/activation'
 const endpointLogin = '/login';
 const endpointLogout = '/logout';
 
@@ -61,7 +62,6 @@ const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
 const endpointUser = '/api/users';
-const endpointVerifiacionUser = '/activation'
 
 //ENDPOINTS SELF
 const endpointSelfAdvertisements = '/api/users/advertisements';
@@ -81,7 +81,7 @@ app.post(endpointLogout, validateAuthorization, logout);
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
-app.get(endpointVerifiacionUser, activateValidationUser);  
+app.get(endpointVerifiacionUser, activateValidationUser);
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
 app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
@@ -106,7 +106,7 @@ app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, delet
 
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisements);
+app.get(endpointAdv, getAdvertisements);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf); //TODO
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
