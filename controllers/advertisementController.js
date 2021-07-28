@@ -185,7 +185,7 @@ const getAdvertisements = async (request, response) => {
             isStatus = 200
             sendMessage = {
                 Tuple: JSON.stringify(request.query),
-                Data: advInm
+                data: advInm
             }
         }
     } catch (error) {
