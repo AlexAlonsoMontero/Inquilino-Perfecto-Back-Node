@@ -12,7 +12,7 @@ const schemaCreateUser = Joi.object().keys({
     confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
     tipo: Joi.string().valid(...['ADMIN','INQUILINO','INQUILINO/CASERO','CASERO']).required()
 })
-const schemaUpdateUser = Joi.object.key({
+const schemaUpdateUser = Joi.object.keys({
     username:Joi.string().alphanum().min(4).max(32),
     email: Joi.string().email({
         ignoreLength:true,
@@ -27,5 +27,18 @@ const schemaNewPass = Joi.object.keys({
     confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
 })
 
-const validateNewUser =(user) => {
+//validate vs assert https://livebook.manning.com/book/hapi-js-in-action/chapter-6/v-9/74
+
+const userCreateValidate = async (user) => {
+    return Joi.assert(user,schemaCreateUser)
+}
+const userUpdateValidate = async (user) => {
+    return Joi.assert(user, schemaUpdateUser)
+}
+const userUpdatePassValidate = async (user) => {
+    return Joi.assert(user, schemaNewPass)
+}
+
+module.exports = {
+    userCreateValidate, userUpdateValidate, userUpdatePassValidate
 }

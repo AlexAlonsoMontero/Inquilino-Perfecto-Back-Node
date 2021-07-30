@@ -35,6 +35,47 @@ const getAllReviews = async(req, res) =>{
     }finally{
         res.status(isStatus).send(sendMessage)
     }
+
+    // let isStatus, sendMessage;
+    // const tName = 'resenas';
+    // try {
+    //     const joinAdvPlusInmuebles = {
+    //         table1: tName,
+    //         table2: "inmuebles",
+    //         t1key: "inmueble_uuid",
+    //         t2key: "inmueble_uuid"
+    //     }
+    //     let advInm = undefined
+    //     //TODO: check if user is self or admin
+    //     const vis = {'visibilidad':true}
+
+    //     if(Object.keys(request.query).length !== 0){
+    //         const query = {...request.query, ...vis}
+    //         advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
+    //     }else{
+    //         advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
+    //     }
+
+    //     if(!advInm){
+    //         throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
+    //     }else{
+    //         isStatus = 200
+    //         sendMessage = {
+    //             Tuple: JSON.stringify(request.query),
+    //             Data: advInm
+    //         }
+    //     }
+    // } catch (error) {
+    //     console.warn(error)
+    //     sendMessage = {error:error.message}
+    //     if (error instanceof errorNoEntryFound){
+    //         isStatus = 404
+    //     }else{
+    //         isStatus = 500
+    //     }
+    // }finally{
+    //     response.status(isStatus).send(sendMessage)
+    // }
 }
 
 /**
