@@ -44,8 +44,6 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
-    // finally{
-    // }
 }
 
 /**
@@ -63,7 +61,8 @@ const detectType = async (request, response, next) => {
             const token = authorization.slice(7, authorization.length)
             const decodedToken = jwt.verify(token, process.env.SECRET)
             let user = await getUserNoPass(decodedToken.user_uuid)
-            if(user.length > 0){
+            if(Object.keys(user).length > 0){
+                console.log(user);
                 request.auth = {
                     user,
                     token: decodedToken }
@@ -71,8 +70,48 @@ const detectType = async (request, response, next) => {
                 throw new errorNoEntryFound('detectType','token bearer not found in db',JSON.stringify(decodedToken),decodedToken.username)
             }
         }
-        //allows guests
         next()
+    }catch(error){
+        console.warn(error)
+        if (error instanceof errorNoEntryFound){
+            isStatus = 404
+            sendMessage = 'Token válido, pero usuario no encontrado en la base de datos'
+        }else{
+            isStatus = 500
+            sendMessage = 'Error interno del servidor'
+        }
+        response.status(isStatus).send({'Error': sendMessage})
+    }
+}
+
+
+
+/**
+ * Adds token info to request, NOT ALLOWING GUESTS to next()
+ * exception thrown when token is correct but user doesn't exists
+ * @param {json} request
+ * @param {json} response
+ * @param {function} next
+ */
+ const detectTypeNoGuests = async (request, response, next) => {
+    let isStatus, sendMessage;
+    try{
+        const { authorization } = request.headers
+        if (authorization?.startsWith('Bearer ')) {
+            const token = authorization.slice(7, authorization.length)
+            const decodedToken = jwt.verify(token, process.env.SECRET)
+            let user = await getUserNoPass(decodedToken.user_uuid)
+            if(Object.keys(user).length > 0){
+                console.log(user);
+                request.auth = {
+                    user,
+                    token: decodedToken
+                }
+                next()
+            }else{
+                throw new errorNoEntryFound('detectTypeNoGuests','token bearer not found in db',JSON.stringify(decodedToken),decodedToken.username)
+            }
+        }
     }catch(error){
         console.warn(error)
         if (error instanceof errorNoEntryFound){
@@ -90,7 +129,6 @@ const validateRolAdmin = async (request, response, next) => {
     let isStatus, sendMessage
     try{
         if (request.auth.user.tipo === 'ADMIN'){
-            console.log('validated admin');
             next()
         }else{
             throw new errorNoAuthorization(
@@ -108,8 +146,6 @@ const validateRolAdmin = async (request, response, next) => {
         }
         response.status(isStatus).send({'Error': sendMessage})
     }
-    // finally{
-    // }
 }
 
 const validateRolCasero = async (request, response, next) => {
@@ -143,7 +179,7 @@ const validateRolInquilino = async (request, response, next) => {
             next()
         }else{
             throw new errorNoAuthorization(
-                request.auth.user.username,request.auth.user.tipo, 
+                request.auth.user.username,request.auth.user.tipo,
                 '?', 'area restringida a inquilino, inquilino_casero o admin')
         }
     }catch(error){
@@ -210,7 +246,6 @@ const validateRolInquiCas = async (request, response, next) => {
     }
 }
 
-
 module.exports = {
     validateAuthorization,
     validateRolAdmin,
@@ -218,5 +253,6 @@ module.exports = {
     validateRolInquilino,
     validateRolInquiCas,
     validateSelfOrAdmin,
-    detectType
+    detectType,
+    detectTypeNoGuests
 }
