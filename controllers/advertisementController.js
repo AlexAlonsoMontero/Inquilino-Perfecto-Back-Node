@@ -170,10 +170,11 @@ const getAdvertisements = async (request, response) => {
         }
         let advInm = undefined
         //TODO: check if user is self or admin
-        const vis = {'visibilidad':true}
+        const vis = true
 
         if(Object.keys(request.query).length !== 0){
             const query = {...request.query, ...vis}
+            console.log(query)
             advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
         }else{
             advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)

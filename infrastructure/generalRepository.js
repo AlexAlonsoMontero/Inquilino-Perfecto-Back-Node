@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs')
+const { query } = require('express')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
 
@@ -104,7 +105,7 @@ const getItemsMultiParams = async (params, table) => {
 /**
  * Joins two tables and searches with multiple conditions
  * @param {t1, t2, t1k, t2k} param0 path params with the corresponding info
- * @param {string} queryParams conditions of the search
+ * @param {string} queryParams conditions of the searchºº
  * @returns
  */
 const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) => {
@@ -113,14 +114,14 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
                     ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
     if( Object.keys(queryParams).length === 0){
         console.log(queryParams)
-        console.log(sentence)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)
         sentence += whereCondition
-        console.log(sentence)
-        rows= await connection.query(sentence,Object.values(Object.values(queryParams)))
+        const qparam = qParamsBoolValidator(Object.values(queryParams))
+        rows= await connection.query(sentence,qparam)
     }
+    
     return rows[0]
 }
 
@@ -161,6 +162,24 @@ const whereCreator = (queryParams) => {
     return sentence
 }
 
+/**
+ * 
+ * @param []  
+ * @returns []
+ * @description Al recibir el queryparams interpreta bollean como un string, corregimos ese error con este metodo
+ */
+const qParamsBoolValidator =(params) =>{
+    return params.map(item=>{
+        if(item==='true'){
+            return true
+        }else if (item === 'false'){
+            return false
+        }else{
+            return item
+        }
+    })
+    
+}
 
 
 module.exports = {
