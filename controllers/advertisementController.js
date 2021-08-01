@@ -174,7 +174,6 @@ const getAdvertisements = async (request, response) => {
 
         if(Object.keys(request.query).length !== 0){
             const query = {...request.query, ...vis}
-            console.log(query)
             advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
         }else{
             advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
