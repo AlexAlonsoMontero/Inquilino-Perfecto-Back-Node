@@ -201,6 +201,45 @@ const getAdvertisements = async (request, response) => {
     }
 }
 
+const getAdvertisementsMultiJoi = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'anuncios';
+    try {
+        const joinAdvPlusInmueblesTables = [tName,'inmuebles','usuarios']
+        const joinAdvPlusInmueblesKeys =['inmueble_uuid','usr_casero_uuid']
+        let advInm = undefined
+        //TODO: check if user is self or admin
+        const vis = true
+
+        if(Object.keys(request.query).length !== 0){
+            const query = {...request.query, ...vis}
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
+        }else{
+            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
+        }
+
+        if(!advInm){
+            throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
+        }else{
+            isStatus = 200
+            sendMessage = {
+                Tuple: JSON.stringify(request.query),
+                data: advInm
+            }
+        }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if (error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
 /**
  * modifies the content of an advertisement
  * @param {json} request anuncio_uuid as path param
@@ -312,5 +351,6 @@ module.exports = {
     getAdvertisementByAdv,
     getAdvertisementSelf,
     modifyAdvertisement,
-    deleteAdvertisement
+    deleteAdvertisement,
+    getAdvertisementsMultiJoi
 }

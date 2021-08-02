@@ -124,6 +124,35 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     
     return rows[0]
 }
+/**
+ * 
+ * @param [] tables 
+ * @param [] tkeys 
+ * @param {*} queryParams 
+ * @returns 
+ */
+const getItemsMultiJoi = async (tables, tkeys, queryParams) => {
+    let rows =""
+    let join =""
+    let sentence = `SELECT * FROM ${tables[0]}` 
+                    // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
+
+    for (let cont = 0; cont < tables.length; cont ++){
+        join += `INNER JOIN ${tables[cont+1]} ON ${tables[cont]} = ${tables[cont]}.${tkeys[cont]} = ${tables[cont+1]}.${tkeys[cont]}`
+    }
+    sentence += join
+    if( Object.keys(queryParams).length === 0){
+        console.log(queryParams)
+        rows = await connection.query(sentence)
+    }else{
+        const whereCondition = whereCreator(queryParams)
+        sentence += whereCondition
+        const qparam = qParamsBoolValidator(Object.values(queryParams))
+        rows= await connection.query(sentence,qparam)
+    }
+    
+    return rows[0]
+}
 
 /**
  * Builds a WHERE condition from chained query params
@@ -189,5 +218,6 @@ module.exports = {
     updateItem,
     deleteItem,
     getItemsMultiParams,
-    getItemsMultiTable
+    getItemsMultiTable,
+    getItemsMultiJoi
 }
