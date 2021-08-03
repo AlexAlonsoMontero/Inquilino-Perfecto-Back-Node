@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs')
+const { query } = require('express')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
 
@@ -104,7 +105,7 @@ const getItemsMultiParams = async (params, table) => {
 /**
  * Joins two tables and searches with multiple conditions
  * @param {t1, t2, t1k, t2k} param0 path params with the corresponding info
- * @param {string} queryParams conditions of the search
+ * @param {string} queryParams conditions of the searchºº
  * @returns
  */
 const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) => {
@@ -112,12 +113,44 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     let sentence = `SELECT * FROM ${table1}` +
                     ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
     if( Object.keys(queryParams).length === 0){
+        console.log(queryParams)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)
         sentence += whereCondition
-        rows = await connection.query(sentence,Object.values(Object.values(queryParams)))
+        const qparam = qParamsBoolValidator(Object.values(queryParams))
+        rows= await connection.query(sentence,qparam)
     }
+    
+    return rows[0]
+}
+/**
+ * 
+ * @param [] tables 
+ * @param [] tkeys 
+ * @param {*} queryParams 
+ * @returns 
+ */
+const getItemsMultiJoi = async (tables, tkeys, queryParams) => {
+    let rows =""
+    let join =""
+    let sentence = `SELECT * FROM ${tables[0]}` 
+                    // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
+
+    for (let cont = 0; cont < tables.length; cont ++){
+        join += `INNER JOIN ${tables[cont+1]} ON ${tables[cont]} = ${tables[cont]}.${tkeys[cont]} = ${tables[cont+1]}.${tkeys[cont]}`
+    }
+    sentence += join
+    if( Object.keys(queryParams).length === 0){
+        console.log(queryParams)
+        rows = await connection.query(sentence)
+    }else{
+        const whereCondition = whereCreator(queryParams)
+        sentence += whereCondition
+        const qparam = qParamsBoolValidator(Object.values(queryParams))
+        rows= await connection.query(sentence,qparam)
+    }
+    
     return rows[0]
 }
 
@@ -158,6 +191,24 @@ const whereCreator = (queryParams) => {
     return sentence
 }
 
+/**
+ * 
+ * @param []  
+ * @returns []
+ * @description Al recibir el queryparams interpreta bollean como un string, corregimos ese error con este metodo
+ */
+const qParamsBoolValidator =(params) =>{
+    return params.map(item=>{
+        if(item==='true'){
+            return true
+        }else if (item === 'false'){
+            return false
+        }else{
+            return item
+        }
+    })
+    
+}
 
 
 module.exports = {
@@ -167,5 +218,6 @@ module.exports = {
     updateItem,
     deleteItem,
     getItemsMultiParams,
-    getItemsMultiTable
+    getItemsMultiTable,
+    getItemsMultiJoi
 }
