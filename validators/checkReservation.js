@@ -1,5 +1,6 @@
 const Joi = require('@hapi/joi')
 
+
 const schemaCreateReserv = Joi.object().keys({
     fecha_reserva : Joi.date().iso().required(),
     fecha_inicio : Joi.date().iso().min(Joi.ref('fecha_reserva')),
@@ -9,7 +10,7 @@ const schemaCreateReserv = Joi.object().keys({
     tipo_pago_reserva : Joi.string().valid(...['MENSUAL','SEMANAL','DIARIO','OTRO']).required()
 })
 
-const schemaUpdateReserv = Joi.object.key({
+const schemaUpdateReserv = Joi.object.keys({
     fecha_reserva : Joi.date().iso(),
     fecha_inicio : Joi.date().iso().min(Joi.ref('fecha_reserva')),
     fecha_fin : Joi.date().iso().min(Joi.ref('fecha_inicio')),
@@ -17,3 +18,11 @@ const schemaUpdateReserv = Joi.object.key({
     estado_reserva : Joi.string().valid(...['PENDIENTE','ACEPTADA','RECHAZADO','ALQUILER','FINALIZADA']),
     tipo_pago_reserva : Joi.string().valid(...['MENSUAL','SEMANAL','DIARIO','OTRO'])
 })
+
+export const reservCreateValidate = async (reserv) => {
+    return Joi.assert(reserv,schemaCreateReserv)
+}
+
+export const reservUpdateValidate = async (reserv) => {
+    return Joi.assert(reserv, schemaUpdateReserv)
+}

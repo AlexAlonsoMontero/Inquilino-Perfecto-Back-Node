@@ -16,10 +16,6 @@ const getUserNoPass = async (user_uuid) => {
     return user
 }
 
-/**
- * 
- * @returns 
- */
 const findUsersNoPass = async() =>{
     let rows = await getItems('usuarios')
     rows = rows

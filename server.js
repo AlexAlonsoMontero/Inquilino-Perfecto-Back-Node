@@ -2,7 +2,7 @@ const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateVa
 = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams } 
 = require('./controllers/generalControllers')
-const { detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
+const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
 = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin } 
 = require('./controllers/adminController')
@@ -64,10 +64,10 @@ const endpointUserProfile = '/api/users/:username';
 const endpointUser = '/api/users';
 
 //ENDPOINTS SELF
-const endpointSelfAdvertisements = '/api/users/advertisements';
-const endpointSelfProperties = '/api/users/properties';
-const endpointSelfReservations = '/api/users/reservations';
-const endpointSelfReviews = '/api/users/reviews';
+const endpointSelfAdvertisements = '/api/user/:username/advertisements';
+const endpointSelfProperties = '/api/user/:username/properties';
+const endpointSelfReservations = '/api/user/:username/reservations';
+const endpointSelfReviews = '/api/user/:username/reviews';
 
 
 //RUTES
@@ -106,12 +106,12 @@ app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, delet
 
 
 //ANUNCIOS
-app.get(endpointAdv, getAdvertisements);
+app.get(endpointAdv, detectType, getAdvertisements);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
-app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf); //TODO
+app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
-app.put(enpointAdvByAdv, validateAuthorization, validateSelfOrAdmin, modifyAdvertisement);
-app.delete(endpointAdv, validateAuthorization, validateSelfOrAdmin, deleteAdvertisement);
+app.put(enpointAdvByAdv, validateAuthorization, detectTypeNoGuests, modifyAdvertisement);
+app.delete(endpointAdv, validateAuthorization, detectTypeNoGuests, deleteAdvertisement);
 
 
 
@@ -127,10 +127,9 @@ app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, del
 
 //REVIEWS
 app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //TODO QUERYS
-//create detect registred, restringe a no registrados
 app.get(endpointReviewByRev, detectType, getReviewByRev);
 app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
-app.post(endpointReviews, createNewReview);
+app.post(endpointReviews, detectTypeNoGuests, createNewReview);
 //create detect registred, restringe a no registrados
 //create repository middle where it checks user is involved with reservation
 //TODO CHECK IF USER HAS RESERVATION

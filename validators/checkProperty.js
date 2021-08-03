@@ -15,7 +15,7 @@ const schemaCreateProp = Joi.object().keys({
     pais : Joi.string().max(128).required(),
     cp : Joi.string().max(5).required()
 })
-const schemaUpdateProp = Joi.object.key({
+const schemaUpdateProp = Joi.object().keys({
     disponibilidad : Joi.string.boolean(),
     calle : Joi.string().max(256),
 
@@ -30,3 +30,15 @@ const schemaUpdateProp = Joi.object.key({
     pais : Joi.string().max(128),
     cp : Joi.string().max(5)
 })
+
+const propCreateValidate = async (prop) => {
+    return Joi.assert(prop,schemaCreateProp)
+}
+
+const propUpdateValidate = async (prop) => {
+    return Joi.assert(prop, schemaUpdateProp)
+}
+
+module.exports = {
+    propCreateValidate, propUpdateValidate
+}
