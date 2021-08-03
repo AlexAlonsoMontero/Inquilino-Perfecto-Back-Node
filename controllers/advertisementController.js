@@ -169,7 +169,7 @@ const getAdvertisements = async (request, response) => {
         //TODO: check if user is self or admin
         const vis = true
 
-        if(request.auth.user.tipo !== 'ADMIN'){
+        if(request.auth?.user?.tipo !== 'ADMIN'){
             const vis = {'visibilidad':true}
             if(Object.keys(request.query).length !== 0){
                 const query = {...request.query, ...vis}
