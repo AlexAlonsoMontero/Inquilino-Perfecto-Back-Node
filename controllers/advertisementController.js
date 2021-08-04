@@ -258,7 +258,7 @@ const deleteAdvertisement = async (request, response) => {
     const tName = 'anuncios';
     try {
         const validatedDelAdv = validateUuid(request.body)
-        if(!validatedDelAdv.error){
+        // if(!validatedDelAdv.error){
             const existsAdv = await findItems(validatedDelAdv,tName)
             if(existsAdv >= 1){
                 if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
@@ -282,9 +282,9 @@ const deleteAdvertisement = async (request, response) => {
                 else{
                     throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
                 }
-        }else{
-            throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
-        }
+        // }else{
+        //     throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
+        // }
     } catch (error) {
         console.warn(error)
         sendMessage = {error:error.message}

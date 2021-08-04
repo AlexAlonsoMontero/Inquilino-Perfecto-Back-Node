@@ -105,7 +105,7 @@ const getPropertiesSelf = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const propCasero = { usr_casero_uuid : request.auth.user.user_uuid}
+        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid}
         const selfProp = await findItems(propCasero,tName)
 
         if (!selfProp){
@@ -113,13 +113,13 @@ const getPropertiesSelf = async(req, res) =>{
                 tName,
                 "no Prop was found in getPropertiesSelf",
                 'usr_casero_uuid',
-                request.auth.user.user_uuid)
+                req.auth.user.user_uuid)
         }else{
             isStatus = 200
             sendMessage =   {
-                Tuple: selfProp.anuncio_uuid,
-                Info:"Anuncio encontrado",
-                Data: selfProp
+                tuple: selfProp.inmueble_uuid,
+                info:"Inmueble encontrado",
+                data: selfProp
             }
             console.warn(`Successful getPropertiesSelf in ${tName}`);
         }
@@ -134,7 +134,7 @@ const getPropertiesSelf = async(req, res) =>{
             isStatus = 500
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        res.status(isStatus).send(sendMessage)
     }
 }
 
@@ -196,31 +196,34 @@ const modifyProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const oldProp = validateUuid(req.params) //TODO check joi req params?
+        const oldProp = validateUuid(req.params)
         const existsProp = await findItems(oldProp, tName)
         if(Object.keys(existsProp).length === 0){
             new errorNoEntryFound(
                 'Prop update by admin or self',
                 'old Prop uuid not found in database',
-                'req.params.anuncio_uuid',
-                req.params.anuncio_uuid
+                'req.params.inmueble_uuid',
+                req.params.inmueble_uuid
             )
         }
-        if(req.auth?.user?.user_uuid === existsProp.usr_casero_uuid || req.auth?.user?.tipo === 'ADMIN'){
+        if(
+            req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
+            req.auth?.user?.tipo === 'ADMIN'
+        ){
             //Cannot do that in the middleware since it needs to check the database
-            let newProp = propUpdateValidate(req.body) //throws validation error
+            let newProp = propUpdateValidate(req.body)
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
             if(consulta >= 1){
                 isStatus = 200
                 sendMessage = {
-                    Info: "Anuncio modificado",
-                    NewData: newProp,
-                    Reference: oldProp
+                    info: "Inmueble modificado",
+                    newData: newProp,
+                    reference: oldProp
                 }
                 console.log(`Successfully update for ${JSON.stringify(oldProp)} with ${JSON.stringify(newProp)}`);
             }else{
-                new errorNoEntryFound(tName,'no entry found with the given id','anuncio_uuid',oldProp.anuncio_uuid)
+                new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldProp.inmueble_uuid)
             }
         }
     } catch (error) {
@@ -236,16 +239,6 @@ const modifyProperty = async(req, res) =>{
     }finally{
         res.status(isStatus).send(sendMessage)
     }
-    
-    try{
-        let modifyProp = validatePropByProp(req.params)
-        let newProp = validateUpdateProp(req.body)
-        const updatedProp = await updateItem(newProp, modifyProp,'inmuebles')
-        res.status(200).send({Info:"Inmueble modificado", Data:updatedProp})
-    }catch(error){
-        console.warn(error.message)
-        res.status(400).send("No se ha podido actualizar el inmueble")
-    }
 }
 
 /**
@@ -254,17 +247,48 @@ const modifyProperty = async(req, res) =>{
  * @param {json} res json object we are gonna send back as 'true' for deleted object
  */
 const deleteProperty = async(req, res) =>{
-    try{
-        let prop = validatePropByProp(req.body)
-        const deletedProp = await deleteItem(prop, 'inmuebles')
-        if(deletedProp){
-            res.status(200).send({Info:"Inmueble eliminado", Delete:deletedProp})
+    let isStatus, sendMessage;
+    const tName = 'inmuebles';
+    try {
+        const validatedDelProp = validateUuid(request.body)
+        const existsProp = await findItems(validatedDelProp,tName)
+        if(existsProp >= 1){
+            if(
+                request.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
+                request.auth?.user?.tipo === 'ADMIN'
+            ){
+                const isPropDel = await deleteItem(validatedDelProp, tName)
+                sendMessage = {
+                    "tuple": validatedDelProp,
+                    "delete": isPropDel
+                }
+                isStatus = 200
+                console.log(isPropDel ?
+                        `Successfully deletion for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`
+                        : `No tuple could be deleted for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`);
+            }else{
+                throw new errorNoAuthorization(
+                    request.auth?.user?.user_uuid,
+                    request.auth?.user?.tipo,
+                    'delete property',
+                    'only admin or Prop creator can delete it')
+                }
+            }
+            else{
+                throw new errorNoEntryFound(tName + 'delete Prop','Prop not found','request.body',request.body.inmueble_uuid)
+            }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorNoAuthorization){
+            isStatus = 403
         }else{
-            res.status(404).send({Info:"El inmueble que quieres borrar no existe.", Delete:deletedProp})
+            isStatus = 500
         }
-    }catch(error){
-        console.warn(error.message)
-        res.status(400).send("No se ha podido eliminar el inmueble")
+    }finally{
+        response.status(isStatus).send(sendMessage)
     }
 }
 
