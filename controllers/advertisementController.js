@@ -1,7 +1,7 @@
 const errorInvalidUser = require('../customErrors/errorInvalidUser');
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
-const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
+const { save, getItems, findItems, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
 const { advCreateValidate, advUpdateValidate} = require('../validators/checkAdvertisement')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
 const { validateUuid } = require('../validators/checkGeneral')
@@ -25,21 +25,21 @@ const createAdvertisemenet = async (request, response) => {
             newAdv = {...newAdv, anuncio_uuid : v4()}
         }
 
-        if(newAdv.error){
-            throw new errorInvalidField(
-                'advertisement creation',
-                `invalid joi validation for data granted by ${request?.auth.username}`,
-                'request.body',
-                request.body)
-        }else{
-            const createAdv = await save(request.body, tName)
+        // if(newAdv.error){
+        //     throw new errorInvalidField(
+        //         'advertisement creation',
+        //         `invalid joi validation for data granted by ${request?.auth.username}`,
+        //         'request.body',
+        //         request.body)
+        // }else{
+        const createAdv = await save(request.body, tName)
 
-            isStatus = 201
-            sendMessage = {
-                Info: "Anuncio created",
-                Data: newAdv
-            }
+        isStatus = 201
+        sendMessage = {
+            Info: "Anuncio created",
+            Data: newAdv
         }
+        // }
     } catch (error) {
         console.warn(error)
         if(error instanceof errorInvalidField){
@@ -64,8 +64,8 @@ const createAdvertisemenet = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        const validatedAdv = request.params //TODO check for params?
-        const advByAdv = await findItem(validatedAdv,tName)
+        const validatedAdv = validateUuid(request.params)
+        const advByAdv = await findItems(validatedAdv,tName)
 
         if (!advByAdv){
             throw new errorNoEntryFound(
@@ -118,7 +118,7 @@ const createAdvertisemenet = async (request, response) => {
     const tName = 'anuncios';
     try {
         const advCasero = { usr_casero_uuid : request.auth.user.user_uuid}
-        const selfAdv = await findItem(advCasero,tName)
+        const selfAdv = await findItems(advCasero,tName)
 
         if (!selfAdv){
             throw new errorNoEntryFound(
@@ -133,7 +133,7 @@ const createAdvertisemenet = async (request, response) => {
                 Info:"Anuncio encontrado",
                 Data: selfAdv
             }
-            console.warn(`Successful getAdvertisementSelf in ${tName}`);
+            console.log(`Successful getAdvertisementSelf in ${tName}`);
         }
     }catch(error){
         console.warn(error)
@@ -167,7 +167,7 @@ const getAdvertisements = async (request, response) => {
         }
         let advInm = undefined
 
-        if(request.auth.user.tipo !== 'ADMIN'){
+        if(request.auth?.user?.tipo !== 'ADMIN'){
             const vis = {'visibilidad':true}
             if(Object.keys(request.query).length !== 0){
                 const query = {...request.query, ...vis}
@@ -211,8 +211,8 @@ const modifyAdvertisement = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        const oldAdv = validateUuid(request.params) //TODO check joi request params?
-        const existsAdv = await findItem(oldAdv, tName)
+        const oldAdv = validateUuid(request.params)
+        const existsAdv = await findItems(oldAdv, tName)
         if(Object.keys(existsAdv).length === 0){
             new errorNoEntryFound(
                 'adv update by admin or self',
@@ -222,9 +222,8 @@ const modifyAdvertisement = async (request, response) => {
             )
         }
         if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
-            //Checks if the one updating is self or admin
             //Cannot do that in the middleware since it needs to check the database
-            let newAdv = request.body//advUpdateValidate(request.body) //throws validation error
+            let newAdv = advUpdateValidate(request.body) //throws validation error
             newAdv = {...oldAdv, ...newAdv}
             const consulta = await updateItem(newAdv, oldAdv, tName)
             if(consulta >= 1){
@@ -258,9 +257,9 @@ const deleteAdvertisement = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        const validatedDelAdv = request.body //TODO JOI
+        const validatedDelAdv = validateUuid(request.body)
         if(!validatedDelAdv.error){
-            const existsAdv = await findItem(validatedDelAdv,tName)
+            const existsAdv = await findItems(validatedDelAdv,tName)
             if(existsAdv >= 1){
                 if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
                     const isAdvDel = await deleteItem(validatedDelAdv, tName)

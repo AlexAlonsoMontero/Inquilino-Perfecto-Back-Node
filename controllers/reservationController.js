@@ -1,7 +1,7 @@
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound') 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { getItems, findItem, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
+const { getItems, findItemss, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 
 /**
  * #SELF / ADMIN
@@ -53,10 +53,10 @@ const getReservationsByUsers = async(req, res) =>{
 
         if(req.params.usr_casero_uuid === 'all'){
             const params = {usr_inquilino_uuid:validatedUsers.usr_inquilino_uuid}
-            foundRes = await findItem(params,tName)
+            foundRes = await findItems(params,tName)
         }else if(req.params.usr_inquilino_uuid === 'all'){
             const params = {usr_casero_uuid:validatedUsers.usr_casero_uuid}
-            foundRes =  await findItem(params,tName)
+            foundRes =  await findItems(params,tName)
         }else{
             foundRes = await getItemsMultiParams(validatedUsers,tName)
         }
@@ -109,7 +109,7 @@ const getReservationByRes = async(req, res) =>{
     const tName = 'reservas';
     try{
         const validatedRes = req.params //TODO JOI
-        const foundRes = await findItem(validatedRes,tName)
+        const foundRes = await findItems(validatedRes,tName)
         if(!foundRes){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRes)[0],validatedRes.reserva_uuid)
         }else{

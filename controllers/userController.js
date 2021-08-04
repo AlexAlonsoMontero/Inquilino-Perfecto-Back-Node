@@ -1,6 +1,6 @@
 require('dotenv').config()
 const {    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,    validateUserMail,    validateUserPassword} = require('../validators/userValidator')
-const {    save,    findItem,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
+const {    save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
 const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -10,6 +10,7 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
+const { request } = require('express')
 const fs = require('fs')
 const path = require('path')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
@@ -57,8 +58,6 @@ const createNewUser = async (request, response) => {
                 if (request.file){
                     fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
                 }
-                
-                
                 console.log(`Created new user`)
             }
         }
@@ -266,7 +265,7 @@ const activateValidationUser = async (request, response) => {
             isStatus =501
             sendMessage = "La cuenta no ha sido activada..........."
         }
-        const user = await findItem (oldUser,tName)
+        const user = await findItems (oldUser,tName)
         await sendConfirmUserActivation(user.username, user.email)
 
         isStatus= 201
@@ -343,7 +342,7 @@ const login = async (request, response, next) => {
         } else if (!validateUserPassword(request.body.password)) {
             throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
-            let user = await findItem(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
+            let user = await findItems(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
             if(user.activated_at===null){
                 throw new errorNoActiveUser("User no activate")
                 

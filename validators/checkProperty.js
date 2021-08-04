@@ -1,7 +1,7 @@
 const Joi = require('@hapi/joi');
 
 const schemaCreateProp = Joi.object().keys({
-    disponibilidad : Joi.string.boolean().required(),
+    disponibilidad : Joi.boolean().required(),
     calle : Joi.string().max(256).required(),
 
     metros_2 : Joi.number(),
@@ -16,7 +16,7 @@ const schemaCreateProp = Joi.object().keys({
     cp : Joi.string().max(5).required()
 })
 const schemaUpdateProp = Joi.object().keys({
-    disponibilidad : Joi.string.boolean(),
+    disponibilidad : Joi.boolean(),
     calle : Joi.string().max(256),
 
     metros_2 : Joi.number(),

@@ -1,8 +1,5 @@
-const { v4 } = require('uuid')
 const Joi = require('joi')
 const bcrypt = require('bcryptjs')
-const { object } = require('joi')
-const { updateItem } = require('../infrastructure/generalRepository')
 
 /**
  * CREA LOS ESQUEMAS DE VALIDACIÓN Y LAS FUNCIONES CORRESPONDIENTES

@@ -1,5 +1,5 @@
 const { getConnection } = require('./bd/db')
-const { findItem, getItems } = require('./generalRepository')
+const { findItems, getItems } = require('./generalRepository')
 const connection = getConnection()
 
 
@@ -8,11 +8,11 @@ const connection = getConnection()
  * @returns user data in database without password
  */
 const getUserNoPass = async (user_uuid) => {
-    // const sentence = 'SELECT user_uuid, username, email, tipo FROM usuarios WHERE user_uuid=?'
-    // const user = await connection.query(sentence, uuid_user)
     const aux = {"user_uuid":user_uuid}
-    let user = await findItem(aux, 'usuarios')
-    delete user.password
+    let user = await findItems(aux, 'usuarios')
+    if(user){
+        delete user.password
+    }
     return user
 }
 

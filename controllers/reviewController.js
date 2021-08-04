@@ -1,7 +1,7 @@
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound') 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { getItems, findItem, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
+const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 
 /**
  * TODO QUERYS
@@ -88,7 +88,7 @@ const getSelfReviews = async(req, res) =>{
     const tName = 'resenas';
     try{
         const validatedRev = req.params //TODO JOI
-        const foundRev = await findItem(validatedRev,tName)
+        const foundRev = await findItems(validatedRev,tName)
         if(!foundRev){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRev)[0],validatedRev.reserva_uuid)
         }else{
@@ -123,7 +123,7 @@ const getReviewByRev = async(req, res) =>{
     const tName = 'resenas';
     try{
         const validatedRev = req.params //TODO JOI
-        const foundRev = await findItem(validatedRev,tName)
+        const foundRev = await findItems(validatedRev,tName)
         if(!foundRev){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRev)[0],validatedRev.reserva_uuid)
         }else{

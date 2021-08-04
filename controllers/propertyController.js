@@ -1,7 +1,9 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { deleteItem, findItem, getItems, save, updateItem} = require('../infrastructure/generalRepository')
-const { validatePropByUserAndProp, validateNewProp,    validatePropByUser,    validateUpdateProp,    validatePropQP,    validatePropByProp} = require('../validators/propValidators.js')
+const { deleteItem, findItems, getItems, save, updateItem} = require('../infrastructure/generalRepository')
+const { validateUuid } = require('../validators/checkGeneral')
+const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty.js')
+
 
 /**
  * #CASERO_FUNCTION / ADMIN
@@ -11,12 +13,31 @@ const { validatePropByUserAndProp, validateNewProp,    validatePropByUser,    va
  */
 const createNewProperty = async(req, res) =>{
     try {
-        const newProp = validateNewProp(req.body)
+        let newProp = propCreateValidate(req.body)
+        //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
+        //En la versión definitiva no dejaremos que el post traiga uuid
+        if (!newProp.inmueble_uuid){
+            newProp = {...newProp, inmueble_uuid : v4()}
+        }
+
         const createdProp = await save(newProp, 'inmuebles')
-        res.status(201).send({Info:"Inmueble creado",Data:createdProp})
+
+        isStatus = 201
+        sendMessage = {
+            info: "Inmueble created",
+            data: newProp
+        }
     } catch (error) {
-        console.warn(error.message)
-        res.status(500).send({Error:"Internal error, no se ha podido crear el inmueble"})
+        console.warn(error)
+        if(error instanceof errorInvalidField){
+            isStatus = 401
+            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+        }else{
+            isStatus = 500
+            sendMessage = {error: 'Error interno servidor'}
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
     }
 }
 
@@ -28,21 +49,50 @@ const createNewProperty = async(req, res) =>{
  *                      200 When the property is found
  *                      404 When the property is not found
  *                      500 When there's an internal error
- *
  */
-const getProperty = async(req, res) =>{
+const getPropertyByProp = async(req, res) =>{
+    let isStatus, sendMessage;
+    const tName = 'inmuebles';
     try {
-        const prop = validatePropByProp(req.params)
-        const foundProp = await findItem(prop, 'inmuebles')
-        if (!foundProp){
-            res.status(404).send({Error:"No se ha encontrado el inmueble "+req.params.inmueble_uuid})
+        const validatedProp = validateUuid(req.params) //TODO check for params?
+        const propByProp = await findItems(validatedProp,tName)
+
+        if (!propByProp){
+            throw new errorNoEntryFound(
+                tName,
+                "no Prop was found in getPropertyByProp",
+                Object.keys(validatedProp)[0],
+                validatedProp.inmueble_uuid)
         }else{
-            throw {not_found_error:[]}
-            res.status(200).send({Info:"Inmueble encontrado", Data:foundProp})
+            if(
+                req.auth?.user?.user_uuid === propByProp.usr_casero_uuid ||
+                req.auth?.user?.tipo === 'ADMIN'
+            ){
+                isStatus = 200
+                sendMessage =   {
+                    tuple: validatedProp.inmueble_uuid,
+                    info:"Inmueble encontrado",
+                    data: propByProp
+                }
+                console.log(`Successful getPropByProp in ${tName}`);
+            }else{
+                throw new errorInvalidUser('the prop is not visible for you')
+            }
         }
-    } catch (error) {
-        console.warn(error.message)
-        res.status(500).send({Error:"No se ha podido resolver la petición"})
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof ValidationError){
+            isStatus = 422
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
     }
 }
 
@@ -52,18 +102,39 @@ const getProperty = async(req, res) =>{
  * @param {*} res 
  */
 const getPropertiesSelf = async(req, res) =>{
+    let isStatus, sendMessage;
+    const tName = 'inmuebles';
     try {
-        const prop = validatePropByProp(req.params)
-        const foundProp = await findItem(prop, 'inmuebles')
-        if (!foundProp){
-            res.status(404).send({Error:"No se ha encontrado el inmueble "+req.params.inmueble_uuid})
+        const propCasero = { usr_casero_uuid : request.auth.user.user_uuid}
+        const selfProp = await findItems(propCasero,tName)
+
+        if (!selfProp){
+            throw new errorNoEntryFound(
+                tName,
+                "no Prop was found in getPropertiesSelf",
+                'usr_casero_uuid',
+                request.auth.user.user_uuid)
         }else{
-            throw {not_found_error:[]}
-            res.status(200).send({Info:"Inmueble encontrado", Data:foundProp})
+            isStatus = 200
+            sendMessage =   {
+                Tuple: selfProp.anuncio_uuid,
+                Info:"Anuncio encontrado",
+                Data: selfProp
+            }
+            console.warn(`Successful getPropertiesSelf in ${tName}`);
         }
-    } catch (error) {
-        console.warn(error.message)
-        res.status(500).send({Error:"No se ha podido resolver la petición"})
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
     }
 }
 
@@ -75,16 +146,44 @@ const getPropertiesSelf = async(req, res) =>{
  * @param {json} res corresponding to res
  */
 const getAllProperties = async(req, res) =>{
+    let isStatus, sendMessage;
+    const tName = 'inmuebles'
     try {
-        // const allProp = await getItems('inmuebles');
-        // if (!allProp){
-        //     res.status(404).send({Error:"No se ha encontrado ningún inmueble"})
-        // }else{
-        //     res.status(200).send({Info:"Inmueble encontrado", Data:allProp})
-        // }
+        if(Object.keys(req.query).length !== 0){
+            const foundProps = await getItemsMultiParams(req.query,tName)
+            if (foundProps) {
+                isStatus = 200
+                sendMessage = {
+                    info: foundUsers.length >= 1 ? 'Inmuebles localizados' : 'No se han encontrado inmuebles',
+                    foundUsers
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }
+        }else{
+            const foundProps = await getItems(tName)
+            if (foundProps) {
+                isStatus = 200
+                sendMessage = {
+                    info: foundProps.length >= 1 ? 'Inmuebles localizados' : 'No se han encontrado inmuebles',
+                    foundProps
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }
+        }
     } catch (error) {
         console.warn(error.message)
-        res.status(500).send({Error:"No se ha podido resolver la petición"})
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+            sendMessage = {error:"No se han encontrado inmuebles"}
+        }else{
+            isStatus = 500
+            sendMessage = {error:"Error interno del servidor"}
+        }
+    }
+    finally{
+        res.status(isStatus).send(sendMessage)
     }
 }
 
@@ -94,6 +193,50 @@ const getAllProperties = async(req, res) =>{
  * @param {json} res json object we are gonna send back
  */
 const modifyProperty = async(req, res) =>{
+    let isStatus, sendMessage;
+    const tName = 'inmuebles';
+    try {
+        const oldProp = validateUuid(req.params) //TODO check joi req params?
+        const existsProp = await findItems(oldProp, tName)
+        if(Object.keys(existsProp).length === 0){
+            new errorNoEntryFound(
+                'Prop update by admin or self',
+                'old Prop uuid not found in database',
+                'req.params.anuncio_uuid',
+                req.params.anuncio_uuid
+            )
+        }
+        if(req.auth?.user?.user_uuid === existsProp.usr_casero_uuid || req.auth?.user?.tipo === 'ADMIN'){
+            //Cannot do that in the middleware since it needs to check the database
+            let newProp = propUpdateValidate(req.body) //throws validation error
+            newProp = {...oldProp, ...newProp}
+            const consulta = await updateItem(newProp, oldProp, tName)
+            if(consulta >= 1){
+                isStatus = 200
+                sendMessage = {
+                    Info: "Anuncio modificado",
+                    NewData: newProp,
+                    Reference: oldProp
+                }
+                console.log(`Successfully update for ${JSON.stringify(oldProp)} with ${JSON.stringify(newProp)}`);
+            }else{
+                new errorNoEntryFound(tName,'no entry found with the given id','anuncio_uuid',oldProp.anuncio_uuid)
+            }
+        }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorInvalidField){
+            isStatus = 401
+        }else if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
+    }
+    
     try{
         let modifyProp = validatePropByProp(req.params)
         let newProp = validateUpdateProp(req.body)
@@ -126,6 +269,6 @@ const deleteProperty = async(req, res) =>{
 }
 
 module.exports = {
-    getProperty, getAllProperties, getPropertiesSelf, 
+    getPropertyByProp, getAllProperties, getPropertiesSelf,
     createNewProperty, modifyProperty, deleteProperty
 }

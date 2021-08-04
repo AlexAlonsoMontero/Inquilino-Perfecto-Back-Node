@@ -41,7 +41,7 @@ const getItems = async (table) => {
  * @param {string} table srting name of the table where we are gonna search
  * @returns the query selected rows, otherwise 'undefined'
  */
-const findItem = async (item, table) => {
+const findItems = async (item, table) => {
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
     const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
     return rows[0]
@@ -163,7 +163,7 @@ const whereCreator = (queryParams) => {
 module.exports = {
     save,
     getItems,
-    findItem,
+    findItems,
     updateItem,
     deleteItem,
     getItemsMultiParams,

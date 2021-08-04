@@ -6,7 +6,7 @@ const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin,
 = require('./infrastructure/middlewares/checkRolMiddle')
 const { updateUserForAdmin, getUsersForAdmin } 
 = require('./controllers/adminController')
-const { getProperty, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
+const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
 const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement } 
 = require('./controllers/advertisementController')
@@ -78,11 +78,11 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 //USUARIOS
 //TODO get por tipo de usuario
-app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
-// app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
-app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
 app.get(endpointVerifiacionUser, activateValidationUser);
+app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
+// app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
+app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //TODO check error poping up
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
 app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
 app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
@@ -96,9 +96,9 @@ app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersFor
 
 
 //INMUEBLES
-app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //TODO QUERY PARAMS
-app.get(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, getProperty);
-app.get(endpointSelfProperties, validateAuthorization, validateSelfOrAdmin, getPropertiesSelf); //TODO
+app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties);
+app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp);
+app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf);
 app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty);
 app.put(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, modifyProperty);
 app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, deleteProperty);
@@ -110,8 +110,8 @@ app.get(endpointAdv, detectType, getAdvertisements);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
-app.put(enpointAdvByAdv, validateAuthorization, detectTypeNoGuests, modifyAdvertisement);
-app.delete(endpointAdv, validateAuthorization, detectTypeNoGuests, deleteAdvertisement);
+app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement);
+app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement);
 
 
 
@@ -130,7 +130,6 @@ app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews)
 app.get(endpointReviewByRev, detectType, getReviewByRev);
 app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
 app.post(endpointReviews, detectTypeNoGuests, createNewReview);
-//create detect registred, restringe a no registrados
 //create repository middle where it checks user is involved with reservation
 //TODO CHECK IF USER HAS RESERVATION
 app.put(endpointReviewByRev, modifyReview);
