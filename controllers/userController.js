@@ -52,8 +52,8 @@ const createNewUser = async (request, response) => {
                 delete newUser.password
                 isStatus = 201
                 sendMessage = {
-                    Info: "User created",
-                    Data: newUser
+                    info: "User created",
+                    data: newUser
                 }
                 if (request.file){
                     fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
@@ -151,10 +151,11 @@ const getSelfUser = (request, response) => {
     let isStatus, sendMessage;
     try {
         if(request.auth.user){
+            const bddUserData = getUserNoPass(request.auth.user.user_uuid)
             isStatus = 200
             sendMessage = {
-                Info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
-                user: {...request.auth.user}
+                info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
+                user: {...bddUserData}
             }
         }else {
             throw new errorNoAuthorization(decodedUser.username,decodedUser.tipo,'showUser','tryed to get someone else data')
@@ -217,9 +218,9 @@ const updateUser = async (request, response) => {
             if(consulta>=1){
                 isStatus = 200
                 sendMessage = {
-                    Info: "Usuario modificado",
-                    NewData: newUser,
-                    Reference: oldUser
+                    info: "Usuario modificado",
+                    newData: newUser,
+                    reference: oldUser
                 }
             console.log(`Successfully update for ${JSON.stringify(oldUser)} with ${JSON.stringify(newUser)}`);
             }else{

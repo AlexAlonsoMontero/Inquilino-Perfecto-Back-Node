@@ -36,8 +36,8 @@ const createAdvertisemenet = async (request, response) => {
 
         isStatus = 201
         sendMessage = {
-            Info: "Anuncio created",
-            Data: newAdv
+            info: "Anuncio creado",
+            data: newAdv
         }
         // }
     } catch (error) {
@@ -80,9 +80,9 @@ const createAdvertisemenet = async (request, response) => {
             ){
                 isStatus = 200
                 sendMessage =   {
-                    Tuple: validatedAdv.anuncio_uuid,
-                    Info:"Anuncio encontrado",
-                    Data: advByAdv
+                    tuple: validatedAdv.anuncio_uuid,
+                    info:"Anuncio encontrado",
+                    data: advByAdv
                 }
                 console.warn(`Successful getAdvByAdv in ${tName}`);
             }else{
@@ -129,9 +129,9 @@ const createAdvertisemenet = async (request, response) => {
         }else{
             isStatus = 200
             sendMessage =   {
-                Tuple: selfAdv.anuncio_uuid,
-                Info:"Anuncio encontrado",
-                Data: selfAdv
+                tuple: selfAdv.anuncio_uuid,
+                info:"Anuncio encontrado",
+                data: selfAdv
             }
             console.log(`Successful getAdvertisementSelf in ${tName}`);
         }
@@ -229,9 +229,9 @@ const modifyAdvertisement = async (request, response) => {
             if(consulta >= 1){
                 isStatus = 200
                 sendMessage = {
-                    Info: "Anuncio modificado",
-                    NewData: newAdv,
-                    Reference: oldAdv
+                    info: "Anuncio modificado",
+                    newData: newAdv,
+                    reference: oldAdv
                 }
                 console.log(`Successfully update for ${JSON.stringify(oldAdv)} with ${JSON.stringify(newAdv)}`);
             }else{
