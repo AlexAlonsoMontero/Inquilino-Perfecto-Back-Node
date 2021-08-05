@@ -64,7 +64,6 @@ const updateItem = async (newItem, oldItem, table) => {
 
     }
     sentencia += ` WHERE ${Object.keys(oldItem)} =?`
-    console.log(sentencia);
     const [rows, fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
     return rows.affectedRows
 }
@@ -131,18 +130,15 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
  * @param {*} queryParams 
  * @returns 
  */
-const getItemsMultiJoi = async (tables, tkeys, queryParams) => {
+const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
     let rows =""
-    let join =""
-    let sentence = `SELECT * FROM ${tables[0]}` 
+    let sentence = `SELECT * FROM ${qtable} ` 
                     // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
-
-    for (let cont = 0; cont < tables.length; cont ++){
-        join += `INNER JOIN ${tables[cont+1]} ON ${tables[cont]} = ${tables[cont]}.${tkeys[cont]} = ${tables[cont+1]}.${tkeys[cont]}`
+    for(let cont = 0; cont < tables.length; cont++){
+        sentence +=`INNER JOIN ${tables[cont]} `
+        sentence += `ON ${tkeys[cont][0]} = ${tkeys[cont][1]} `
     }
-    sentence += join
     if( Object.keys(queryParams).length === 0){
-        console.log(queryParams)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)
@@ -150,7 +146,9 @@ const getItemsMultiJoi = async (tables, tkeys, queryParams) => {
         const qparam = qParamsBoolValidator(Object.values(queryParams))
         rows= await connection.query(sentence,qparam)
     }
-    
+    rows[0].forEach(element => {
+        if(element?.password){delete element.password}
+    });
     return rows[0]
 }
 

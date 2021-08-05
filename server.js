@@ -8,7 +8,7 @@ const { updateUserForAdmin, getUsersForAdmin }
 = require('./controllers/adminController')
 const { getProperty, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement, getAdvertisementsMultiJoi } 
 = require('./controllers/advertisementController')
 const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
@@ -70,6 +70,9 @@ const endpointSelfReservations = '/api/user/:username/reservations';
 const endpointSelfReviews = '/api/user/:username/reviews';
 
 
+//PRUEBAS ENDOPOINT
+const endpointPruebas = '/pruebas/adv'
+
 //RUTES
 
 app.post(endpointLogin, login);
@@ -106,13 +109,12 @@ app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, delet
 
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisements);
+app.get(endpointAdv, detectType, getAdvertisementsMultiJoi);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv, validateAuthorization, detectTypeNoGuests, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, detectTypeNoGuests, deleteAdvertisement);
-
 
 
 //RESERVAS
