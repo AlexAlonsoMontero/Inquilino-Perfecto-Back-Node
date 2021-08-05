@@ -49,7 +49,7 @@ const endpointPropertiesByProp = '/api/properties/:inmueble_uuid';
 
 //ENDPOINTS RESERVATIONS
 const endpointReservations = '/api/reservations';
-const endpointReservationsByRes = '/api/reservations/:alquiler_uuid';
+const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
 
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';

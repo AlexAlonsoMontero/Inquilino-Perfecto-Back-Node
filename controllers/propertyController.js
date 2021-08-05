@@ -12,6 +12,8 @@ const { propCreateValidate, propUpdateValidate } = require('../validators/checkP
  * @param {json} res 
  */
 const createNewProperty = async(req, res) =>{
+    let isStatus, sendMessage;
+    const tName = 'inmuebles';
     try {
         let newProp = propCreateValidate(req.body)
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
@@ -20,7 +22,7 @@ const createNewProperty = async(req, res) =>{
             newProp = {...newProp, inmueble_uuid : v4()}
         }
 
-        const createdProp = await save(newProp, 'inmuebles')
+        const createdProp = await save(newProp, tName)
 
         isStatus = 201
         sendMessage = {
@@ -37,6 +39,55 @@ const createNewProperty = async(req, res) =>{
             sendMessage = {error: 'Error interno servidor'}
         }
     }finally{
+        res.status(isStatus).send(sendMessage)
+    }
+}
+
+/**
+ * #ADMIN_FUNCTION
+ * Check all properties in database
+ * TODO QUERY PARAMS
+ * @param {json} req corresponding to req
+ * @param {json} res corresponding to res
+ */
+const getAllProperties = async(req, res) =>{
+    let isStatus, sendMessage;
+    const tName = 'inmuebles'
+    try {
+        if(Object.keys(req.query).length !== 0){
+            const foundProps = await getItemsMultiParams(req.query,tName)
+            if (foundProps) {
+                isStatus = 200
+                sendMessage = {
+                    info: foundProps.length >= 1 ? 'Inmuebles localizados' : 'No se han encontrado inmuebles',
+                    foundProps
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }
+        }else{
+            const foundProps = await getItems(tName)
+            if (foundProps) {
+                isStatus = 200
+                sendMessage = {
+                    info: foundProps.length >= 1 ? 'Inmuebles localizados' : 'No se han encontrado inmuebles',
+                    foundProps
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }
+        }
+    } catch (error) {
+        console.warn(error.message)
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+            sendMessage = {error:"No se han encontrado inmuebles"}
+        }else{
+            isStatus = 500
+            sendMessage = {error:"Error interno del servidor"}
+        }
+    }
+    finally{
         res.status(isStatus).send(sendMessage)
     }
 }
@@ -134,55 +185,6 @@ const getPropertiesSelf = async(req, res) =>{
             isStatus = 500
         }
     }finally{
-        res.status(isStatus).send(sendMessage)
-    }
-}
-
-/**
- * #ADMIN_FUNCTION
- * Check all properties in database
- * TODO QUERY PARAMS
- * @param {json} req corresponding to req
- * @param {json} res corresponding to res
- */
-const getAllProperties = async(req, res) =>{
-    let isStatus, sendMessage;
-    const tName = 'inmuebles'
-    try {
-        if(Object.keys(req.query).length !== 0){
-            const foundProps = await getItemsMultiParams(req.query,tName)
-            if (foundProps) {
-                isStatus = 200
-                sendMessage = {
-                    info: foundUsers.length >= 1 ? 'Inmuebles localizados' : 'No se han encontrado inmuebles',
-                    foundUsers
-                }
-            } else {
-                throw new errorNoEntryFound('getting all props with query params', 'empty result')
-            }
-        }else{
-            const foundProps = await getItems(tName)
-            if (foundProps) {
-                isStatus = 200
-                sendMessage = {
-                    info: foundProps.length >= 1 ? 'Inmuebles localizados' : 'No se han encontrado inmuebles',
-                    foundProps
-                }
-            } else {
-                throw new errorNoEntryFound('getting all props with query params', 'empty result')
-            }
-        }
-    } catch (error) {
-        console.warn(error.message)
-        if(error instanceof errorNoEntryFound){
-            isStatus = 404
-            sendMessage = {error:"No se han encontrado inmuebles"}
-        }else{
-            isStatus = 500
-            sendMessage = {error:"Error interno del servidor"}
-        }
-    }
-    finally{
         res.status(isStatus).send(sendMessage)
     }
 }
