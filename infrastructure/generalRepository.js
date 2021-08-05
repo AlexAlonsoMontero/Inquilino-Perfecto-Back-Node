@@ -56,8 +56,8 @@ const findItems = async (item, table) => {
  */
 const updateItem = async (newItem, oldItem, table) => {
     let sentencia = `UPDATE ${table} SET `
-    const numValues = Object.keys(newItem).length
-    for (let i = 0; i < numValues; i++) {
+    // const numValues = Object.keys(newItem).length
+    for (let i = 0; i < Object.keys(newItem).length; i++) {
         sentencia += Object.keys(newItem)[i].toString() + "=?"
         i < numValues - 1 ? sentencia += "," : sentencia += ""
 

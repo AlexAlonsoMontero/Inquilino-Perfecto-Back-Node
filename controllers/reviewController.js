@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate } = require('../validators/checkReview')
+const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
 
 
 /**
@@ -15,7 +16,7 @@ const { reviewCreateValidate } = require('../validators/checkReview')
     let isStatus, sendMessage
     const tName = 'resenas'
     const tReservations = 'reservas'
-    const tUsers = 'usuarios'
+    // const tUsers = 'usuarios'
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
         let checkInvolved, usr;
@@ -29,10 +30,10 @@ const { reviewCreateValidate } = require('../validators/checkReview')
                 checkInvolved = await getItemsMultiParams({...usr, reserva_uuid: validatedNewRev.reserva_uuid},tReservations)
                 break;
             case 'INQUILINO/CASERO':
-                // usr = {
-                //     usr_inquilino_uuid:req.auth.user.user_uuid,
-                //     usr_casero_uuid:req.auth.user.user_uuid
-                // }
+                usr = {
+                    usr_inquilino_uuid:req.auth.user.user_uuid,
+                    usr_casero_uuid:req.auth.user.user_uuid
+                }
                 const checkInvolvedInq = await getItemsMultiParams({
                     usr_inquilino_uuid:req.auth.user.user_uuid,
                     reserva_uuid: validatedNewRev.reserva_uuid},
@@ -57,12 +58,13 @@ const { reviewCreateValidate } = require('../validators/checkReview')
             validatedNewRev = {...validatedNewRev, author_uuid : req.auth.user.user_uuid}
 
             //update user puntuación media
-            const userData = await getItemsMultiParams(
-                {user_uuid:req.auth.user.user_uuid},tUsers
+            const userPunctuations = await getItemsMultiParams(
+                {user_uuid:req.auth.user.user_uuid}
+                ,tName
             )
-            
-
             const newRev = await save(validatedNewRev,tName)
+            await updateUserPunctuation(usr)
+
             isStatus = 201
             sendMessage = {
                 tuple: req.body.resena_uuid,

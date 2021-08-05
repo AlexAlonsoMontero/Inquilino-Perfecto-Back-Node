@@ -1,7 +1,4 @@
-const { findItems, getItems, updateItem } = require('./generalRepository')
-const { getConnection } = require('./bd/db')
-const connection = getConnection()
-
+const { findItems, getItems } = require('./generalRepository')
 
 /**
  * @param {string} user_uuid admite SOLAMENTE el VALOR de la uuid

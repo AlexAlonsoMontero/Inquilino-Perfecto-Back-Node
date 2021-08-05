@@ -15,7 +15,7 @@ const fs = require('fs')
 const path = require('path')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
 const  cryptoRandomString  = require('crypto-random-string')
-const { errorNoActiveUser } = require('../customErrors/errorNoActiveuser')
+const { errorNoActiveUser } = require('../customErrors/errorNoActiveUser')
 const { errorSendMail } = require('../customErrors/errorSendMail')
  //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
