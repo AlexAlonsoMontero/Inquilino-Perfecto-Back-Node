@@ -116,7 +116,7 @@ app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertis
 
 
 //RESERVAS
-app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations); //TODO query params
+app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
 app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
 app.get(endpointSelfReservations, validateAuthorization, validateSelfOrAdmin, getReservationsSelf);
 app.post(endpointReservations, detectType, createNewReservation);

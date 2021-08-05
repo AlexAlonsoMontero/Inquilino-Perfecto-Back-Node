@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
+const { reservUpdateValidate, reservCreateValidate } = require('../validators/checkReservation')
+const { request } = require('express')
 
 /**
  * #REGISTRED_FUNCTION [ANY]
@@ -90,8 +92,8 @@ const getAllReservations = async(req, res) =>{
 
 /**
  * ADMIN_FUNCTION
- * Checks reservations by ':usr_casero_uuid', ':usr_inquilino_uuid' or both
- * @param {json} req with params ':usr_casero_uuid'/all || ':usr_inquilino_uuid'/all
+ * NOT CALLED FROM SERVER
+ * @param {json} req with params 
  * @param {json} res list with reservations
  */
 const getReservationsByUser = async(req, res) =>{
@@ -103,8 +105,8 @@ const getReservationsByUser = async(req, res) =>{
 
         if(!foundRes){
             throw new errorNoEntryFound(tName,"no tuples were found",
-                [Object.keys(validatedUsers)[0],Object.keys(validatedUsers)[1]],
-                [validatedUsers.usr_casero_uuid,validatedUsers.usr_inquilino_uuid])
+                [Object.keys(validatedUser)[0],Object.keys(validatedUser)[1]],
+                [validatedUser.usr_casero_uuid, validatedUser.usr_inquilino_uuid])
         }else{
             isStatus = 200
             sendMessage =   {
@@ -133,9 +135,63 @@ const getReservationsByUser = async(req, res) =>{
  * @param {json} res 
  */
 const getReservationsSelf = async(req, res) =>{
-    //TODO
-    //Si el usuario es tipo inquilino_casero devuelve dos tablas
-    
+    let isStatus, sendMessage;
+    const tName = 'reservas';
+    try {
+        let selfUuid;
+        switch(request.auth.user.tipo){
+            default:
+            case 'INQUILINO':
+                selfUuid = { usr_inquilino_uuid : request.auth.user.user_uuid}
+                break;
+            case 'CASERO':
+                selfUuid = { usr_casero_uuid : request.auth.user.user_uuid}
+                break;
+            case 'INQUILINO/CASERO':
+                selfUuid = {
+                        usr_casero_uuid : request.auth.user.user_uuid,
+                        usr_inquilino_uuid : request.auth.user.user_uuid
+                    }
+                break;
+        }
+
+        let selfRes;
+        if(Object.keys(selfUuid).length > 1){
+            const selfResCas =  await findItems(selfUuid.usr_casero_uuid,tName)
+            const selfResInq = await findItems(selfUuid.usr_inquilino_uuid,tName)
+            selfRes = {...selfResCas, ...selfResInq}
+        }else{
+            selfRes = await findItems(selfUuid,tName)
+        }
+
+        if (!selfRes){
+            throw new errorNoEntryFound(
+                tName,
+                "no reservation was found in getReservationSelf",
+                'selfUuid',
+                selfUuid)
+        }else{
+            isStatus = 200
+            sendMessage =   {
+                tuple: selfUuid,
+                info:"Alquiler encontrado",
+                data: selfRes
+            }
+            console.log(`Successful getReservationsSelf in ${tName}`);
+        }
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
 }
 
 /**
@@ -148,7 +204,7 @@ const getReservationByRes = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try{
-        const validatedRes = req.params //TODO JOI
+        const validatedRes = validateUuid(req.params)
         const foundRes = await findItems(validatedRes,tName)
         if(!foundRes){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRes)[0],validatedRes.reserva_uuid)
@@ -185,49 +241,35 @@ const modifyReservation = async(req, res) =>{
     const tName = 'reservas';
     try{
         const oldRes = validateUuid(req.params)
-
-        const updatedRes = await updateItem(newResData, oldResRef, tName)
-        if(updatedRes===0){
-            throw new errorNoEntryFound(tName,"no tuple was updated",Object.keys(oldResRef)[0],oldResRef.reserva_uuid)
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                Tuple: oldResRef,
-                Info_Query: updatedRes,
-                New_Data: newResData
-            }
-            console.warn(`Successfully updated for ${Object.keys(oldResRef)[0]} with ${oldResRef}`);
-        }
-
         const existsRes = await findItems(oldRes, tName)
         if(Object.keys(existsRes).length === 0){
             new errorNoEntryFound(
-                'Prop update by admin or self',
+                'Res update by admin or self',
                 'old reservation uuid not found in database',
                 'req.params.reserva_uuid',
                 req.params.reserva_uuid
-            )
-        }
-        if(
-            req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
-            req.auth?.user?.tipo === 'ADMIN'
-        ){
-            //Cannot do that in the middleware since it needs to check the database
-            let newProp = propUpdateValidate(req.body)
-            newProp = {...oldProp, ...newProp}
-            const consulta = await updateItem(newProp, oldProp, tName)
-            if(consulta >= 1){
-                isStatus = 200
-                sendMessage = {
-                    info: "Inmueble modificado",
-                    newData: newProp,
-                    reference: oldProp
-                }
-                console.log(`Successfully update for ${JSON.stringify(oldProp)} with ${JSON.stringify(newProp)}`);
-            }else{
-                new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldProp.inmueble_uuid)
+                )
             }
-        }
+            if(
+                req.auth?.user?.user_uuid === existsRes.usr_casero_uuid ||
+                req.auth?.user?.tipo === 'ADMIN'
+                ){
+                    //Cannot do that in the middleware since it needs to check the database
+                    let newRes = reservUpdateValidate(req.body)
+                    newRes = {...oldRes, ...newRes}
+                    const consulta = await updateItem(newRes, oldRes, tName)
+                    if(consulta >= 1){
+                        isStatus = 200
+                        sendMessage = {
+                            info: "Inmueble modificado",
+                            newData: newRes,
+                            reference: oldRes
+                        }
+                        console.log(`Successfully updated for ${Object.keys(oldRes)[0]} with ${oldRes}`);
+                    }else{
+                        new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldRes.inmueble_uuid)
+                    }
+                }
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}

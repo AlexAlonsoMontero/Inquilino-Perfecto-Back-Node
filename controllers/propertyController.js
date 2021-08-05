@@ -105,7 +105,7 @@ const getPropertyByProp = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const validatedProp = validateUuid(req.params) //TODO check for params?
+        const validatedProp = validateUuid(req.params)
         const propByProp = await findItems(validatedProp,tName)
 
         if (!propByProp){
