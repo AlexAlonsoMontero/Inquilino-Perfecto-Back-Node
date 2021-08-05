@@ -147,7 +147,7 @@ const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
         rows= await connection.query(sentence,qparam)
     }
     rows[0].forEach(element => {
-        if(element.password){delete element.password}
+        if(element?.password){delete element.password}
     });
     return rows[0]
 }
