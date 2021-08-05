@@ -109,13 +109,12 @@ app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, delet
 
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisements);
+app.get(endpointAdv, detectType, getAdvertisementsMultiJoi);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv, validateAuthorization, detectTypeNoGuests, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, detectTypeNoGuests, deleteAdvertisement);
-app.get(endpointPruebas,getAdvertisementsMultiJoi)
 
 
 //RESERVAS
