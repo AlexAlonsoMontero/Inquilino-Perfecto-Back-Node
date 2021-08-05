@@ -129,6 +129,7 @@ const getReservationsByUser = async(req, res) =>{
 
 /**
  * #(REGISTRED/LAND_FUNCTION [OWNER]) OR ADMIN_FUNCTION
+ * TODO parameters search
  * Checks the reservations where it's involved
  * @param {json} req 
  * @param {json} res 

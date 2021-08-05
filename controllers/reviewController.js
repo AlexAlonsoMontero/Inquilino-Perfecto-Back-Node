@@ -16,7 +16,6 @@ const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
     let isStatus, sendMessage
     const tName = 'resenas'
     const tReservations = 'reservas'
-    // const tUsers = 'usuarios'
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
         let checkInvolved, usr;
@@ -88,6 +87,7 @@ const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
 
 /**
  * #ADMIN_FUNCTION
+ * TODO parameters search
  * @param {json} req
  * @param {json} res all the database reviews
  */
@@ -96,13 +96,13 @@ const getAllReviews = async(req, res) =>{
     const tName = 'resenas';
     try{
         const foundReviews = await getItems(tName)
-        if(foundReviews.length === 0){
+        if(!foundReviews){
             throw new errorNoEntryFound(tName, "no tuples were found", _, "all")
         }else{
             isStatus = 200
             sendMessage =   {
-                "Tuple": "all",
-                "Data": foundReviews
+                tuple: "all",
+                data: foundReviews
             }
             console.warn(`Successful query on ${tName}`);
         }
@@ -120,7 +120,7 @@ const getAllReviews = async(req, res) =>{
 }
 
 /**
- * TODO
+ * TODO with params search
  * @param {*} req 
  * @param {*} res 
  */

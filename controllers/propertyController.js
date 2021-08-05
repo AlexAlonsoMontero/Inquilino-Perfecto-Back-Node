@@ -45,8 +45,7 @@ const createNewProperty = async(req, res) =>{
 
 /**
  * #ADMIN_FUNCTION
- * Check all properties in database
- * TODO QUERY PARAMS
+ * Gets all properties in database
  * @param {json} req corresponding to req
  * @param {json} res corresponding to res
  */
@@ -148,9 +147,9 @@ const getPropertyByProp = async(req, res) =>{
 }
 
 /**
- * TODO
- * @param {*} req 
- * @param {*} res 
+ * TODO parameter search
+ * @param {json} req 
+ * @param {json} res 
  */
 const getPropertiesSelf = async(req, res) =>{
     let isStatus, sendMessage;
