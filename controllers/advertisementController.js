@@ -1,7 +1,7 @@
 const errorInvalidUser = require('../customErrors/errorInvalidUser');
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
-const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
+const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable,getItemsMultiJoi } = require('../infrastructure/generalRepository')
 const { advCreateValidate, advUpdateValidate} = require('../validators/checkAdvertisement')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
 const { validateUuid } = require('../validators/checkGeneral')
@@ -206,19 +206,22 @@ const getAdvertisements = async (request, response) => {
 
 const getAdvertisementsMultiJoi = async (request, response) => {
     let isStatus, sendMessage;
-    const tName = 'anuncios';
     try {
-        const joinAdvPlusInmueblesTables = [tName,'inmuebles','usuarios']
-        const joinAdvPlusInmueblesKeys =['inmueble_uuid','usr_casero_uuid']
+        const queryTable = 'anuncios'
+        const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
+        const joinAdvPlusInmueblesKeys =[
+            ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
+            ['anuncios.usr_casero_uuid','usuarios.user_uuid']
+        ]
         let advInm = undefined
         //TODO: check if user is self or admin
         const vis = true
 
         if(Object.keys(request.query).length !== 0){
             const query = {...request.query, ...vis}
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
+            advInm = await getItemsMultiJoi(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
         }else{
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
+            advInm = await getItemsMultiJoi(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, vis)
         }
 
         if(!advInm){
