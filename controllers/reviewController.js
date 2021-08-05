@@ -2,9 +2,89 @@ const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
+const { reviewCreateValidate } = require('../validators/checkReview')
+
 
 /**
- * TODO QUERYS
+ * SELF INVOLVED IN RESERVATION
+ * Creates a new Review
+ * @param {json} req body contains the new review
+ * @param {json} res state of petition
+ */
+ const createNewReview = async(req, res) =>{
+    let isStatus, sendMessage
+    const tName = 'resenas'
+    const tReservations = 'reservas'
+    const tUsers = 'usuarios'
+    try{
+        let validatedNewRev = reviewCreateValidate(req.body)
+        let checkInvolved, usr;
+        switch(req.auth.user.tipo){
+            case 'INQUILINO':
+                usr = {usr_inquilino_uuid:req.auth.user.user_uuid}
+                checkInvolved = await getItemsMultiParams({...usr, reserva_uuid: validatedNewRev.reserva_uuid},tReservations)
+                break;
+            case 'CASERO':
+                usr = {usr_casero_uuid:req.auth.user.user_uuid}
+                checkInvolved = await getItemsMultiParams({...usr, reserva_uuid: validatedNewRev.reserva_uuid},tReservations)
+                break;
+            case 'INQUILINO/CASERO':
+                // usr = {
+                //     usr_inquilino_uuid:req.auth.user.user_uuid,
+                //     usr_casero_uuid:req.auth.user.user_uuid
+                // }
+                const checkInvolvedInq = await getItemsMultiParams({
+                    usr_inquilino_uuid:req.auth.user.user_uuid,
+                    reserva_uuid: validatedNewRev.reserva_uuid},
+                    tReservations)
+                const checkInvolvedCas = await getItemsMultiParams({
+                    usr_casero_uuid:req.auth.user.user_uuid,
+                    reserva_uuid: validatedNewRev.reserva_uuid},
+                    tReservations)
+                checkInvolved = {...checkInvolvedInq, ...checkInvolvedCas}
+                break;
+            case 'ADMIN':
+                checkInvolved = true
+            default:
+                break;
+        }
+        if(checkInvolved){
+            //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
+            //En la versión definitiva no dejaremos que el post traiga uuid
+            if (!validatedNewRev.resena_uuid){
+                validatedNewRev = {...validatedNewRev, resena_uuid : v4()}
+            }
+            validatedNewRev = {...validatedNewRev, author_uuid : req.auth.user.user_uuid}
+
+            //update user puntuación media
+            const userData = await getItemsMultiParams(
+                {user_uuid:req.auth.user.user_uuid},tUsers
+            )
+            
+
+            const newRev = await save(validatedNewRev,tName)
+            isStatus = 201
+            sendMessage = {
+                tuple: req.body.resena_uuid,
+                data: validatedNewRev
+            }
+        }
+        console.log(`Created new element in ${tName}`)
+    }catch (error) {
+        console.warn(error)
+        if(error instanceof errorInvalidField){
+            isStatus = 401
+            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+        }else{
+            isStatus = 500
+            sendMessage = {error: 'Error interno servidor'}
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
+    }
+}
+
+/**
  * #ADMIN_FUNCTION
  * @param {json} req
  * @param {json} res all the database reviews
@@ -35,47 +115,6 @@ const getAllReviews = async(req, res) =>{
     }finally{
         res.status(isStatus).send(sendMessage)
     }
-
-    // let isStatus, sendMessage;
-    // const tName = 'resenas';
-    // try {
-    //     const joinAdvPlusInmuebles = {
-    //         table1: tName,
-    //         table2: "inmuebles",
-    //         t1key: "inmueble_uuid",
-    //         t2key: "inmueble_uuid"
-    //     }
-    //     let advInm = undefined
-    //     //TODO: check if user is self or admin
-    //     const vis = {'visibilidad':true}
-
-    //     if(Object.keys(request.query).length !== 0){
-    //         const query = {...request.query, ...vis}
-    //         advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
-    //     }else{
-    //         advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
-    //     }
-
-    //     if(!advInm){
-    //         throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
-    //     }else{
-    //         isStatus = 200
-    //         sendMessage = {
-    //             Tuple: JSON.stringify(request.query),
-    //             Data: advInm
-    //         }
-    //     }
-    // } catch (error) {
-    //     console.warn(error)
-    //     sendMessage = {error:error.message}
-    //     if (error instanceof errorNoEntryFound){
-    //         isStatus = 404
-    //     }else{
-    //         isStatus = 500
-    //     }
-    // }finally{
-    //     response.status(isStatus).send(sendMessage)
-    // }
 }
 
 /**
@@ -84,32 +123,7 @@ const getAllReviews = async(req, res) =>{
  * @param {*} res 
  */
 const getSelfReviews = async(req, res) =>{
-    let isStatus, sendMessage;
-    const tName = 'resenas';
-    try{
-        const validatedRev = req.params //TODO JOI
-        const foundRev = await findItems(validatedRev,tName)
-        if(!foundRev){
-            throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRev)[0],validatedRev.reserva_uuid)
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                "Tuple": validatedRev,
-                "Data": foundRev
-            }
-            console.warn(`Successful query on ${tName}`);
-        }
-    }catch(error){
-        console.warn(error)
-        sendMessage = {error:error.message}
-        if(error instanceof errorNoEntryFound){
-            isStatus = 404
-        }else{
-            isStatus = 500
-        }
-    }finally{
-        res.status(isStatus).send(sendMessage)
-    }
+    
 }
 
 /**
@@ -146,36 +160,6 @@ const getReviewByRev = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
-
-
-/**
- * #REGISTRED [RESERVATION-RELATED] /ADMIN
- * Creates a new Review
- * @param {json} req body contains the new review
- * @param {json} res state of petition
- */
-const createNewReview = async(req, res) =>{
-    let isStatus, sendMessage;
-    const tName = 'resenas';
-    try{
-        const validatedNewRev = req.body //TODO JOI, check estado pendiente
-        const newRev = await save(validatedNewRev,tName)
-
-        isStatus = 201
-        sendMessage =   {
-            "Tuple": req.body.reserva_uuid,
-            "New_Data": validatedNewRev
-        }
-        console.warn(`Created new element in ${tName}`)
-    }catch(error){
-        console.warn(error)
-        sendMessage = {error:error.message}
-        isStatus = 400
-    }finally{
-        res.status(isStatus).send(sendMessage)
-    }
-}
-
 
 /**
  * #REGISTRED [RESERVATION-RELATED] /ADMIN

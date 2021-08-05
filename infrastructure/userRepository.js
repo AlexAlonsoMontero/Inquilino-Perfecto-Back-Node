@@ -1,5 +1,5 @@
+const { findItems, getItems, updateItem } = require('./generalRepository')
 const { getConnection } = require('./bd/db')
-const { findItems, getItems } = require('./generalRepository')
 const connection = getConnection()
 
 
@@ -18,7 +18,8 @@ const getUserNoPass = async (user_uuid) => {
 
 const findUsersNoPass = async() =>{
     let rows = await getItems('usuarios')
-    rows = rows
+    if(rows){
+        rows = rows
         .filter( (user) => {
             return user.tipo !== 'ADMIN'
         })
@@ -26,6 +27,7 @@ const findUsersNoPass = async() =>{
             delete user.password
             return user
         })
+    }
     return rows
 }
 
@@ -33,4 +35,3 @@ module.exports = {
     getUserNoPass,
     findUsersNoPass
 }
-

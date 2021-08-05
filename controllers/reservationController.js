@@ -4,7 +4,6 @@ const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { reservUpdateValidate, reservCreateValidate } = require('../validators/checkReservation')
-const { request } = require('express')
 
 /**
  * #REGISTRED_FUNCTION [ANY]
@@ -16,7 +15,7 @@ const createNewReservation = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try{
-        let validatedNewRes = reservCreateValidate(req.body)
+        let validatedNewRes = reservCreateValidate(req.body) //only allows estado_reserva = PENDING
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         //En la versión definitiva no dejaremos que el post traiga uuid
         if (!validatedNewRes.reserva_uuid){
@@ -139,18 +138,18 @@ const getReservationsSelf = async(req, res) =>{
     const tName = 'reservas';
     try {
         let selfUuid;
-        switch(request.auth.user.tipo){
+        switch(req.auth.user.tipo){
             default:
             case 'INQUILINO':
-                selfUuid = { usr_inquilino_uuid : request.auth.user.user_uuid}
+                selfUuid = { usr_inquilino_uuid : req.auth.user.user_uuid}
                 break;
             case 'CASERO':
-                selfUuid = { usr_casero_uuid : request.auth.user.user_uuid}
+                selfUuid = { usr_casero_uuid : req.auth.user.user_uuid}
                 break;
             case 'INQUILINO/CASERO':
                 selfUuid = {
-                        usr_casero_uuid : request.auth.user.user_uuid,
-                        usr_inquilino_uuid : request.auth.user.user_uuid
+                        usr_casero_uuid : req.auth.user.user_uuid,
+                        usr_inquilino_uuid : req.auth.user.user_uuid
                     }
                 break;
         }
@@ -190,7 +189,7 @@ const getReservationsSelf = async(req, res) =>{
             isStatus = 500
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        res.status(isStatus).send(sendMessage)
     }
 }
 

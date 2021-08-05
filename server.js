@@ -126,14 +126,12 @@ app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, del
 
 
 //REVIEWS
-app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //TODO QUERYS
+app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
 app.get(endpointReviewByRev, detectType, getReviewByRev);
 app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
 app.post(endpointReviews, detectTypeNoGuests, createNewReview);
-//create repository middle where it checks user is involved with reservation
-//TODO CHECK IF USER HAS RESERVATION
-app.put(endpointReviewByRev, modifyReview);
-app.delete(endpointReviews, deleteReview);
+app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
+app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
 
 
 //SEARCHER
