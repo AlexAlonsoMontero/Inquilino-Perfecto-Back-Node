@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const { query } = require('express')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
+const { dateString } = require('../infrastructure/utils/dateString') 
 
 /**
  * CREA la tupla dada en la BDD
@@ -148,7 +149,9 @@ const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
     }
     rows[0].forEach(element => {
         if(element?.password){delete element.password}
+        if (element?.fecha_disponibilidad){element.fecha_disponibilidad=dateString(element.fecha_disponibilidad)}
     });
+    
     return rows[0]
 }
 
