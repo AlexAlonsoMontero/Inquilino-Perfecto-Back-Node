@@ -1,9 +1,11 @@
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound') 
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization') 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate } = require('../validators/checkReview')
-const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
+const { updateUserPunctuation, checkIsInvolved } = require('../infrastructure/reviewRepository')
+const { validateUuid } = require('../validators/checkGeneral')
 
 
 /**
@@ -15,40 +17,9 @@ const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
  const createNewReview = async(req, res) =>{
     let isStatus, sendMessage
     const tName = 'resenas'
-    const tReservations = 'reservas'
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
-        let checkInvolved, usr;
-        switch(req.auth.user.tipo){
-            case 'INQUILINO':
-                usr = {usr_inquilino_uuid:req.auth.user.user_uuid}
-                checkInvolved = await getItemsMultiParams({...usr, reserva_uuid: validatedNewRev.reserva_uuid},tReservations)
-                break;
-            case 'CASERO':
-                usr = {usr_casero_uuid:req.auth.user.user_uuid}
-                checkInvolved = await getItemsMultiParams({...usr, reserva_uuid: validatedNewRev.reserva_uuid},tReservations)
-                break;
-            case 'INQUILINO/CASERO':
-                usr = {
-                    usr_inquilino_uuid:req.auth.user.user_uuid,
-                    usr_casero_uuid:req.auth.user.user_uuid
-                }
-                const checkInvolvedInq = await getItemsMultiParams({
-                    usr_inquilino_uuid:req.auth.user.user_uuid,
-                    reserva_uuid: validatedNewRev.reserva_uuid},
-                    tReservations)
-                const checkInvolvedCas = await getItemsMultiParams({
-                    usr_casero_uuid:req.auth.user.user_uuid,
-                    reserva_uuid: validatedNewRev.reserva_uuid},
-                    tReservations)
-                checkInvolved = {...checkInvolvedInq, ...checkInvolvedCas}
-                break;
-            case 'ADMIN':
-                checkInvolved = true
-            default:
-                break;
-        }
-        if(checkInvolved){
+        if(checkIsInvolved(req.auth.user), validatedNewRev){
             //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
             //En la versión definitiva no dejaremos que el post traiga uuid
             if (!validatedNewRev.resena_uuid){
@@ -69,6 +40,12 @@ const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
                 tuple: req.body.resena_uuid,
                 data: validatedNewRev
             }
+        }else{
+            throw new errorNoAuthorization(
+                req.auth.user.username,
+                req.auth.user.tipo,
+                'createNewReview',
+                'user not related with review')
         }
         console.log(`Created new element in ${tName}`)
     }catch (error) {
@@ -76,6 +53,8 @@ const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
         if(error instanceof errorInvalidField){
             isStatus = 401
             sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+        }else if(error instanceof errorNoAuthorization){
+            isStatus = 403
         }else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}
@@ -87,7 +66,6 @@ const { updateUserPunctuation } = require('../infrastructure/reviewRepository')
 
 /**
  * #ADMIN_FUNCTION
- * TODO parameters search
  * @param {json} req
  * @param {json} res all the database reviews
  */
@@ -95,16 +73,29 @@ const getAllReviews = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
     try{
-        const foundReviews = await getItems(tName)
-        if(!foundReviews){
-            throw new errorNoEntryFound(tName, "no tuples were found", _, "all")
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                tuple: "all",
-                data: foundReviews
+        if(Object.keys(req.query).length !== 0){
+            const foundReviews = await getItemsMultiParams(req.query,tName)
+            if (foundReviews) {
+                isStatus = 200
+                sendMessage = {
+                    info: foundReviews.length >= 1 ? 'Reseñas localizadas' : 'No se han encontrado reseñas',
+                    foundReviews
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
             }
-            console.warn(`Successful query on ${tName}`);
+        }else{
+            const foundReviews = await getItems(tName)
+            if(!foundReviews){
+                throw new errorNoEntryFound(tName, "no tuples were found", _, "all")
+            }else{
+                isStatus = 200
+                sendMessage =   {
+                    tuple: "all",
+                    data: foundReviews
+                }
+                console.warn(`Successful query on ${tName}`);
+            }
         }
     }catch(error){
         console.warn(error)
@@ -120,12 +111,49 @@ const getAllReviews = async(req, res) =>{
 }
 
 /**
- * TODO with params search
+ * Allows query params
  * @param {*} req 
  * @param {*} res 
  */
 const getSelfReviews = async(req, res) =>{
-    
+    let isStatus, sendMessage;
+    const tName = 'resenas'
+    try {
+        if(Object.keys(req.query).length !== 0){
+            const foundRevs = await getItemsMultiParams(req.query,tName)
+            if (foundRevs) {
+                isStatus = 200
+                sendMessage = {
+                    "info": foundRevs.length >= 1 ? 'Resenas localizadas' : 'No se han encontrado resenas',
+                    "data": foundRevs
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }
+        }else{
+            const foundRevs = await getItems(tName)
+            if (foundRevs) {
+                isStatus = 200
+                sendMessage = {
+                    "info": foundRevs.length >= 1 ? 'Resenas localizados' : 'No se han encontrado resenas',
+                    "data": foundRevs
+                }
+            } else {
+                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }
+        }
+    } catch (error) {
+        console.warn(error.message)
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+            sendMessage = {error:"No se han encontrado resenas"}
+        }else{
+            isStatus = 500
+            sendMessage = {error:"Error interno del servidor"}
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
+    }
 }
 
 /**
@@ -138,23 +166,33 @@ const getReviewByRev = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
     try{
-        const validatedRev = req.params //TODO JOI
-        const foundRev = await findItems(validatedRev,tName)
-        if(!foundRev){
-            throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRev)[0],validatedRev.reserva_uuid)
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                "Tuple": validatedRev,
-                "Data": foundRev
+        const validatedRev = validateUuid(req.params)
+        if(checkIsInvolved(req.auth.user, validatedRev)){
+            const foundRev = await findItems(validatedRev,tName)
+            if(!foundRev){
+                throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRev)[0],validatedRev.reserva_uuid)
+            }else{
+                isStatus = 200
+                sendMessage =   {
+                    "tuple": validatedRev,
+                    "data": foundRev
+                }
+                console.warn(`Successful query on ${tName}`);
             }
-            console.warn(`Successful query on ${tName}`);
+        }else{
+            throw new errorNoAuthorization(
+                req.auth.user.username,
+                req.auth.user.tipo,
+                'getReviewByRev',
+                'user not related with review')
         }
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
             isStatus = 404
+        }else if(error instanceof errorNoAuthorization){
+            isStatus = 403
         }else{
             isStatus = 500
         }
@@ -173,25 +211,35 @@ const modifyReview = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reseras';
     try{
-        const oldResRef = req.params //TODO JOI
-        const newRevData = req.body //TODO JOI
-        const updatedRes = await updateItem(newRevData, oldResRef, tName)
-        if(updatedRes===0){
-            throw new errorNoEntryFound(tName,"no tuple was updated",Object.keys(oldResRef)[0],oldResRef.reserva_uuid)
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                "Tuple": oldResRef,
-                "Info_Query": updatedRes,
-                "New_Data": newRevData
+        const oldResRef = validateUuid(req.params)
+        if(checkIsInvolved(req.auth.user, oldResRef)){
+            const newRevData = reviewUpdateValidate(req.body)
+            const updatedRes = await updateItem(newRevData, oldResRef, tName)
+            if(updatedRes===0){
+                throw new errorNoEntryFound(tName,"no tuple was updated",Object.keys(oldResRef)[0],oldResRef.reserva_uuid)
+            }else{
+                isStatus = 200
+                sendMessage =   {
+                    "tuple": oldResRef,
+                    "info_query": updatedRes,
+                    "new_data": newRevData
+                }
+                console.warn(`Successfully updated for ${Object.keys(oldResRef)[0]} with ${oldResRef}`);
             }
-            console.warn(`Successfully updated for ${Object.keys(oldResRef)[0]} with ${oldResRef}`);
+        }else{
+            throw new errorNoAuthorization(
+                req.auth.user.username,
+                req.auth.user.tipo,
+                'modifyReview',
+                'user not related with review')
         }
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
             isStatus = 404
+        }else if(error instanceof errorNoAuthorization){
+            isStatus = 403
         }else{
             isStatus = 500
         }
@@ -210,23 +258,37 @@ const deleteReview = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
     try{
-        const delRev = req.body //TODO JOI
-        const isRedDel = await deleteItem(delRev, tName)
-        if(!isRedDel){
-            throw new errorNoEntryFound(tName,"no tuple was deleted",Object.keys(delRev)[0],delRev.reserva_uuid)
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                "Tuple": delRev,
-                "Delete": isRedDel
+        const delRev = validateUuid(req.body)
+        if(checkIsInvolved(req.auth.user, delRev)){
+            const isRedDel = await deleteItem(delRev, tName)
+            if(!isRedDel){
+                throw new errorNoEntryFound(
+                    tName,
+                    "no tuple was deleted",
+                    Object.keys(delRev)[0],
+                    delRev.reserva_uuid)
+            }else{
+                isStatus = 200
+                sendMessage =   {
+                    "tuple": delRev,
+                    "delete": isRedDel
+                }
+                console.warn(`Successfully deletion for ${Object.keys(delRev)[0]} with ${delRev}`);
             }
-            console.warn(`Successfully deletion for ${Object.keys(delRev)[0]} with ${delRev}`);
+        }else{
+            throw new errorNoAuthorization(
+                req.auth.user.username,
+                req.auth.user.tipo,
+                'deleteReview',
+                'user not related with review')
         }
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
             isStatus = 404
+        }else if(error instanceof errorNoAuthorization){
+            isStatus = 403
         }else{
             isStatus = 500
         }
