@@ -66,7 +66,6 @@ const createAdvertisemenet = async (request, response) => {
     try {
         const validatedAdv = request.params //TODO check for params?
         const advByAdv = await findItem(validatedAdv,tName)
-
         if (!advByAdv){
             throw new errorNoEntryFound(
                 tName,
