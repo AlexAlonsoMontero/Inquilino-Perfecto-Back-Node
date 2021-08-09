@@ -37,5 +37,7 @@ const searchMultiTableMultiParams  = async(request,response) =>{
 
 module.exports = {
     searchMultiParams,
-    searchMultiTableMultiParams
+    searchMultiTableMultiParams,
+    
 }
+

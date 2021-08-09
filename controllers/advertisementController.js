@@ -346,6 +346,7 @@ const deleteAdvertisement = async (request, response) => {
     }
 }
 
+
 module.exports = {
     createAdvertisemenet,
     getAdvertisements,

@@ -210,8 +210,23 @@ const qParamsBoolValidator =(params) =>{
     })
     
 }
+/**
+ * 
+ * @param { string } showParams 
+ * @param {string} avgParam 
+ * @param {string} groupParam 
+ * @param {{}} whereParams 
+ * @param {string} table 
+ * @returns 
+ */
+const getAvgItems = async(showParam,avgParam,groupParam,whereParams, table) =>{
+    let query =`SELECT ${showParam}, AVG(${avgParam}) as ${avgParam} FROM ${table} 
+             ${whereCreator(whereParams)} 
+             GROUP BY ${groupParam}`
+    const rows = await connection.query(query,Object.values(whereParams))
+    return rows[0]
 
-
+}
 module.exports = {
     save,
     getItems,
@@ -220,5 +235,6 @@ module.exports = {
     deleteItem,
     getItemsMultiParams,
     getItemsMultiTable,
-    getItemsMultiJoi
+    getItemsMultiJoi,
+    getAvgItems
 }
