@@ -215,7 +215,7 @@ const getAdvertisementsMultiJoi = async (request, response) => {
         ]
         let advInm = undefined
         //TODO: check if user is self or admin
-        const vis = true
+        const vis = {visibilidad:true}
 
         if(Object.keys(request.query).length !== 0){
             const query = {...request.query, ...vis}

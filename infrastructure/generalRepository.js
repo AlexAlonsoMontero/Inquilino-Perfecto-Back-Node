@@ -113,7 +113,6 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     let sentence = `SELECT * FROM ${table1}` +
                     ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
     if( Object.keys(queryParams).length === 0){
-        console.log(queryParams)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)
@@ -151,7 +150,6 @@ const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
         if(element?.password){delete element.password}
         if (element?.fecha_disponibilidad){element.fecha_disponibilidad=dateString(element.fecha_disponibilidad)}
     });
-    console.log(rows[0])
     return rows[0]
 }
 
