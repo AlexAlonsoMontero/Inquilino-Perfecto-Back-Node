@@ -208,11 +208,10 @@ const getAdvertisementsMultiJoi = async (request, response) => {
     let isStatus, sendMessage;
     try {
         const queryTable = 'anuncios'
-        const joinAdvPlusInmueblesTables = ['inmuebles','usuarios','resenas']
+        const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
         const joinAdvPlusInmueblesKeys =[
             ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
             ['anuncios.usr_casero_uuid','usuarios.user_uuid'],
-            ['anuncios.inmueble_uuid','resenas.inmueble_uuid']
         ]
         let advInm = undefined
         //TODO: check if user is self or admin

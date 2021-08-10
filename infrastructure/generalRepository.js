@@ -151,7 +151,7 @@ const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
         if(element?.password){delete element.password}
         if (element?.fecha_disponibilidad){element.fecha_disponibilidad=dateString(element.fecha_disponibilidad)}
     });
-    
+    console.log(rows[0])
     return rows[0]
 }
 
@@ -221,10 +221,10 @@ const qParamsBoolValidator =(params) =>{
  */
 const getAvgItems = async(showParam,avgParam,groupParam,whereParams, table) =>{
     let query =`SELECT ${showParam}, AVG(${avgParam}) as ${avgParam} FROM ${table} 
-             ${whereCreator(whereParams)} 
-             GROUP BY ${groupParam}`
+            ${whereCreator(whereParams)} 
+            GROUP BY ${groupParam}`
     const rows = await connection.query(query,Object.values(whereParams))
-    return rows[0]
+    return rows[0][0]
 
 }
 module.exports = {

@@ -263,10 +263,11 @@ const getReviewAvg = async(request,response)=>{
         if(result.length===0){
             throw new errorNoEntryFound(table,"no tuple was located",Object.keys(whereParams)[0])
         }else{
+            result.puntuacion = parseInt(result.puntuacion)
             isStatus = 200
             sendMessage =   {
                 "Tuple": "all",
-                "Data": result
+                "data": result
             }
             console.warn(`Successful query on ${table}`);
         }
