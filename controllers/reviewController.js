@@ -297,6 +297,40 @@ const deleteReview = async(req, res) =>{
     }
 }
 
+const getReviewAvg = async(request,response)=>{
+    let isStatus, sendMessage;
+    try{
+        const showParam =Object.keys(request.query)[0]
+        const avgParam = request.params.avg_param
+        const groupParam = "inmueble_uuid"
+        const whereParams = request.query
+        const table = request.params.table
+        const result = await getAvgItems(showParam,avgParam,groupParam,whereParams,table)
+        if(result.length===0){
+            throw new errorNoEntryFound(table,"no tuple was located",Object.keys(whereParams)[0])
+        }else{
+            result.puntuacion = parseInt(result.puntuacion)
+            isStatus = 200
+            sendMessage =   {
+                "Tuple": "all",
+                "data": result
+            }
+            console.warn(`Successful query on ${table}`);
+        }
+        
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
 module.exports = {
-    getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview
+    getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg
 }

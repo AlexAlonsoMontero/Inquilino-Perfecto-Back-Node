@@ -1,7 +1,7 @@
 const errorInvalidUser = require('../customErrors/errorInvalidUser');
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
-const { save, getItems, findItems, updateItem, deleteItem, getItemsMultiTable } = require('../infrastructure/generalRepository')
+const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable,getItemsMultiJoi } = require('../infrastructure/generalRepository')
 const { advCreateValidate, advUpdateValidate} = require('../validators/checkAdvertisement')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
 const { validateUuid } = require('../validators/checkGeneral')
@@ -149,6 +149,7 @@ const createAdvertisemenet = async (request, response) => {
         response.status(isStatus).send(sendMessage)
     }
 }
+//TODO Se deja de utilizar get Advertisements, y se utiliza getAdvertisementsMultiJoi posible borrado si no se usa en nada más
 
 /**
  * Used by searcher engine, only returns visible advs
@@ -166,6 +167,8 @@ const getAdvertisements = async (request, response) => {
             t2key: "inmueble_uuid"
         }
         let advInm = undefined
+        //TODO: check if user is self or admin
+        const vis = true
 
         if(request.auth?.user?.tipo !== 'ADMIN'){
             const vis = {'visibilidad':true}
@@ -186,7 +189,49 @@ const getAdvertisements = async (request, response) => {
             isStatus = 200
             sendMessage = {
                 Tuple: JSON.stringify(request.query),
-                Data: advInm
+                data: advInm
+            }
+        }
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if (error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
+const getAdvertisementsMultiJoi = async (request, response) => {
+    let isStatus, sendMessage;
+    try {
+        const queryTable = 'anuncios'
+        const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
+        const joinAdvPlusInmueblesKeys =[
+            ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
+            ['anuncios.usr_casero_uuid','usuarios.user_uuid'],
+        ]
+        let advInm = undefined
+        //TODO: check if user is self or admin
+        const vis = {visibilidad:true}
+
+        if(Object.keys(request.query).length !== 0){
+            const query = {...request.query, ...vis}
+            advInm = await getItemsMultiJoi(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
+        }else{
+            advInm = await getItemsMultiJoi(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, vis)
+        }
+
+        if(!advInm){
+            throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
+        }else{
+            isStatus = 200
+            sendMessage = {
+                Tuple: JSON.stringify(request.query),
+                data: advInm
             }
         }
     } catch (error) {
@@ -300,11 +345,13 @@ const deleteAdvertisement = async (request, response) => {
     }
 }
 
+
 module.exports = {
     createAdvertisemenet,
     getAdvertisements,
     getAdvertisementByAdv,
     getAdvertisementSelf,
     modifyAdvertisement,
-    deleteAdvertisement
+    deleteAdvertisement,
+    getAdvertisementsMultiJoi
 }

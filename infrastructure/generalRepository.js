@@ -1,6 +1,8 @@
 const bcrypt = require('bcryptjs')
+const { query } = require('express')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
+const { dateString } = require('../infrastructure/utils/dateString') 
 
 /**
  * CREA la tupla dada en la BDD
@@ -63,7 +65,6 @@ const updateItem = async (newItem, oldItem, table) => {
 
     }
     sentencia += ` WHERE ${Object.keys(oldItem)} =?`
-    console.log(sentencia);
     const [rows, fields] = await connection.query(sentencia, [...Object.values(newItem), ...Object.values(oldItem)])
     return rows.affectedRows
 }
@@ -104,7 +105,7 @@ const getItemsMultiParams = async (params, table) => {
 /**
  * Joins two tables and searches with multiple conditions
  * @param {t1, t2, t1k, t2k} param0 path params with the corresponding info
- * @param {string} queryParams conditions of the search
+ * @param {string} queryParams conditions of the searchºº
  * @returns
  */
 const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) => {
@@ -116,8 +117,39 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     }else{
         const whereCondition = whereCreator(queryParams)
         sentence += whereCondition
-        rows = await connection.query(sentence,Object.values(Object.values(queryParams)))
+        const qparam = qParamsBoolValidator(Object.values(queryParams))
+        rows= await connection.query(sentence,qparam)
     }
+    
+    return rows[0]
+}
+/**
+ * 
+ * @param [] tables 
+ * @param [] tkeys 
+ * @param {*} queryParams 
+ * @returns 
+ */
+const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
+    let rows =""
+    let sentence = `SELECT * FROM ${qtable} ` 
+                    // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
+    for(let cont = 0; cont < tables.length; cont++){
+        sentence +=`INNER JOIN ${tables[cont]} `
+        sentence += `ON ${tkeys[cont][0]} = ${tkeys[cont][1]} `
+    }
+    if( Object.keys(queryParams).length === 0){
+        rows = await connection.query(sentence)
+    }else{
+        const whereCondition = whereCreator(queryParams)
+        sentence += whereCondition
+        const qparam = qParamsBoolValidator(Object.values(queryParams))
+        rows= await connection.query(sentence,qparam)
+    }
+    rows[0].forEach(element => {
+        if(element?.password){delete element.password}
+        if (element?.fecha_disponibilidad){element.fecha_disponibilidad=dateString(element.fecha_disponibilidad)}
+    });
     return rows[0]
 }
 
@@ -158,8 +190,41 @@ const whereCreator = (queryParams) => {
     return sentence
 }
 
+/**
+ * 
+ * @param []  
+ * @returns []
+ * @description Al recibir el queryparams interpreta bollean como un string, corregimos ese error con este metodo
+ */
+const qParamsBoolValidator =(params) =>{
+    return params.map(item=>{
+        if(item==='true'){
+            return true
+        }else if (item === 'false'){
+            return false
+        }else{
+            return item
+        }
+    })
+    
+}
+/**
+ * 
+ * @param { string } showParams 
+ * @param {string} avgParam 
+ * @param {string} groupParam 
+ * @param {{}} whereParams 
+ * @param {string} table 
+ * @returns 
+ */
+const getAvgItems = async(showParam,avgParam,groupParam,whereParams, table) =>{
+    let query =`SELECT ${showParam}, AVG(${avgParam}) as ${avgParam} FROM ${table} 
+            ${whereCreator(whereParams)} 
+            GROUP BY ${groupParam}`
+    const rows = await connection.query(query,Object.values(whereParams))
+    return rows[0][0]
 
-
+}
 module.exports = {
     save,
     getItems,
@@ -167,5 +232,7 @@ module.exports = {
     updateItem,
     deleteItem,
     getItemsMultiParams,
-    getItemsMultiTable
+    getItemsMultiTable,
+    getItemsMultiJoi,
+    getAvgItems
 }

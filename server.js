@@ -1,6 +1,6 @@
 const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout } 
 = require ('./controllers/userController')
-const { searchMultiParams, searchMultiTableMultiParams } 
+const { searchMultiParams, searchMultiTableMultiParams, avg } 
 = require('./controllers/generalControllers')
 const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
 = require('./infrastructure/middlewares/checkRolMiddle')
@@ -8,11 +8,11 @@ const { updateUserForAdmin, getUsersForAdmin }
 = require('./controllers/adminController')
 const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement, getAdvertisementsMultiJoi } 
 = require('./controllers/advertisementController')
 const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
-const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview } 
+const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg } 
 = require('./controllers/reviewController')
 
 const multer= require('multer')
@@ -54,6 +54,7 @@ const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews/:resena_uuid';
+const endpointReviewAvg = '/api/avg-reviews/:table/:avg_param'
 
 //ENDPOSINTS SEARCHER
 const endpointGenericSearcher='/search/:table';
@@ -69,6 +70,9 @@ const endpointSelfProperties = '/api/user/:username/properties';
 const endpointSelfReservations = '/api/user/:username/reservations';
 const endpointSelfReviews = '/api/user/:username/reviews';
 
+
+//PRUEBAS ENDOPOINT
+const endpointPruebas = '/pruebas/adv'
 
 //RUTES
 
@@ -106,13 +110,12 @@ app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, delet
 
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisements);
+app.get(endpointAdv, detectType, getAdvertisementsMultiJoi);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement);
-
 
 
 //RESERVAS
@@ -129,6 +132,7 @@ app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, del
 app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
 app.get(endpointReviewByRev, detectType, getReviewByRev);
 app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
+app.get(endpointReviewAvg,getReviewAvg)
 app.post(endpointReviews, detectTypeNoGuests, createNewReview);
 app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
 app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
