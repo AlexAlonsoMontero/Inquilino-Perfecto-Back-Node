@@ -1,7 +1,7 @@
-const errorInvalidUser = require('../customErrors/errorInvalidUser');
+const { errorInvalidUser } = require('../customErrors/errorInvalidUser');
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
-const { save, getItems, findItem, updateItem, deleteItem, getItemsMultiTable,getItemsMultiJoi } = require('../infrastructure/generalRepository')
+const { save, getItems, findItems, updateItem, deleteItem, getItemsMultiTable,getItemsMultiJoin } = require('../infrastructure/generalRepository')
 const { advCreateValidate, advUpdateValidate} = require('../validators/checkAdvertisement')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
 const { validateUuid } = require('../validators/checkGeneral')
@@ -205,7 +205,7 @@ const getAdvertisements = async (request, response) => {
     }
 }
 
-const getAdvertisementsMultiJoi = async (request, response) => {
+const getAdvertisementsMultiJoin = async (request, response) => {
     let isStatus, sendMessage;
     try {
         const queryTable = 'anuncios'
@@ -220,9 +220,9 @@ const getAdvertisementsMultiJoi = async (request, response) => {
 
         if(Object.keys(request.query).length !== 0){
             const query = {...request.query, ...vis}
-            advInm = await getItemsMultiJoi(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
+            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
         }else{
-            advInm = await getItemsMultiJoi(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, vis)
+            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, vis)
         }
 
         if(!advInm){
@@ -353,5 +353,5 @@ module.exports = {
     getAdvertisementSelf,
     modifyAdvertisement,
     deleteAdvertisement,
-    getAdvertisementsMultiJoi
+    getAdvertisementsMultiJoin
 }

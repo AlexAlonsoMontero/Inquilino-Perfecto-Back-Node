@@ -1,5 +1,5 @@
 const Joi = require('joi')
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcrypt')
 
 /**
  * CREA LOS ESQUEMAS DE VALIDACIÓN Y LAS FUNCIONES CORRESPONDIENTES

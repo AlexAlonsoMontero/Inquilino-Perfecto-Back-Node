@@ -13,7 +13,6 @@ const sendRegistrationMail = async(userName, userMail, verificationCode) =>{
     }
     const data = await transporter.sendMail(mailData)
     return data
-    
 }
 
 const sendConfirmUserActivation = async(userName, userMail) => {

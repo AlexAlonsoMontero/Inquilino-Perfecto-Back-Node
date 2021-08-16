@@ -1,5 +1,4 @@
-const bcrypt = require('bcryptjs')
-const { query } = require('express')
+const bcrypt = require('bcrypt')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
 const { dateString } = require('../infrastructure/utils/dateString') 
@@ -130,7 +129,7 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
  * @param {*} queryParams 
  * @returns 
  */
-const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
+const getItemsMultiJoin = async (qtable, tables, tkeys, queryParams) => {
     let rows =""
     let sentence = `SELECT * FROM ${qtable} ` 
                     // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
@@ -233,6 +232,6 @@ module.exports = {
     deleteItem,
     getItemsMultiParams,
     getItemsMultiTable,
-    getItemsMultiJoi,
+    getItemsMultiJoin,
     getAvgItems
 }

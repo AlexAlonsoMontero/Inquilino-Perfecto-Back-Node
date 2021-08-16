@@ -1,8 +1,5 @@
 const Joi = require('joi').extend(require('@joi/date'))
-const { v4 } =require('uuid')
 const { format } = require("date-fns")
-const { updateItem } = require('../infrastructure/generalRepository')
-
 
 //SCHEMAS
 const newAdvertisementSchema = Joi.object({

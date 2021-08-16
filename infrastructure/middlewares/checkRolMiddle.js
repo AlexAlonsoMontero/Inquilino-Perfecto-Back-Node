@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken')
-const { errorInvalidUser } = require('../../customErrors/errorInvalidUser')
+const { getUserNoPass } = require('../userRepository')
 const { errorNoEntryFound } = require('../../customErrors/errorNoEntryFound')
 const { errorNoAuthorization } = require('../../customErrors/errorNoAuthorization')
-const { getUserNoPass } = require('../userRepository')
 const { errorInvalidToken } = require('../../customErrors/errorInvalidToken')
 
 /**

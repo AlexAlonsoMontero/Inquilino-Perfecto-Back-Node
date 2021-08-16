@@ -1,6 +1,6 @@
 const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout } 
 = require ('./controllers/userController')
-const { searchMultiParams, searchMultiTableMultiParams, avg } 
+const { searchMultiParams, searchMultiTableMultiParams } 
 = require('./controllers/generalControllers')
 const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
 = require('./infrastructure/middlewares/checkRolMiddle')
@@ -8,7 +8,7 @@ const { updateUserForAdmin, getUsersForAdmin }
 = require('./controllers/adminController')
 const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement, getAdvertisementsMultiJoi } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement, getAdvertisementsMultiJoin } 
 = require('./controllers/advertisementController')
 const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
@@ -81,10 +81,9 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 
 //USUARIOS
-//TODO get por tipo de usuario
 app.get(endpointVerifiacionUser, activateValidationUser);
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
-app.get(endpointUser, validateAuthorization, validateRolCasero, getUsers);
+app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //TODO check error poping up
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
@@ -110,7 +109,7 @@ app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, delet
 
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisementsMultiJoi);
+app.get(endpointAdv, detectType, getAdvertisementsMultiJoin);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);

@@ -1,6 +1,6 @@
+const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate');
 const { getConnection } = require('./bd/db');
 const connection = getConnection()
-const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate');
 
 
 /**

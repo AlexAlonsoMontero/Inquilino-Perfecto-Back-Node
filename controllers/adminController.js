@@ -1,10 +1,9 @@
 require('dotenv').config()
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcrypt')
 const { validateAdminUpdateUser,validateNewUser } = require('../validators/userValidator')
 const { updateItem, findItems, getItems,save } = require('../infrastructure/generalRepository')
 
 /**
- * 
  * @param {newUser,uuidOlduiser} request 
  * @param {*} response 
  * @description Update user in BD

@@ -1,4 +1,4 @@
-const Joi = require('@hapi/joi')
+const Joi = require('joi')
 
 const schemaCreateAdv = Joi.object().keys({
     anuncio_uuid : Joi.string().guid({ version : 'uuidv4' }).required(),
