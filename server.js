@@ -1,6 +1,6 @@
 const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout } 
 = require ('./controllers/userController')
-const { searchMultiParams, searchMultiTableMultiParams } 
+const { searchMultiParams, searchMultiTableMultiParams, avg } 
 = require('./controllers/generalControllers')
 const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
 = require('./infrastructure/middlewares/checkRolMiddle')
@@ -12,7 +12,7 @@ const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, ge
 = require('./controllers/advertisementController')
 const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
-const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview } 
+const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg } 
 = require('./controllers/reviewController')
 
 const multer= require('multer')
@@ -54,6 +54,7 @@ const endpointReservationsByRes = '/api/reservations/:alquiler_uuid';
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews/:resena_uuid';
+const endpointReviewAvg = '/api/avg-reviews/:table/:avg_param'
 
 //ENDPOSINTS SEARCHER
 const endpointGenericSearcher='/search/:table';
@@ -131,6 +132,7 @@ app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, del
 app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //TODO QUERYS
 app.get(endpointReviewByRev, detectType, getReviewByRev);
 app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
+app.get(endpointReviewAvg,getReviewAvg)
 app.post(endpointReviews, detectTypeNoGuests, createNewReview);
 //create detect registred, restringe a no registrados
 //create repository middle where it checks user is involved with reservation

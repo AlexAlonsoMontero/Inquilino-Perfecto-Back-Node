@@ -66,7 +66,6 @@ const createAdvertisemenet = async (request, response) => {
     try {
         const validatedAdv = request.params //TODO check for params?
         const advByAdv = await findItem(validatedAdv,tName)
-
         if (!advByAdv){
             throw new errorNoEntryFound(
                 tName,
@@ -209,15 +208,14 @@ const getAdvertisementsMultiJoi = async (request, response) => {
     let isStatus, sendMessage;
     try {
         const queryTable = 'anuncios'
-        const joinAdvPlusInmueblesTables = ['inmuebles','usuarios','resenas']
+        const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
         const joinAdvPlusInmueblesKeys =[
             ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
             ['anuncios.usr_casero_uuid','usuarios.user_uuid'],
-            ['anuncios.inmueble_uuid','resenas.inmueble_uuid']
         ]
         let advInm = undefined
         //TODO: check if user is self or admin
-        const vis = true
+        const vis = {visibilidad:true}
 
         if(Object.keys(request.query).length !== 0){
             const query = {...request.query, ...vis}
@@ -346,6 +344,7 @@ const deleteAdvertisement = async (request, response) => {
         response.status(isStatus).send(sendMessage)
     }
 }
+
 
 module.exports = {
     createAdvertisemenet,

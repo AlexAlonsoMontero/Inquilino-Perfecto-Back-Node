@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs')
 const { query } = require('express')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
+const { dateString } = require('../infrastructure/utils/dateString') 
 
 /**
  * CREA la tupla dada en la BDD
@@ -112,7 +113,6 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
     let sentence = `SELECT * FROM ${table1}` +
                     ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
     if( Object.keys(queryParams).length === 0){
-        console.log(queryParams)
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)
@@ -148,6 +148,7 @@ const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
     }
     rows[0].forEach(element => {
         if(element?.password){delete element.password}
+        if (element?.fecha_disponibilidad){element.fecha_disponibilidad=dateString(element.fecha_disponibilidad)}
     });
     return rows[0]
 }
@@ -207,8 +208,23 @@ const qParamsBoolValidator =(params) =>{
     })
     
 }
+/**
+ * 
+ * @param { string } showParams 
+ * @param {string} avgParam 
+ * @param {string} groupParam 
+ * @param {{}} whereParams 
+ * @param {string} table 
+ * @returns 
+ */
+const getAvgItems = async(showParam,avgParam,groupParam,whereParams, table) =>{
+    let query =`SELECT ${showParam}, AVG(${avgParam}) as ${avgParam} FROM ${table} 
+            ${whereCreator(whereParams)} 
+            GROUP BY ${groupParam}`
+    const rows = await connection.query(query,Object.values(whereParams))
+    return rows[0][0]
 
-
+}
 module.exports = {
     save,
     getItems,
@@ -217,5 +233,6 @@ module.exports = {
     deleteItem,
     getItemsMultiParams,
     getItemsMultiTable,
-    getItemsMultiJoi
+    getItemsMultiJoi,
+    getAvgItems
 }
