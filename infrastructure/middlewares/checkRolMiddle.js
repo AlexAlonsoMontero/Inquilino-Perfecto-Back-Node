@@ -20,7 +20,7 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
         const user = await getUserNoPass(decodedToken.user_uuid)
-        if (Object.keys(user).length > 0){
+        if (Object.keys(user).length <= 0){
             throw new errorNoEntryFound('validate authorization','token valid, user not in bd','user',JSON.stringify(user))
         }else{
             request.auth = {
@@ -37,6 +37,10 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
         }else if(error instanceof errorInvalidToken){
             isStatus = 403
             sendMessage = "validación de token fallida"
+        }else if(error instanceof jwt.TokenExpiredError){
+            isStatus = 401
+            sendMessage = { error: "Token expirado, vuélvete a logear"}
+            console.warn("Token expirado, vuélvete a logear")
         }else{
             isStatus = 500
             sendMessage = "error interno del servidor"
@@ -75,6 +79,10 @@ const detectType = async (request, response, next) => {
         if (error instanceof errorNoEntryFound){
             isStatus = 404
             sendMessage = 'Token válido, pero usuario no encontrado en la base de datos'
+        }else if(error instanceof jwt.TokenExpiredError){
+            isStatus = 401
+            sendMessage = { error: "Token expirado, vuélvete a logear"}
+            console.warn("Token expirado, vuélvete a logear")
         }else{
             isStatus = 500
             sendMessage = 'Error interno del servidor'

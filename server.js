@@ -85,7 +85,7 @@ app.get(endpointVerifiacionUser, activateValidationUser);
 app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
 app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
-app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //TODO check error poping up
+app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
 app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
 app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);

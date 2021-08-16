@@ -16,6 +16,7 @@ const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
 const { errorUserNotActive } = require('../customErrors/errorUserNotActive')
 const { validateUuid } = require('../validators/checkGeneral')
+const { validateUpdateUser } = require('../validators/userValidator')
 
 //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
@@ -63,7 +64,7 @@ const createNewUser = async (request, response) => {
         console.warn(error)
         if(error instanceof errorNoAuthorization){
             isStatus = 403
-            sendMessage = {error: 'Servicio denegato, no tienes permisos para eso'}
+            sendMessage = {error: 'Servicio denegado, no tienes permisos para eso'}
         }else if(error instanceof errorInvalidField){
             isStatus = 401
             sendMessage = {
@@ -143,12 +144,12 @@ const getUsers = async (request, response) => {
                 })
             }
         }else{ //no query
-            const users = await findUsersNoPass()
-            if (users) {
+            const foundUsers = await findUsersNoPass()
+            if (foundUsers) {
                 isStatus = 200
                 sendMessage = {
-                    info: users.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
-                    users
+                    info: foundUsers.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
+                    foundUsers
                 }
                 if (foundUsers) {
                     isStatus = 200
@@ -333,15 +334,15 @@ const deleteUser = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'usuarios';
     try {
-        const delUser = request.body //TODO JOI
+        const delUser = userUpdateValidate(request.body)
         const isUserDel = await deleteItem(delUser, 'usuarios')
         if (isUserDel) {
             isStatus = 200
             sendMessage = {
-                "Tuple": delUser,
-                "Delete": isUserDel
+                "tuple": delUser,
+                "delete": isUserDel
             }
-            console.log(`Successfully deletion for ${Object.keys(delUser)[0]} with ${delUSer}`);
+            console.log(`Successfully deletion for ${Object.keys(delUser)[0]} with ${JSON.stringify(delUser)}`);
         } else {
             throw new errorNoEntryFound(tName,'user not found','request.body',request.body.user_uuid)
         }
@@ -424,10 +425,10 @@ const login = async (request, response, next) => {
         }else if(error instanceof errorInvalidUserLogin){
             isStatus = 401
             sendMessage = {
-                error: `'Error de Validación contra la base de datos: ${error?.mailInDB ? 'contraseña mal':'email mal'}`
+                error: `Error de Validación contra la base de datos: ${error?.mailInDB ? 'contraseña mal':'email mal'}`
             }
         }else if(error instanceof errorUserNotActive){
-            isStatus =401
+            isStatus = 401
             sendMessage = { error: "Usuario sin activar, revise su correo electrónico"}
             console.warn("No active user")
         }else{
