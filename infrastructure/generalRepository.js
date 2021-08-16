@@ -43,7 +43,7 @@ const getItems = async (table) => {
  * @param {string} table srting name of the table where we are gonna search
  * @returns the query selected rows, otherwise 'undefined'
  */
-const findItem = async (item, table) => {
+const findItems = async (item, table) => {
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
     const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
     return rows[0]
@@ -58,8 +58,8 @@ const findItem = async (item, table) => {
  */
 const updateItem = async (newItem, oldItem, table) => {
     let sentencia = `UPDATE ${table} SET `
-    const numValues = Object.keys(newItem).length
-    for (let i = 0; i < numValues; i++) {
+    // const numValues = Object.keys(newItem).length
+    for (let i = 0; i < Object.keys(newItem).length; i++) {
         sentencia += Object.keys(newItem)[i].toString() + "=?"
         i < numValues - 1 ? sentencia += "," : sentencia += ""
 
@@ -228,7 +228,7 @@ const getAvgItems = async(showParam,avgParam,groupParam,whereParams, table) =>{
 module.exports = {
     save,
     getItems,
-    findItem,
+    findItems,
     updateItem,
     deleteItem,
     getItemsMultiParams,

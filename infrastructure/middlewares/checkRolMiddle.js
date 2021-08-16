@@ -21,14 +21,14 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
         const token = authorization.slice(7, authorization.length)
         const decodedToken = jwt.verify(token, process.env.SECRET)
         const user = await getUserNoPass(decodedToken.user_uuid)
-        if (user){
+        if (Object.keys(user).length > 0){
+            throw new errorNoEntryFound('validate authorization','token valid, user not in bd','user',JSON.stringify(user))
+        }else{
             request.auth = {
                 token: decodedToken,
                 user: user
             }
             next()
-        }else{
-            throw new errorNoEntryFound('validate authorization','token valid, user not in bd','user',JSON.stringify(user))
         }
     } catch (error) {
         console.warn(error)

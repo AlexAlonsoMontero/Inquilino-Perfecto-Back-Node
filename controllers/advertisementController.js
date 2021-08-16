@@ -25,21 +25,21 @@ const createAdvertisemenet = async (request, response) => {
             newAdv = {...newAdv, anuncio_uuid : v4()}
         }
 
-        if(newAdv.error){
-            throw new errorInvalidField(
-                'advertisement creation',
-                `invalid joi validation for data granted by ${request?.auth.username}`,
-                'request.body',
-                request.body)
-        }else{
-            const createAdv = await save(request.body, tName)
+        // if(newAdv.error){
+        //     throw new errorInvalidField(
+        //         'advertisement creation',
+        //         `invalid joi validation for data granted by ${request?.auth.username}`,
+        //         'request.body',
+        //         request.body)
+        // }else{
+        const createAdv = await save(request.body, tName)
 
-            isStatus = 201
-            sendMessage = {
-                Info: "Anuncio created",
-                Data: newAdv
-            }
+        isStatus = 201
+        sendMessage = {
+            info: "Anuncio creado",
+            data: newAdv
         }
+        // }
     } catch (error) {
         console.warn(error)
         if(error instanceof errorInvalidField){
@@ -64,8 +64,9 @@ const createAdvertisemenet = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        const validatedAdv = request.params //TODO check for params?
-        const advByAdv = await findItem(validatedAdv,tName)
+        const validatedAdv = validateUuid(request.params)
+        const advByAdv = await findItems(validatedAdv,tName)
+
         if (!advByAdv){
             throw new errorNoEntryFound(
                 tName,
@@ -79,9 +80,9 @@ const createAdvertisemenet = async (request, response) => {
             ){
                 isStatus = 200
                 sendMessage =   {
-                    Tuple: validatedAdv.anuncio_uuid,
-                    Info:"Anuncio encontrado",
-                    Data: advByAdv
+                    tuple: validatedAdv.anuncio_uuid,
+                    info:"Anuncio encontrado",
+                    data: advByAdv
                 }
                 console.warn(`Successful getAdvByAdv in ${tName}`);
             }else{
@@ -117,7 +118,7 @@ const createAdvertisemenet = async (request, response) => {
     const tName = 'anuncios';
     try {
         const advCasero = { usr_casero_uuid : request.auth.user.user_uuid}
-        const selfAdv = await findItem(advCasero,tName)
+        const selfAdv = await findItems(advCasero,tName)
 
         if (!selfAdv){
             throw new errorNoEntryFound(
@@ -128,11 +129,11 @@ const createAdvertisemenet = async (request, response) => {
         }else{
             isStatus = 200
             sendMessage =   {
-                Tuple: selfAdv.anuncio_uuid,
-                Info:"Anuncio encontrado",
-                Data: selfAdv
+                tuple: selfAdv.anuncio_uuid,
+                info:"Anuncio encontrado",
+                data: selfAdv
             }
-            console.warn(`Successful getAdvertisementSelf in ${tName}`);
+            console.log(`Successful getAdvertisementSelf in ${tName}`);
         }
     }catch(error){
         console.warn(error)
@@ -255,8 +256,8 @@ const modifyAdvertisement = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        const oldAdv = validateUuid(request.params) //TODO check joi request params?
-        const existsAdv = await findItem(oldAdv, tName)
+        const oldAdv = validateUuid(request.params)
+        const existsAdv = await findItems(oldAdv, tName)
         if(Object.keys(existsAdv).length === 0){
             new errorNoEntryFound(
                 'adv update by admin or self',
@@ -266,17 +267,16 @@ const modifyAdvertisement = async (request, response) => {
             )
         }
         if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
-            //Checks if the one updating is self or admin
             //Cannot do that in the middleware since it needs to check the database
-            let newAdv = request.body//advUpdateValidate(request.body) //throws validation error
+            let newAdv = advUpdateValidate(request.body) //throws validation error
             newAdv = {...oldAdv, ...newAdv}
             const consulta = await updateItem(newAdv, oldAdv, tName)
             if(consulta >= 1){
                 isStatus = 200
                 sendMessage = {
-                    Info: "Anuncio modificado",
-                    NewData: newAdv,
-                    Reference: oldAdv
+                    info: "Anuncio modificado",
+                    newData: newAdv,
+                    reference: oldAdv
                 }
                 console.log(`Successfully update for ${JSON.stringify(oldAdv)} with ${JSON.stringify(newAdv)}`);
             }else{
@@ -302,9 +302,9 @@ const deleteAdvertisement = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        const validatedDelAdv = request.body //TODO JOI
-        if(!validatedDelAdv.error){
-            const existsAdv = await findItem(validatedDelAdv,tName)
+        const validatedDelAdv = validateUuid(request.body)
+        // if(!validatedDelAdv.error){
+            const existsAdv = await findItems(validatedDelAdv,tName)
             if(existsAdv >= 1){
                 if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
                     const isAdvDel = await deleteItem(validatedDelAdv, tName)
@@ -327,9 +327,9 @@ const deleteAdvertisement = async (request, response) => {
                 else{
                     throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
                 }
-        }else{
-            throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
-        }
+        // }else{
+        //     throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
+        // }
     } catch (error) {
         console.warn(error)
         sendMessage = {error:error.message}

@@ -6,11 +6,11 @@ const schemaCreateReserv = Joi.object().keys({
     fecha_inicio : Joi.date().iso().min(Joi.ref('fecha_reserva')),
     fecha_fin : Joi.date().iso().min(Joi.ref('fecha_inicio')),
     precio_reserva : Joi.number().min(0).required(),
-    estado_reserva : Joi.string().valid(...['PENDIENTE','ACEPTADA','RECHAZADO','ALQUILER','FINALIZADA']).required(),
+    estado_reserva : Joi.string().valid('PENDIENTE').required(),
     tipo_pago_reserva : Joi.string().valid(...['MENSUAL','SEMANAL','DIARIO','OTRO']).required()
 })
 
-const schemaUpdateReserv = Joi.object.keys({
+const schemaUpdateReserv = Joi.object().keys({
     fecha_reserva : Joi.date().iso(),
     fecha_inicio : Joi.date().iso().min(Joi.ref('fecha_reserva')),
     fecha_fin : Joi.date().iso().min(Joi.ref('fecha_inicio')),
@@ -19,10 +19,14 @@ const schemaUpdateReserv = Joi.object.keys({
     tipo_pago_reserva : Joi.string().valid(...['MENSUAL','SEMANAL','DIARIO','OTRO'])
 })
 
-export const reservCreateValidate = async (reserv) => {
+const reservCreateValidate = async (reserv) => {
     return Joi.assert(reserv,schemaCreateReserv)
 }
 
-export const reservUpdateValidate = async (reserv) => {
+const reservUpdateValidate = async (reserv) => {
     return Joi.assert(reserv, schemaUpdateReserv)
+}
+
+module.exports = {
+    reservCreateValidate, reservUpdateValidate
 }

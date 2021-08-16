@@ -1,24 +1,22 @@
-const { getConnection } = require('./bd/db')
-const { findItem, getItems } = require('./generalRepository')
-const connection = getConnection()
-
+const { findItems, getItems } = require('./generalRepository')
 
 /**
  * @param {string} user_uuid admite SOLAMENTE el VALOR de la uuid
  * @returns user data in database without password
  */
 const getUserNoPass = async (user_uuid) => {
-    // const sentence = 'SELECT user_uuid, username, email, tipo FROM usuarios WHERE user_uuid=?'
-    // const user = await connection.query(sentence, uuid_user)
     const aux = {"user_uuid":user_uuid}
-    let user = await findItem(aux, 'usuarios')
-    delete user.password
+    let user = await findItems(aux, 'usuarios')
+    if(user){
+        delete user.password
+    }
     return user
 }
 
 const findUsersNoPass = async() =>{
     let rows = await getItems('usuarios')
-    rows = rows
+    if(rows){
+        rows = rows
         .filter( (user) => {
             return user.tipo !== 'ADMIN'
         })
@@ -26,6 +24,7 @@ const findUsersNoPass = async() =>{
             delete user.password
             return user
         })
+    }
     return rows
 }
 
@@ -33,4 +32,3 @@ module.exports = {
     getUserNoPass,
     findUsersNoPass
 }
-

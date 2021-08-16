@@ -1,6 +1,6 @@
 require('dotenv').config()
 const {    validateNewUser,    validateUser,    validateLogin,    validateUpdateUser,    validateUserMail,    validateUserPassword} = require('../validators/userValidator')
-const {    save,    findItem,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
+const {    save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
 const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -10,11 +10,12 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
+const { request } = require('express')
 const fs = require('fs')
 const path = require('path')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
 const  cryptoRandomString  = require('crypto-random-string')
-const { errorNoActiveUser } = require('../customErrors/errorNoActiveuser')
+const { errorNoActiveUser } = require('../customErrors/errorNoActiveUser')
 const { errorSendMail } = require('../customErrors/errorSendMail')
  //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
@@ -51,14 +52,12 @@ const createNewUser = async (request, response) => {
                 delete newUser.password
                 isStatus = 201
                 sendMessage = {
-                    Info: "User created",
-                    Data: newUser
+                    info: "User created",
+                    data: newUser
                 }
                 if (request.file){
                     fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
                 }
-                
-                
                 console.log(`Created new user`)
             }
         }
@@ -152,10 +151,11 @@ const getSelfUser = (request, response) => {
     let isStatus, sendMessage;
     try {
         if(request.auth.user){
+            const bddUserData = getUserNoPass(request.auth.user.user_uuid)
             isStatus = 200
             sendMessage = {
-                Info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
-                user: {...request.auth.user}
+                info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
+                user: {...bddUserData}
             }
         }else {
             throw new errorNoAuthorization(decodedUser.username,decodedUser.tipo,'showUser','tryed to get someone else data')
@@ -218,9 +218,9 @@ const updateUser = async (request, response) => {
             if(consulta>=1){
                 isStatus = 200
                 sendMessage = {
-                    Info: "Usuario modificado",
-                    NewData: newUser,
-                    Reference: oldUser
+                    info: "Usuario modificado",
+                    newData: newUser,
+                    reference: oldUser
                 }
             console.log(`Successfully update for ${JSON.stringify(oldUser)} with ${JSON.stringify(newUser)}`);
             }else{
@@ -266,7 +266,7 @@ const activateValidationUser = async (request, response) => {
             isStatus =501
             sendMessage = "La cuenta no ha sido activada..........."
         }
-        const user = await findItem (oldUser,tName)
+        const user = await findItems (oldUser,tName)
         await sendConfirmUserActivation(user.username, user.email)
 
         isStatus= 201
@@ -343,7 +343,7 @@ const login = async (request, response, next) => {
         } else if (!validateUserPassword(request.body.password)) {
             throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
         } else {
-            let user = await findItem(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
+            let user = await findItems(request.body, 'usuarios') //aquí consigues el user, pero también lleva la password
             if(user.activated_at===null){
                 throw new errorNoActiveUser("User no activate")
                 

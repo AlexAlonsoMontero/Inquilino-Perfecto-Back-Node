@@ -4,7 +4,7 @@ class errorSendMail extends Error{
         super();
         this.name = "noSendMail"
         this.type = "mail"
-        this.message ="No send mail."
+        this.message ="No mail was sent"
     }
 }
 

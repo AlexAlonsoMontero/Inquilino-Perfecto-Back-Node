@@ -10,7 +10,7 @@ class errorNoEntryFound extends Error {
         super();
         this.name = "errorNoEntryFound";
         this.type = "sql";
-        this.message = `Not entry found in '${where}' where '${what1}' is '${what2}', because '${why}'`;
+        this.message = `Not entry was found in '${where}' where '${what1}' is '${what2}', because '${why}'`;
     }
 }
 

@@ -1,7 +1,7 @@
 require('dotenv').config()
 const bcrypt = require('bcryptjs')
 const { validateAdminUpdateUser,validateNewUser } = require('../validators/userValidator')
-const { updateItem, findItem, getItems,save } = require('../infrastructure/generalRepository')
+const { updateItem, findItems, getItems,save } = require('../infrastructure/generalRepository')
 
 /**
  * 
@@ -34,7 +34,7 @@ const getUsersForAdmin = async(request, response) => {
         if(Object.keys(request.query).length===0){
             users = await getItems('usuarios')
         }else{
-            users = await findItem(request.query,'usuarios')
+            users = await findItems(request.query,'usuarios')
         }
         if(!users){
             console.warn("No se ha localizado usuario")
