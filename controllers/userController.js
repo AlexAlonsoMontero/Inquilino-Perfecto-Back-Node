@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
 const fs = require('fs')
 const path = require('path')
@@ -43,8 +44,8 @@ const createNewUser = async (request, response) => {
             newUser.avatar = '/uploadAvatars/user-'+ request.body.username +'.jpg'
             newUser = userCreateValidate(newUser)
             delete newUser.confirmPassword
+            const verificationCode = crypto.randomBytes(32).toString('hex')
 
-            //const verificationCode = await cryptoRandomString({length:64}) //se crea cuando creamos el usuario?!
             const creation = await save({...newUser, activated_code:verificationCode}, tName)
             delete newUser.password
 
@@ -65,21 +66,36 @@ const createNewUser = async (request, response) => {
             sendMessage = {error: 'Servicio denegato, no tienes permisos para eso'}
         }else if(error instanceof errorInvalidField){
             isStatus = 401
-            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+            sendMessage = {
+                error: error.messageEsp,
+                errorFieldKey: error.what_1,
+                errorFieldValue: error.what_2
+            }
         }else{
             isStatus = 500
-            if(error.code === 'ER_DUP_ENTRY'){
+            if(error?.code){
                 const sqlErrArr = error.sqlMessage.split(' ')
                 const whatKey = sqlErrArr[sqlErrArr.length-1]
                 const whatCont = sqlErrArr[2]
-                sendMessage = {
-                    error: `Entrada duplicada para ${whatKey}`,
-                    errorMessage: error.sqlMessage,
-                    errorCode: error.code,
-                    dataKey: whatKey,
-                    dataValue: whatCont
+                if(error.code === 'ER_DUP_ENTRY'){
+                    sendMessage = {
+                        error: `Entrada duplicada para ${whatKey}`,
+                        errorMessage: error.sqlMessage,
+                        errorCode: error.code,
+                        errorFieldKey: whatKey,
+                        errorFieldValue: whatCont
+                    }
+                }else if(error.code === 'ER_DATA_TOO_LONG'){
+                    sendMessage = {
+                        error: `Largo del campo excedido para ${whatKey}`,
+                        errorMessage: error.sqlMessage,
+                        errorCode: error.code,
+                        errorFieldKey: whatKey,
+                        errorFieldValue: whatCont
+                    }
                 }
-            }else{
+            }
+            else{
                 sendMessage = {error: 'Error interno servidor'}
             }
         }
@@ -412,7 +428,7 @@ const login = async (request, response, next) => {
             }
         }else if(error instanceof errorUserNotActive){
             isStatus =401
-            sendMessage ={error:"Usuario sin activar, revise su correo electrónico"}
+            sendMessage = { error: "Usuario sin activar, revise su correo electrónico"}
             console.warn("No active user")
         }else{
             isStatus = 500

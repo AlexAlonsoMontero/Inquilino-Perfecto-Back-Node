@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const { errorInvalidField } = require('../customErrors/errorInvalidField');
 
 // https://stackoverflow.com/questions/56423558/joi-validation-how-to-require-or-optional-field-based-on-another-key-exists-in
 
@@ -62,11 +63,40 @@ const schemaUsername = Joi.object().keys({
 //validate vs assert https://livebook.manning.com/book/hapi-js-in-action/chapter-6/v-9/74
 
 const userCreateValidate =  (user) => {
-    const a = Joi.validate(user,schemaCreateUser)
-    return a
+    if(schemaCreateUser.validate(user)?.error){
+
+        const [errorDetails] = schemaCreateUser.validate(user)?.error.details;
+        const errorMessage = errorDetails.message
+        const errorType = errorDetails.type
+        const errorField = errorDetails.message.split(' ')[0].split('"')[1]
+
+        throw new errorInvalidField(
+            'user creation fields joi validation',
+            errorMessage,
+            errorField,
+            errorType
+        )
+    }else{
+        return user
+    }
 }
 const userUpdateValidate =  (user) => {
-    return Joi.assert(user, schemaUpdateUser)
+    if(schemaUpdateUser.validate(user)?.error){
+
+        const [errorDetails] = schemaUpdateUser.validate(user)?.error.details;
+        const errorMessage = errorDetails.message
+        const errorType = errorDetails.type
+        const errorField = errorDetails.message.split(' ')[0].split('"')[1]
+
+        throw new errorInvalidField(
+            'user creation fields joi validation',
+            errorMessage,
+            errorField,
+            errorType
+        )
+    }else{
+        return user
+    }
 }
 const userUpdatePassValidate =  (user) => {
     return Joi.assert(user, schemaNewPass)
