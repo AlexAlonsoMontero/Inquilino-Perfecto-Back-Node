@@ -18,7 +18,6 @@ const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin
 const { errorUserNotActive } = require('../customErrors/errorUserNotActive')
 
 //TODO posibilidad de añadir morgan
-//TODO posibilidad de loggear con username
 
 /**
  * #GUEST_FUNCTION // Admin
@@ -234,15 +233,34 @@ const updateSelfUser = async (request, response) =>{
             const newSelfData = userUpdateValidate(request.body)
             const oldUuid = {user_uuid : oldSelfData.user_uuid}
             const updatedRows = await updateItem(newSelfData,oldUuid,tName)
-            console.log(updatedRows);
+
             if(updatedRows && updatedRows >= 1){
-                isStatus = 200
-                sendMessage =   {
-                    oldData: oldSelfData,
-                    newData: newSelfData
+                const newUser = await getUserNoPass(oldUuid.user_uuid)
+                if(newUser){
+                    request.headers = undefined
+                    request.body = undefined
+
+                    const tokenPayload = {
+                        user_uuid: newUser.user_uuid,
+                        username: newUser.username,
+                        tipo: newUser.tipo
+                    }
+                    const token = jwt.sign(
+                        tokenPayload,
+                        process.env.SECRET, {
+                            expiresIn: '30d'
+                        })
+
+                    isStatus = 200
+                    sendMessage =   {
+                        oldData: oldSelfData,
+                        newData: newSelfData,
+                        token
+                    }
+                    console.warn(`Successfully selfUpdate for 'user_uuid' ${oldUuid.user_uuid}`);
+                }else{
+                    throw new errorNoEntryFound(tName,"couldn't update user",'user_uuid',uuidSelf)
                 }
-                
-                console.warn(`Successfully selfUpdate for 'user_uuid' ${oldUuid.user_uuid}`);
             }else{
                 throw new errorNoEntryFound(tName,"couldn't update user",'user_uuid',uuidSelf)
             }
@@ -313,46 +331,6 @@ const updateUser = async (request, response) => {
     }
 }
 
-const activateValidationUser = async (request, response) => {
-    let isStatus, sendMessage;
-    const tName = 'usuarios';
-
-    try {
-        const activation_code = request.query
-        console.log("code")
-        console.log(activation_code)
-        if (!activation_code){
-            throw new Error ('Código de verificación requerido')
-        }
-
-        const newUser = {activated_at: new Date()} //TODO joi
-        const oldUser = activation_code
-        const affectedRows = await updateItem(newUser,oldUser,tName)
-        if (affectedRows === 0){
-            throw new errorUserNotActive ('La cuenta no ha sido activada')
-        }
-        const user = await findItems (oldUser,tName)
-        await sendConfirmUserActivation(user.username, user.email)
-
-        isStatus= 201
-        sendMessage ={message:"Cuenta activada"}
-
-    } catch (error) {
-        console.warn(error)
-        sendMessage = {error:error.message}
-        if(error instanceof errorInvalidField){
-            isStatus = 401
-        }else if(error instanceof errorNoEntryFound){
-            isStatus = 404
-        }else if(error instanceof errorUserNotActive){
-            isStatus =501
-        }else{
-            isStatus = 500
-        }
-    }finally{
-        response.status(isStatus).send(sendMessage)
-    }
-}
 
 /**
  * #ADMIN FUNCTION
@@ -391,8 +369,6 @@ const deleteUser = async (request, response) => {
 
 /**
  * #GUEST_FUNCTION
- * Verifies user login
- * needs to check password
  * @param {*} request
  * @param {*} response
  * @param {*} next
@@ -406,16 +382,16 @@ const login = async (request, response, next) => {
 
                 let user = await findItems(
                     request.body?.email ? {email : request.body?.email} : {username : request.body?.username}, 
-                    tName) 
+                    tName)
                     // WARNING password send here
 
-                if(user){
-                    if(user.activated_at === null){
-                        throw new errorUserNotActive("User not activated")
-                    }
-                    else if (!await bcrypt.compare(request.body.password, user.password)) {
-                        throw new errorInvalidUserLogin(request.body.email,request.body.password,true)
-                    }else{
+                    if(user){
+                        if(user.activated_at === null){
+                            throw new errorUserNotActive("User not activated")
+                        }
+                        else if (!await bcrypt.compare(request.body.password, user.password)) {
+                            throw new errorInvalidUserLogin(request.body.email,request.body.password,true)
+                        }else{
                         delete user.password
                         const tokenPayload = {
                             user_uuid: user.user_uuid,
@@ -427,16 +403,16 @@ const login = async (request, response, next) => {
                             process.env.SECRET, {
                                 expiresIn: '30d'
                             })
-                        isStatus = 200
-                        sendMessage = {
-                            token,
-                            user
+                            isStatus = 200
+                            sendMessage = {
+                                token,
+                                user
+                            }
+                            console.log('Successfully logged in');
                         }
-                        console.log('Successfully logged in');
+                    }else if (!user || user.length === 0) {
+                        throw new errorInvalidUserLogin(request.body.email,request.body.password,false)
                     }
-                }else if (!user || user.length === 0) {
-                    throw new errorInvalidUserLogin(request.body.email,request.body.password,false)
-                }
             }else{
                 throw new errorInvalidField('user login','password validation failed in joi','password',request.body.password)
             }
@@ -445,7 +421,7 @@ const login = async (request, response, next) => {
         }else if(!userUsernameValidate(request.body?.username)){
             throw new errorInvalidField('user login','username validation failed in joi','username',request.body.username)
         }else{
-            //??
+            throw new Error('THIS SHOULD NOT HAPPEN')
         }
     }catch (error) {
         console.warn(error)
@@ -474,7 +450,7 @@ const login = async (request, response, next) => {
 }
 
 /**
- * 
+ * LOGGED
  * @param {json} request contains the loggin token
  * @param {*} response 
  */
@@ -501,6 +477,47 @@ const logout = (request, response) => {
         }else{
             isStatus = 500
             sendMessage = {error:'Error interno del servidor'}
+        }
+    }finally{
+        response.status(isStatus).send(sendMessage)
+    }
+}
+
+const activateValidationUser = async (request, response) => {
+    let isStatus, sendMessage;
+    const tName = 'usuarios';
+
+    try {
+        const activation_code = request.query
+        console.log("code")
+        console.log(activation_code)
+        if (!activation_code){
+            throw new Error ('Código de verificación requerido')
+        }
+
+        const newUser = {activated_at: new Date()} //TODO joi
+        const oldUser = activation_code
+        const affectedRows = await updateItem(newUser,oldUser,tName)
+        if (affectedRows === 0){
+            throw new errorUserNotActive ('La cuenta no ha sido activada')
+        }
+        const user = await findItems (oldUser,tName)
+        await sendConfirmUserActivation(user.username, user.email)
+
+        isStatus= 201
+        sendMessage ={message:"Cuenta activada"}
+
+    } catch (error) {
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorInvalidField){
+            isStatus = 401
+        }else if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorUserNotActive){
+            isStatus =501
+        }else{
+            isStatus = 500
         }
     }finally{
         response.status(isStatus).send(sendMessage)
