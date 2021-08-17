@@ -1,4 +1,4 @@
-const Joi = require('@hapi/joi')
+const Joi = require('joi')
 
 const schemaCreateReview = Joi.object().keys({
     reserva_uuid : Joi.string().guid({ version : 'uuidv4' }).required(),

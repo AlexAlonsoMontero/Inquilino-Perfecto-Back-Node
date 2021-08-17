@@ -1,12 +1,10 @@
+const mysql = require('mysql2/promise')
 require('dotenv').config()
 
-const mysql = require('mysql2/promise')
-
-let pool
-
 const getConnection = () => {
+    let pool
     if (!pool){
-        pool =  mysql.createPool ({
+        pool = mysql.createPool ({
             connectionLimit: 10,
             host: process.env.DB_HOST,
             database:process.env.DB_DATABASE,

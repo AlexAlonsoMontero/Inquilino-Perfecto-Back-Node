@@ -1,3 +1,4 @@
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
 const { findItems, getItems } = require('./generalRepository')
 
 /**
@@ -5,12 +6,19 @@ const { findItems, getItems } = require('./generalRepository')
  * @returns user data in database without password
  */
 const getUserNoPass = async (user_uuid) => {
-    const aux = {"user_uuid":user_uuid}
+    const aux = {user_uuid}
     let user = await findItems(aux, 'usuarios')
     if(user){
         delete user.password
+        return user
+    }else{
+        throw new errorNoEntryFound(
+            'finding user in bdd',
+            'user uuid not found in database',
+            'user_uuid',
+            user_uuid
+        )
     }
-    return user
 }
 
 const findUsersNoPass = async() =>{

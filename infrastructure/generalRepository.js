@@ -1,5 +1,4 @@
-const bcrypt = require('bcryptjs')
-const { query } = require('express')
+const bcrypt = require('bcrypt')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
 const { dateString } = require('../infrastructure/utils/dateString') 
@@ -32,9 +31,13 @@ const save = async (entity, table) => {
  * @returns full content of the given table
  */
 const getItems = async (table) => {
-    const sentencia = `SELECT * FROM ${table}`
-    const consulta = await connection.query(sentencia)
-    return consulta[0]
+    try{
+        const sentencia = `SELECT * FROM ${table}`
+        const consulta = await connection.query(sentencia)
+        return consulta[0]
+    }catch(error){
+        console.log(error);
+    }
 }
 
 /**
@@ -58,7 +61,7 @@ const findItems = async (item, table) => {
  */
 const updateItem = async (newItem, oldItem, table) => {
     let sentencia = `UPDATE ${table} SET `
-    // const numValues = Object.keys(newItem).length
+    const numValues = Object.keys(newItem).length
     for (let i = 0; i < Object.keys(newItem).length; i++) {
         sentencia += Object.keys(newItem)[i].toString() + "=?"
         i < numValues - 1 ? sentencia += "," : sentencia += ""
@@ -130,7 +133,7 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
  * @param {*} queryParams 
  * @returns 
  */
-const getItemsMultiJoi = async (qtable, tables, tkeys, queryParams) => {
+const getItemsMultiJoin = async (qtable, tables, tkeys, queryParams) => {
     let rows =""
     let sentence = `SELECT * FROM ${qtable} ` 
                     // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
@@ -233,6 +236,6 @@ module.exports = {
     deleteItem,
     getItemsMultiParams,
     getItemsMultiTable,
-    getItemsMultiJoi,
+    getItemsMultiJoin,
     getAvgItems
 }

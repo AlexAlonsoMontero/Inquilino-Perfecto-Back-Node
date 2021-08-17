@@ -1,10 +1,10 @@
 class errorSendMail extends Error{
     
-    constructor(){
+    constructor(message){
         super();
         this.name = "noSendMail"
         this.type = "mail"
-        this.message ="No mail was sent"
+        this.message = message ? message : 'el mensaje no fue enviado'
     }
 }
 
