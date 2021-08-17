@@ -427,11 +427,11 @@ const login = async (request, response, next) => {
         console.warn(error)
         if(error instanceof errorInvalidField){
             isStatus = 401
-            sendMessage = {error: `Error del joi: ${error?.mailInDB ? 'La contraseña es incorrecta' : 'El mail es incorrecto'}`}
+            sendMessage = {error: `${error?.mailInDB ? 'La contraseña es incorrecta' : 'El nombre de usuario o email incorrecto'}`}
         }else if(error instanceof errorInvalidUserLogin){
             isStatus = 401
             sendMessage = {
-                error: `Error de Validación contra la base de datos: ${error?.mailInDB ? 'contraseña mal':'email mal'}`
+                error: `Error de Validación contra la base de datos: ${error?.mailInDB ? 'contraseña mal':'Nombrede usuario o email mal'}`
             }
         }else if(error instanceof errorUserNotActive){
             isStatus = 401
