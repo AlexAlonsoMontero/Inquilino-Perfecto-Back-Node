@@ -10,7 +10,6 @@ const schemaUuidV4 =  Joi.object().keys({
 
 const validateUuid = (uuid) =>{
     if(schemaUuidV4.validate(uuid)?.error){
-
         const [errorDetails] = schemaUuidV4.validate(uuid)?.error.details;
         const errorMessage = errorDetails.message
         const errorType = errorDetails.type

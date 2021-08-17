@@ -20,6 +20,7 @@ const schemaCreateUser = Joi.object().keys({
     tipo: Joi.string().valid(...['ADMIN','INQUILINO','INQUILINO/CASERO','CASERO']).required(),
     avatar: Joi.string()
 })
+
 const schemaUpdateUser = Joi.object().keys({
     user_uuid: Joi.string().guid({
         version: [
@@ -27,10 +28,10 @@ const schemaUpdateUser = Joi.object().keys({
             'uuidv5'
         ]
     }),
-    username:Joi.string().alphanum().min(4).max(32),
+    username: Joi.string().alphanum().min(4).max(32),
     email: Joi.string().email({
-        ignoreLength:true,
-        tlds:{allow:false} //https://stackoverflow.com/questions/57972358/joi-email-validation
+        ignoreLength: true,
+        tlds: {allow:false} //https://stackoverflow.com/questions/57972358/joi-email-validation
     }),
     tipo: Joi.string().valid(...['ADMIN','INQUILINO','INQUILINO/CASERO','CASERO']),
     puntuacion_media: Joi.number().precision(2),
@@ -64,7 +65,6 @@ const schemaUsername = Joi.object().keys({
 
 const userCreateValidate =  (user) => {
     if(schemaCreateUser.validate(user)?.error){
-
         const [errorDetails] = schemaCreateUser.validate(user)?.error.details;
         const errorMessage = errorDetails.message
         const errorType = errorDetails.type
@@ -82,7 +82,6 @@ const userCreateValidate =  (user) => {
 }
 const userUpdateValidate =  (user) => {
     if(schemaUpdateUser.validate(user)?.error){
-
         const [errorDetails] = schemaUpdateUser.validate(user)?.error.details;
         const errorMessage = errorDetails.message
         const errorType = errorDetails.type

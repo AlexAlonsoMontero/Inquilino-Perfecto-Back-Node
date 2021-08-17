@@ -9,14 +9,13 @@ const {    userCreateValidate, userUpdateValidate, userUpdatePassValidate, userP
 const {    save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
 const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
+const { validateUuid } = require('../validators/checkGeneral')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorInvalidToken } = require('../customErrors/errorInvalidToken')
 const { errorInvalidUserLogin } = require('../customErrors/errorInvalidUserLogin')
 const { errorUserNotActive } = require('../customErrors/errorUserNotActive')
-const { validateUuid } = require('../validators/checkGeneral')
-const { validateUpdateUser } = require('../validators/userValidator')
 
 //TODO posibilidad de añadir morgan
 //TODO posibilidad de loggear con username
@@ -213,18 +212,53 @@ const getSelfUser = (request, response) => {
 }
 
 /**
- * TODO Actualiza los datos de usuario y devuelve un token nuevo
+ * Actualiza los datos de usuario y devuelve un token nuevo
  * @param {*} request 
  * @param {*} response 
  */
 const updateSelfUser = async (request, response) =>{
-    try{
-        console.log('TODO');
+    let isStatus, sendMessage;
+    const tName = 'usuarios';
+    try {
+        const uuidSelf = request?.auth?.user?.user_uuid
+        const oldSelfData = await getUserNoPass(uuidSelf)
 
+        if (!oldSelfData || oldSelfData.length === 0){
+            console.log('error');
+            throw new errorNoEntryFound(
+                tName,
+                "user was not found",
+                'user_uuid',
+                request?.auth?.user?.user_uuid)
+        }else{
+            const newSelfData = userUpdateValidate(request.body)
+            const oldUuid = {user_uuid : oldSelfData.user_uuid}
+            const updatedRows = await updateItem(newSelfData,oldUuid,tName)
+            console.log(updatedRows);
+            if(updatedRows && updatedRows >= 1){
+                isStatus = 200
+                sendMessage =   {
+                    oldData: oldSelfData,
+                    newData: newSelfData
+                }
+                
+                console.warn(`Successfully selfUpdate for 'user_uuid' ${oldUuid.user_uuid}`);
+            }else{
+                throw new errorNoEntryFound(tName,"couldn't update user",'user_uuid',uuidSelf)
+            }
+        }
     }catch(error){
-
+        console.warn(error)
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+        sendMessage = {error:error.message}
     }finally{
-
+        response.status(isStatus).send(sendMessage)
     }
 }
 
@@ -239,15 +273,8 @@ const updateUser = async (request, response) => {
     const tName = 'usuarios';
     try {
         const oldUser = validateUuid(request.params)
-        const existsOld = await getUserNoPass(oldUser.user_uuid)
-        if(!existsOld){
-            new errorNoEntryFound(
-                'user update by admin',
-                'old user uuid not found in database',
-                'request.params.user_uuid',
-                request.params.user_uuid
-            )
-        }else{
+        const existsOld = await getUserNoPass(request.params.user_uuid)
+        if(existsOld){
             const newUser = userUpdateValidate(request.body)
             if(!newUser.error){
                 const consulta = await updateItem(newUser, oldUser, 'usuarios')
@@ -260,8 +287,15 @@ const updateUser = async (request, response) => {
                     }
                     console.log(`Successfully update for ${JSON.stringify(oldUser)} with ${JSON.stringify(newUser)}`);
                 }else{
-                    new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser.user_uuid)
-                }
+                    throw new errorNoEntryFound(tName,'no entry found with the given id','user_uuid',oldUser.user_uuid)
+                    }
+            }else{
+                throw new errorNoEntryFound(
+                    'user update by admin',
+                    'old user uuid not found in database',
+                    'request.params.user_uuid',
+                    request.params.user_uuid
+                )
             }
         }
     } catch (error) {
@@ -319,10 +353,6 @@ const activateValidationUser = async (request, response) => {
         response.status(isStatus).send(sendMessage)
     }
 }
-
-
-
-
 
 /**
  * #ADMIN FUNCTION

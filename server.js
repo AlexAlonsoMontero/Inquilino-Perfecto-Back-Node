@@ -87,14 +87,14 @@ app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
-app.put(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, updateSelfUser);
+app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser);
 app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
 
 //USER ADMIN
-app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
-app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
-app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
-app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
+// app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
+// app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
+// app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
+// app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
 
 
 

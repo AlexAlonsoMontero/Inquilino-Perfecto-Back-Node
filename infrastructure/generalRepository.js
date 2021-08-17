@@ -31,9 +31,13 @@ const save = async (entity, table) => {
  * @returns full content of the given table
  */
 const getItems = async (table) => {
-    const sentencia = `SELECT * FROM ${table}`
-    const consulta = await connection.query(sentencia)
-    return consulta[0]
+    try{
+        const sentencia = `SELECT * FROM ${table}`
+        const consulta = await connection.query(sentencia)
+        return consulta[0]
+    }catch(error){
+        console.log(error);
+    }
 }
 
 /**
