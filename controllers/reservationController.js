@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { reservUpdateValidate, reservCreateValidate } = require('../validators/checkReservation')
+const { v4 } = require('uuid')
+
 
 /**
  * #REGISTRED_FUNCTION [ANY]

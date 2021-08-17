@@ -6,6 +6,7 @@ const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} 
 const { reviewCreateValidate } = require('../validators/checkReview')
 const { updateUserPunctuation, checkIsInvolved } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
+const { v4 } = require('uuid')
 
 
 /**
@@ -209,7 +210,7 @@ const getReviewByRev = async(req, res) =>{
  */
 const modifyReview = async(req, res) =>{
     let isStatus, sendMessage;
-    const tName = 'reseras';
+    const tName = 'reservas';
     try{
         const oldResRef = validateUuid(req.params)
         if(checkIsInvolved(req.auth.user, oldResRef)){
