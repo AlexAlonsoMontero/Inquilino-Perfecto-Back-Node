@@ -21,6 +21,7 @@ const cors = require('cors')
 
 const app = express()
 const upload = multer()
+const { uploadPropsMid, uploadRevsMid } = require('./infrastructure/middlewares/multerUploads')
 
 app.use(express.json())
 app.use(cors())
@@ -104,7 +105,7 @@ app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser)
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties);
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp);
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf);
-app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadProps.array('propImgs',12), createNewProperty);
+app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropsMid, createNewProperty);
 app.put(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, modifyProperty);
 app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, deleteProperty);
 
