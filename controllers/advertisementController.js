@@ -154,8 +154,9 @@ const getAdvertisements = async (request, response) => {
         let advInm = undefined
 
         const visibilidad = { visibilidad : request.auth?.user?.tipo === 'ADMIN' ? request.query.visibilidad : true }
-        if(Object.keys(request?.query).length !== 0){
-            const isquery = {...request.query, ...visibilidad}
+        if(request.query && Object.keys(request?.query).length !== 0){
+            const isquery = {...request?.query, ...visibilidad}
+            console.log(isquery);
             advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, isquery)
         }else{
             advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
