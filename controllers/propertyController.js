@@ -32,7 +32,7 @@ const createNewProperty = async(req, res) =>{
                 auxBody[k]=auxBodyContentValues[i]
             }
         })
-
+        console.log(auxBody);
         let newProp = propCreateValidate(auxBody)
 
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
@@ -53,7 +53,7 @@ const createNewProperty = async(req, res) =>{
         console.warn(error)
         if(error instanceof errorInvalidField){
             isStatus = 401
-            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+            sendMessage = {error: error.messageEsp}
         }else if(error?.sql){
             isStatus = 500
             sendMessage = {
@@ -282,12 +282,13 @@ const deleteProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const validatedDelProp = validateUuid(request.body)
-        const existsProp = await findItems(validatedDelProp,tName)
-        if(existsProp >= 1){
+        const validatedDelProp = validateUuid(req.body)
+        let existsProp = await findItems(validatedDelProp,tName)
+        existsProp = existsProp[0]
+        if(existsProp){
             if(
-                request.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
-                request.auth?.user?.tipo === 'ADMIN'
+                req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
+                req.auth?.user?.tipo === 'ADMIN'
             ){
                 const isPropDel = await deleteItem(validatedDelProp, tName)
                 sendMessage = {
@@ -300,14 +301,14 @@ const deleteProperty = async(req, res) =>{
                         : `No tuple could be deleted for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`);
             }else{
                 throw new errorNoAuthorization(
-                    request.auth?.user?.user_uuid,
-                    request.auth?.user?.tipo,
+                    req.auth?.user?.username,
+                    req.auth?.user?.tipo,
                     'delete property',
                     'only admin or Prop creator can delete it')
                 }
             }
             else{
-                throw new errorNoEntryFound(tName + 'delete Prop','Prop not found','request.body',request.body.inmueble_uuid)
+                throw new errorNoEntryFound(tName + 'delete Prop','Prop not found','req.body',req.body.inmueble_uuid)
             }
     } catch (error) {
         console.warn(error)
@@ -320,7 +321,7 @@ const deleteProperty = async(req, res) =>{
             isStatus = 500
         }
     }finally{
-        response.status(isStatus).send(sendMessage)
+        res.status(isStatus).send(sendMessage)
     }
 }
 

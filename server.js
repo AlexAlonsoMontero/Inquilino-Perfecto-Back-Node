@@ -23,8 +23,9 @@ const app = express()
 const upload = multer()
 const { uploadPropsMid, uploadRevsMid } = require('./infrastructure/middlewares/multerUploads')
 
-app.use(express.json())
 app.use(cors())
+app.use(express.urlencoded({extended: true}));
+app.use(express.json()) 
 app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 require('dotenv').config();
@@ -94,9 +95,13 @@ app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser)
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropsMid, createNewProperty); //ok
+app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty); //ok
+//TODO upload imgs
+    //uploadPropsMid, 
 app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
-app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty);
+//TODO actualizar imágenes
+app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
+//TODO borrar entradas de tabla imágenes al borrar
 
 //ANUNCIOS
 app.get(endpointAdv, detectType, getAdvertisementsMultiJoin);
@@ -105,8 +110,6 @@ app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, 
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement);
-        
-        
         //RESERVAS
         app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
         app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);

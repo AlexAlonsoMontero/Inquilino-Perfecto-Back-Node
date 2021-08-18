@@ -13,6 +13,7 @@ const save = async (entity, table) => {
     if (entity.password) {
         entity.password = bcrypt.hashSync(entity.password, 10)
     }
+
     const cont = Object.values(entity).length
     let cadena = '?'
     for (let i = 1; i < cont; i++) {

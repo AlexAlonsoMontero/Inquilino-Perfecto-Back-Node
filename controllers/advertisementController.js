@@ -256,7 +256,7 @@ const modifyAdvertisement = async (request, response) => {
         const oldAdv = validateUuid(request.params)
         const existsAdv = await findItems(oldAdv, tName)
         if(Object.keys(existsAdv).length === 0){
-            new errorNoEntryFound(
+            throw new errorNoEntryFound(
                 'adv update by admin or self',
                 'old adv uuid not found in database',
                 'request.params.anuncio_uuid',
@@ -277,7 +277,7 @@ const modifyAdvertisement = async (request, response) => {
                 }
                 console.log(`Successfully update for ${JSON.stringify(oldAdv)} with ${JSON.stringify(newAdv)}`);
             }else{
-                new errorNoEntryFound(tName,'no entry found with the given id','anuncio_uuid',oldAdv.anuncio_uuid)
+                throw new errorNoEntryFound(tName,'no entry found with the given id','anuncio_uuid',oldAdv.anuncio_uuid)
             }
         }
     } catch (error) {
