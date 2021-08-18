@@ -36,7 +36,7 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
             sendMessage = "token correcto, usuario no encontrado en la base de datos"
         }else if(error instanceof errorInvalidToken){
             isStatus = 403
-            sendMessage = "validación de token fallida"
+            sendMessage = `validación de token fallida`
         }else if(error instanceof jwt.TokenExpiredError){
             isStatus = 401
             sendMessage = { error: "Token expirado, vuélvete a logear"}
@@ -232,7 +232,7 @@ const validateRolInquiCas = async (request, response, next) => {
  */
  const validateSelfOrAdmin = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {
-        const {user} = request.auth
+        const {user} = request.auth.user
         if(
             request.auth.user.tipo &&
                 (  request.params?.username === user.username

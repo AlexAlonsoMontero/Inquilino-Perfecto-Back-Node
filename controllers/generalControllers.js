@@ -8,8 +8,7 @@ const searchMultiParams = async(request, response) => {
         if(result.length >0){
             response.status(200).send({ info: "Busqueda ok", data: result })
         }else{
-            const error = new Error ("No se han encontrado resultados para la búsqueda")
-            throw error
+            throw new Error ("No se han encontrado resultados para la búsqueda")
         }
 
     }catch(error){

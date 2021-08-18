@@ -245,7 +245,7 @@ const modifyReservation = async(req, res) =>{
         const oldRes = validateUuid(req.params)
         const existsRes = await findItems(oldRes, tName)
         if(Object.keys(existsRes).length === 0){
-            new errorNoEntryFound(
+            throw new errorNoEntryFound(
                 'Res update by admin or self',
                 'old reservation uuid not found in database',
                 'req.params.reserva_uuid',
@@ -269,7 +269,7 @@ const modifyReservation = async(req, res) =>{
                         }
                         console.log(`Successfully updated for ${Object.keys(oldRes)[0]} with ${oldRes}`);
                     }else{
-                        new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldRes.inmueble_uuid)
+                        throw new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldRes.inmueble_uuid)
                     }
                 }
     }catch(error){

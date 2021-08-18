@@ -8,6 +8,7 @@ const { findItems, getItems } = require('./generalRepository')
 const getUserNoPass = async (user_uuid) => {
     const aux = {user_uuid}
     let user = await findItems(aux, 'usuarios')
+    user = user[0]
     if(user){
         delete user.password
         return user
