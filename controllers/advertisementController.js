@@ -156,17 +156,18 @@ const getAdvertisements = async (request, response) => {
         const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
         const joinAdvPlusInmueblesKeys =[
             ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
-            ['inmuebles.usr_casero_uuid','usuarios.user_uuid'],
+            ['inmuebles.usr_casero_uuid','usuarios.user_uuid']
         ]
         let advInm = undefined
 
         const visibilidad = { visibilidad : request.auth?.user?.tipo === 'ADMIN' ? request.query.visibilidad : true }
         if(Object.keys(request?.query).length !== 0){
-            const query = {...request.query, ...visibilidad}
-            [advInm] = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
+            const isquery = {...request.query, ...visibilidad}
+            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, isquery)
         }else{
-            [advInm] = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
+            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
         }
+        console.log(advInm);
         if(!advInm){
             throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
         }else{
