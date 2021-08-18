@@ -3,24 +3,40 @@ const jwt = require('jsonwebtoken')
 const { deleteItem, findItems, getItems, save, updateItem} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty.js')
+const { v4 } = require('uuid')
 
 
 /**
  * #CASERO_FUNCTION / ADMIN
  * Creates a new property in the database
- * @param {json} req 
- * @param {json} res 
+ * @param {json} req
+ * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        let newProp = propCreateValidate(req.body)
+        let auxBodyContentKeys = Object.keys(req.body)
+        let auxBodyContentValues = Object.values(req.body)
+        let auxBody = {}
+        auxBodyContentKeys.forEach((k,i) => {
+            if(auxBodyContentValues[i] === 'true'){
+                auxBody[k] = true
+            }else if(auxBodyContentValues[i] === 'false'){
+                auxBody[k] = false
+            }else{
+                auxBody[k]=auxBodyContentValues[i]
+            }
+        })
+
+        let newProp = propCreateValidate(auxBody)
+
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         //En la versión definitiva no dejaremos que el post traiga uuid
         if (!newProp.inmueble_uuid){
             newProp = {...newProp, inmueble_uuid : v4()}
         }
+        newProp = {...newProp, usr_casero_uuid: req.auth.user.user_uuid}
 
         const createdProp = await save(newProp, tName)
 
@@ -34,7 +50,14 @@ const createNewProperty = async(req, res) =>{
         if(error instanceof errorInvalidField){
             isStatus = 401
             sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
-        }else{
+        }else if(error?.sql){
+            isStatus = 500
+            sendMessage = {
+                error: 'Error de base de datos',
+                message: error.sqlMessage
+            }
+        }
+        else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}
         }
@@ -147,7 +170,6 @@ const getPropertyByProp = async(req, res) =>{
 }
 
 /**
- * TODO parameter search
  * @param {json} req 
  * @param {json} res 
  */
@@ -155,7 +177,7 @@ const getPropertiesSelf = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid}
+        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid }
         const selfProp = await findItems(propCasero,tName)
 
         if (!selfProp){

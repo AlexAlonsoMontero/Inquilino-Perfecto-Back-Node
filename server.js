@@ -18,8 +18,10 @@ const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyRe
 const multer= require('multer')
 const express = require('express')
 const cors = require('cors')
-const upload = multer()
+
 const app = express()
+const upload = multer()
+
 app.use(express.json())
 app.use(cors())
 app.use('/uploadAvatars', express.static('uploadAvatars'))
@@ -102,7 +104,7 @@ app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser)
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties);
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp);
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf);
-app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty);
+app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadProps.array('propImgs',12), createNewProperty);
 app.put(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, modifyProperty);
 app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, deleteProperty);
 

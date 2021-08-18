@@ -1,42 +1,118 @@
 const Joi = require('joi');
+const { errorInvalidField } = require('../customErrors/errorInvalidField');
 
 const schemaCreateProp = Joi.object().keys({
     disponibilidad : Joi.boolean().required(),
     calle : Joi.string().max(256).required(),
-
-    metros_2 : Joi.number(),
-
-    calle : Joi.string().max(256).required(),
-    numero : Joi.string().max(16),
-    piso : Joi.string().max(16),
     ciudad : Joi.string().max(128).required(),
     provincia : Joi.string().max(128).required(),
-    comunidad : Joi.string().max(128),
     pais : Joi.string().max(128).required(),
-    cp : Joi.string().max(5).required()
+    cp : Joi.string().max(5).required(),
+
+    x : Joi.number().precision(6),
+    y : Joi.number().precision(6),
+
+    usr_casero_uuid :  Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    }),
+    inmueble_uuid :  Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    }),
+    metros_2 : Joi.number().positive(),
+    numero : Joi.string().max(16),
+    piso : Joi.string().max(16),
+    comunidad : Joi.string().max(128),
+
+    banos: Joi.number(),
+    habitaciones: Joi.number(),
+    amueblado: Joi.boolean(),
+    calefaccion: Joi.boolean(),
+    aire_acondicionado: Joi.boolean(),
+    jardin: Joi.boolean(),
+    terraza: Joi.boolean(),
+    ascensor: Joi.boolean(),
+    piscina: Joi.boolean()
 })
+
 const schemaUpdateProp = Joi.object().keys({
     disponibilidad : Joi.boolean(),
     calle : Joi.string().max(256),
-
-    metros_2 : Joi.number(),
-
-    calle : Joi.string().max(256),
-    numero : Joi.string().max(16),
-    piso : Joi.string().max(16),
     ciudad : Joi.string().max(128),
     provincia : Joi.string().max(128),
-    comunidad : Joi.string().max(128),
     pais : Joi.string().max(128),
-    cp : Joi.string().max(5)
+    cp : Joi.string().max(5),
+
+    x : Joi.number().precision(6),
+    y : Joi.number().precision(6),
+
+    usr_casero_uuid : Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    }),
+    inmueble_uuid : Joi.string().guid({
+        version: [
+            'uuidv4',
+            'uuidv5'
+        ]
+    }),
+    metros_2 : Joi.number(),
+    numero : Joi.string().max(16),
+    piso : Joi.string().max(16),
+    comunidad : Joi.string().max(128),
+
+    banos: Joi.number(),
+    habitaciones: Joi.number(),
+    amueblado: Joi.boolean(),
+    calefaccion: Joi.boolean(),
+    aire_acondicionado: Joi.boolean(),
+    jardin: Joi.boolean(),
+    terraza: Joi.boolean(),
+    ascensor: Joi.boolean(),
+    piscina: Joi.boolean()
 })
 
-const propCreateValidate = async (prop) => {
-    return Joi.assert(prop,schemaCreateProp)
+const propCreateValidate = (prop) => {
+    if(schemaCreateProp.validate(prop)?.error){
+        const [errorDetails] = schemaCreateProp.validate(prop)?.error.details;
+        const errorMessage = errorDetails.message
+        const errorType = errorDetails.type
+        const errorField = errorDetails.message.split(' ')[0].split('"')[1]
+        
+        throw new errorInvalidField(
+            'prop creation fields joi validation',
+            errorMessage,
+            errorField,
+            errorType
+        )
+    }else{
+        return prop
+    }
 }
 
-const propUpdateValidate = async (prop) => {
-    return Joi.assert(prop, schemaUpdateProp)
+const propUpdateValidate = (prop) => {
+    if(schemaUpdateProp.validate(prop)?.error){
+        const [errorDetails] = schemaUpdateProp.validate(prop)?.error.details;
+        const errorMessage = errorDetails.message
+        const errorType = errorDetails.type
+        const errorField = errorDetails.message.split(' ')[0].split('"')[1]
+
+        throw new errorInvalidField(
+            'prop update fields joi validation',
+            errorMessage,
+            errorField,
+            errorType
+        )
+    }else{
+        return prop
+    }
 }
 
 module.exports = {

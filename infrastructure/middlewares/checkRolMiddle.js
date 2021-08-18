@@ -135,7 +135,7 @@ const detectType = async (request, response, next) => {
 const validateRolAdmin = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        if (request.auth.user.tipo === 'ADMIN'){
+        if (request.auth.user.tipo && request?.auth?.user?.tipo === 'ADMIN'){
             next()
         }else{
             throw new errorNoAuthorization(
@@ -158,7 +158,7 @@ const validateRolAdmin = async (request, response, next) => {
 const validateRolCasero = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        if (request.auth?.user?.tipo !== 'INQUILINO'){
+        if (request.auth.user.tipo && request.auth?.user?.tipo !== 'INQUILINO'){
             next()
         }else{
             throw new errorNoAuthorization(
@@ -181,7 +181,7 @@ const validateRolCasero = async (request, response, next) => {
 const validateRolInquilino = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        if (request.auth.user.tipo !== 'CASERO'){
+        if (request.auth.user.tipo && request.auth.user.tipo !== 'CASERO'){
             console.log('validated inquilino/inquilino_casero/admin');
             next()
         }else{
@@ -205,7 +205,7 @@ const validateRolInquilino = async (request, response, next) => {
 const validateRolInquiCas = async (request, response, next) => {
     let isStatus, sendMessage
     try{
-        if (request.auth.user.tipo !== 'CASERO' && request.auth.user.tipo !== 'INQUILINO'){
+        if (request.auth.user.tipo && request.auth.user.tipo !== 'CASERO' && request.auth.user.tipo !== 'INQUILINO'){
             console.log('validated inquilino_casero/admin');
             next()
         }else{
@@ -233,9 +233,12 @@ const validateRolInquiCas = async (request, response, next) => {
  const validateSelfOrAdmin = async (request, response, next) => { //TEST .env SECRET umMCSTVufgZOaMpvDZnyJ3L9O4qV24xF
     try {
         const {user} = request.auth
-        if(request.params?.username === user.username
-            || request.params?.user_uuid === user.user_uuid
-            || user.tipo === 'ADMIN'){
+        if(
+            request.auth.user.tipo &&
+                (  request.params?.username === user.username
+                || request.params?.user_uuid === user.user_uuid
+                || user.tipo === 'ADMIN')
+            ){
             next()
         }else{
             throw new errorNoAuthorization(user.username,user.tipo,'self auth check','trying to check others data without permision')

@@ -88,7 +88,7 @@ const userUpdateValidate =  (user) => {
         const errorField = errorDetails.message.split(' ')[0].split('"')[1]
 
         throw new errorInvalidField(
-            'user creation fields joi validation',
+            'user update fields joi validation',
             errorMessage,
             errorField,
             errorType
