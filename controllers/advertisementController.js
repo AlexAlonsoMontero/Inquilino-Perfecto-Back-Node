@@ -7,8 +7,6 @@ const { advCreateValidate, advUpdateValidate} = require('../validators/checkAdve
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
 
-//TODO JOI
-
 /**
  * Creates an advertisement
  * @param {*} request 
@@ -149,7 +147,6 @@ const createAdvertisemenet = async (request, response) => {
         response.status(isStatus).send(sendMessage)
     }
 }
-//TODO Se deja de utilizar get Advertisements, y se utiliza getAdvertisementsMultiJoi posible borrado si no se usa en nada más
 
 /**
  * Used by searcher engine, only returns visible advs

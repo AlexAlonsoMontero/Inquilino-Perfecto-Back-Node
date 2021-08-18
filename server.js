@@ -18,10 +18,10 @@ const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyRe
 const multer= require('multer')
 const express = require('express')
 const cors = require('cors')
-const upload = multer()
-const uploadProps = multer({dest: './imgs/properties'})
-const uploadRevs = multer({dest: './imgs/reviews'})
+
 const app = express()
+const upload = multer()
+
 app.use(express.json())
 app.use(cors())
 app.use('/uploadAvatars', express.static('uploadAvatars'))

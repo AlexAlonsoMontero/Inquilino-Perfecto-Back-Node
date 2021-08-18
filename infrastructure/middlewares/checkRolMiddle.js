@@ -157,7 +157,7 @@ const validateRolAdmin = async (request, response, next) => {
 
 const validateRolCasero = async (request, response, next) => {
     let isStatus, sendMessage
-    try{;
+    try{
         if (request.auth.user.tipo && request.auth?.user?.tipo !== 'INQUILINO'){
             next()
         }else{

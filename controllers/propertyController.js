@@ -170,7 +170,6 @@ const getPropertyByProp = async(req, res) =>{
 }
 
 /**
- * TODO parameter search
  * @param {json} req 
  * @param {json} res 
  */
@@ -178,7 +177,7 @@ const getPropertiesSelf = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid}
+        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid }
         const selfProp = await findItems(propCasero,tName)
 
         if (!selfProp){
