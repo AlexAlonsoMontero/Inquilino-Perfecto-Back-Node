@@ -40,12 +40,19 @@ const createNewUser = async (request, response) => {
             if (!newUser.user_uuid){
                 newUser = {...newUser, user_uuid : v4()}
             }
-            newUser.avatar = '/uploadAvatars/user-'+ request.body.username +'.jpg'
+            console.log(request.file ? "viene":"noviene")
+            if(request.file){
+                newUser.avatar = '/uploadAvatars/user-'+ request.body.username +'.jpg'
+            }else{
+                newUser.avatar = '/uploadAvatars/default-avatar.png'
+            }
+            
             newUser = userCreateValidate(newUser)
             delete newUser.confirmPassword
             const verificationCode = crypto.randomBytes(32).toString('hex')
 
             const creation = await save({...newUser, activated_code:verificationCode}, tName)
+            sendRegistrationMail(newUser.username,newUser.email,verificationCode)
             delete newUser.password
 
             isStatus = 201
@@ -54,6 +61,7 @@ const createNewUser = async (request, response) => {
                 data: newUser
             }
             if (request.file){
+                console.log(request.file)
                 fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
             }
             console.log(`Created new user`)

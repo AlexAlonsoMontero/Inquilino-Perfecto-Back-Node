@@ -104,7 +104,7 @@ app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser)
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties);
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp);
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf);
-app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadProps.array('propImgs',12), createNewProperty);
+// app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadProps.array('propImgs',12), createNewProperty);
 app.put(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, modifyProperty);
 app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, deleteProperty);
 
