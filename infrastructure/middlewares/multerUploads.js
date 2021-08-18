@@ -20,7 +20,7 @@ const storageProps = multer.diskStorage({
 })
 const uploadProps = multer ({ storage : storageProps }).array("files",12)
 
-export const uploadPropsMid = async (req, res, next) => {
+const uploadPropsMid = async (req, res, next) => {
     uploadProps(res, req, (err) => {
         if(err){
             return res.status(500).send({error:'No se pudo subir la imagen'})
@@ -30,3 +30,29 @@ export const uploadPropsMid = async (req, res, next) => {
 }
 
 //reviews
+const storageRevs = multer.diskStorage({
+    destination: ( req, file, callback ) => {
+        const dir = '../../imgs/revs'
+
+        if(!fs.existsSync(dir)){
+            fs.mkdirSync(dir)
+        }
+        callback( null, dir )
+    },
+    filename: ( req, file, callback )=> {
+        callback(null, 
+            file.filename + '-' + req.body.author + '_' + Date.now() + path.extname(file)
+        )
+    }
+})
+const uploadRevs = multer ({ storage : storageRevs }).array("files",12)
+const uploadRevsMid = async (req, res, next) => {
+    uploadRevs(res, req, (err) => {
+        if(err){
+            return res.status(500).send({error:'No se pudo subir la imagen'})
+        }
+        next()
+    })
+}
+
+module.exports = {uploadPropsMid,uploadRevsMid}
