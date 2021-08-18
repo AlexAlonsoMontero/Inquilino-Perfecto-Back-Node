@@ -148,86 +148,31 @@ const createAdvertisemenet = async (request, response) => {
     }
 }
 
-/**
- * Used by searcher engine, only returns visible advs
- * @param {json} request not going to be used
- * @param {json} response object with all the advertisements in the database
- */
+
 const getAdvertisements = async (request, response) => {
     let isStatus, sendMessage;
-    const tName = 'anuncios';
+    const queryTable = 'anuncios'
     try {
-        const joinAdvPlusInmuebles = {
-            table1: tName,
-            table2: "inmuebles",
-            t1key: "inmueble_uuid",
-            t2key: "inmueble_uuid"
-        }
-        let advInm = undefined
-        //TODO: check if user is self or admin
-        const vis = true
-
-        if(request.auth?.user?.tipo !== 'ADMIN'){
-            const vis = {'visibilidad':true}
-            if(Object.keys(request.query).length !== 0){
-                const query = {...request.query, ...vis}
-                advInm = await getItemsMultiTable(joinAdvPlusInmuebles, query)
-            }
-            else{
-                advInm = await getItemsMultiTable(joinAdvPlusInmuebles, vis)
-            }
-        }else{
-            advInm = await getItemsMultiTable(joinAdvPlusInmuebles, request.query)
-        }
-
-        if(!advInm){
-            throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
-        }else{
-            isStatus = 200
-            sendMessage = {
-                Tuple: JSON.stringify(request.query),
-                data: advInm
-            }
-        }
-    } catch (error) {
-        console.warn(error)
-        sendMessage = {error:error.message}
-        if (error instanceof errorNoEntryFound){
-            isStatus = 404
-        }else{
-            isStatus = 500
-        }
-    }finally{
-        response.status(isStatus).send(sendMessage)
-    }
-}
-
-const getAdvertisementsMultiJoin = async (request, response) => {
-    let isStatus, sendMessage;
-    try {
-        const queryTable = 'anuncios'
         const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
         const joinAdvPlusInmueblesKeys =[
             ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
-            ['anuncios.usr_casero_uuid','usuarios.user_uuid'],
+            ['inmuebles.usr_casero_uuid','usuarios.user_uuid'],
         ]
         let advInm = undefined
-        //TODO: check if user is self or admin
-        const vis = {visibilidad:true}
 
-        if(Object.keys(request.query).length !== 0){
-            const query = {...request.query, ...vis}
-            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
+        const visibilidad = { visibilidad : request.auth?.user?.tipo === 'ADMIN' ? request.query.visibilidad : true }
+        if(Object.keys(request?.query).length !== 0){
+            const query = {...request.query, ...visibilidad}
+            [advInm] = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
         }else{
-            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, vis)
+            [advInm] = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
         }
-
         if(!advInm){
             throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
         }else{
             isStatus = 200
             sendMessage = {
-                Tuple: JSON.stringify(request.query),
+                tuple: JSON.stringify(request.query),
                 data: advInm
             }
         }
@@ -349,6 +294,5 @@ module.exports = {
     getAdvertisementByAdv,
     getAdvertisementSelf,
     modifyAdvertisement,
-    deleteAdvertisement,
-    getAdvertisementsMultiJoin
+    deleteAdvertisement
 }

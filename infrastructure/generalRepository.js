@@ -143,6 +143,7 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
  * @returns 
  */
 const getItemsMultiJoin = async (qtable, tables, tkeys, queryParams) => {
+    console.log(queryParams);
     let rows =""
     let sentence = `SELECT * FROM ${qtable} ` 
                     // ` INNER JOIN ${table2} ON ${table1}.${t1key} = ${table2}.${t2key} `
@@ -150,18 +151,25 @@ const getItemsMultiJoin = async (qtable, tables, tkeys, queryParams) => {
         sentence +=`INNER JOIN ${tables[cont]} `
         sentence += `ON ${tkeys[cont][0]} = ${tkeys[cont][1]} `
     }
-    if( Object.keys(queryParams).length === 0){
+    console.log(sentence);
+
+    if( Object.keys(queryParams).length === 0 ){
         rows = await connection.query(sentence)
     }else{
         const whereCondition = whereCreator(queryParams)
         sentence += whereCondition
         const qparam = qParamsBoolValidator(Object.values(queryParams))
-        rows= await connection.query(sentence,qparam)
+        rows = await connection.query(sentence,qparam)
     }
+
+
+    console.log(rows[0]);
     rows[0].forEach(element => {
         if(element?.password){delete element.password}
         if (element?.fecha_disponibilidad){element.fecha_disponibilidad=dateString(element.fecha_disponibilidad)}
     });
+
+
     return rows[0]
 }
 
@@ -203,14 +211,14 @@ const whereCreator = (queryParams) => {
 }
 
 /**
- * 
+ * TODO move to utils
  * @param []  
  * @returns []
- * @description Al recibir el queryparams interpreta bollean como un string, corregimos ese error con este metodo
+ * @description Al recibir el queryparams interpreta boolean como un string, corregimos ese error con este metodo
  */
-const qParamsBoolValidator =(params) =>{
-    return params.map(item=>{
-        if(item==='true'){
+const qParamsBoolValidator = (params) =>{
+    return params.map( item => {
+        if(item === 'true'){
             return true
         }else if (item === 'false'){
             return false
@@ -218,8 +226,8 @@ const qParamsBoolValidator =(params) =>{
             return item
         }
     })
-    
 }
+
 /**
  * 
  * @param { string } showParams 

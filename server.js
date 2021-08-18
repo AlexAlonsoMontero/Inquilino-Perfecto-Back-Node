@@ -8,7 +8,7 @@ const { updateUserForAdmin, getUsersForAdmin }
 = require('./controllers/adminController')
 const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement, getAdvertisementsMultiJoin } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement } 
 = require('./controllers/advertisementController')
 const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
@@ -104,49 +104,49 @@ app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteP
 //TODO borrar entradas de tabla imágenes al borrar
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisementsMultiJoin);
+app.get(endpointAdv, detectType, getAdvertisements);
 app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
 app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement);
-        //RESERVAS
-        app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
-        app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
-        app.get(endpointSelfReservations, validateAuthorization, validateSelfOrAdmin, getReservationsSelf);
-        app.post(endpointReservations, detectType, createNewReservation);
-        app.put(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, modifyReservation);
-        app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, deleteReservation);
-        
-        
-        
-        //REVIEWS
-        app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
-        app.get(endpointReviewByRev, detectType, getReviewByRev);
-        app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
-        app.get(endpointReviewAvg, getReviewAvg)
-        app.post(endpointReviews, detectTypeNoGuests, createNewReview);
-        app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
-        app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
-        
-        
-        //SEARCHER
-        app.get(endpointGenericSearcher, searchMultiParams)
-        app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
-        
-        // Servimos los ficheros estáticos de la carpeta uploads
-        app.use('/uploadAvatars', express.static('uploadAvatars'))
-        
-        //TODO PRUEBAS ENDOPOINT
-        const endpointPruebas = '/pruebas/adv'
-        //USER ADMIN
-        // app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
-        // app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
-        // app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
-        // app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
-        
-        let port = process.env.WEB_PORT
-        let host = process.env.WEB_HOST
-        app.listen(port, host, () => {
-            console.log(`Server running at http//${host}:<${port}>`);
-        });
+//RESERVAS
+app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
+app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
+app.get(endpointSelfReservations, validateAuthorization, validateSelfOrAdmin, getReservationsSelf);
+app.post(endpointReservations, detectType, createNewReservation);
+app.put(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, modifyReservation);
+app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, deleteReservation);
+
+
+
+//REVIEWS
+app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
+app.get(endpointReviewByRev, detectType, getReviewByRev);
+app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
+app.get(endpointReviewAvg, getReviewAvg)
+app.post(endpointReviews, detectTypeNoGuests, createNewReview);
+app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
+app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
+
+
+//SEARCHER
+app.get(endpointGenericSearcher, searchMultiParams)
+app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
+
+// Servimos los ficheros estáticos de la carpeta uploads
+app.use('/uploadAvatars', express.static('uploadAvatars'))
+
+//TODO PRUEBAS ENDOPOINT
+const endpointPruebas = '/pruebas/adv'
+//USER ADMIN
+// app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
+// app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
+// app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
+// app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
+
+let port = process.env.WEB_PORT
+let host = process.env.WEB_HOST
+app.listen(port, host, () => {
+    console.log(`Server running at http//${host}:<${port}>`);
+});
