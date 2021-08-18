@@ -22,14 +22,8 @@ const createAdvertisemenet = async (request, response) => {
         if (!newAdv.anuncio_uuid){
             newAdv = {...newAdv, anuncio_uuid : v4()}
         }
+        newAdv.usr_casero_uuid = request.auth.user.user_uuid
 
-        // if(newAdv.error){
-        //     throw new errorInvalidField(
-        //         'advertisement creation',
-        //         `invalid joi validation for data granted by ${request?.auth.username}`,
-        //         'request.body',
-        //         request.body)
-        // }else{
         const createAdv = await save(request.body, tName)
 
         isStatus = 201
@@ -37,7 +31,6 @@ const createAdvertisemenet = async (request, response) => {
             info: "Anuncio creado",
             data: newAdv
         }
-        // }
     } catch (error) {
         console.warn(error)
         if(error instanceof errorInvalidField){
@@ -63,8 +56,8 @@ const createAdvertisemenet = async (request, response) => {
     const tName = 'anuncios';
     try {
         const validatedAdv = validateUuid(request.params)
-        const advByAdv = await findItems(validatedAdv,tName)
-
+        let advByAdv = await findItems(validatedAdv,tName)
+        advByAdv = advByAdv[0]
         if (!advByAdv){
             throw new errorNoEntryFound(
                 tName,
@@ -116,7 +109,7 @@ const createAdvertisemenet = async (request, response) => {
     const tName = 'anuncios';
     try {
         const advCasero = { usr_casero_uuid : request.auth.user.user_uuid}
-        const selfAdv = await findItems(advCasero,tName)
+        let selfAdv = await findItems(advCasero,tName)
 
         if (!selfAdv){
             throw new errorNoEntryFound(
@@ -156,17 +149,19 @@ const getAdvertisements = async (request, response) => {
         const joinAdvPlusInmueblesTables = ['inmuebles','usuarios']
         const joinAdvPlusInmueblesKeys =[
             ['anuncios.inmueble_uuid','inmuebles.inmueble_uuid'],
-            ['inmuebles.usr_casero_uuid','usuarios.user_uuid'],
+            ['inmuebles.usr_casero_uuid','usuarios.user_uuid']
         ]
         let advInm = undefined
 
         const visibilidad = { visibilidad : request.auth?.user?.tipo === 'ADMIN' ? request.query.visibilidad : true }
-        if(Object.keys(request?.query).length !== 0){
-            const query = {...request.query, ...visibilidad}
-            [advInm] = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, query)
+        if(request.query && Object.keys(request?.query).length !== 0){
+            const isquery = {...request?.query, ...visibilidad}
+            console.log(isquery);
+            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, isquery)
         }else{
-            [advInm] = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
+            advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
         }
+        console.log(advInm);
         if(!advInm){
             throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
         }else{
