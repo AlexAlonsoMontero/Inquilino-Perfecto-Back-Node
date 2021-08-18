@@ -149,7 +149,7 @@ const getItemsMultiJoin = async (qtable, tables, tkeys, queryParams) => {
         const qparam = qParamsBoolValidator(Object.values(queryParams))
         console.log(qparam)
         rows= await connection.query(sentence,qparam)
-        console.log(rows[0])
+        
     }
     rows[0].forEach(element => {
         if(element?.password){delete element.password}
