@@ -13,7 +13,12 @@ class errorInvalidField extends Error {
         this.name = "errorInvalidField";
         this.type = "joi";
         this.message = `Not data valid in '${where}' where '${what1}' is '${what2}', because '${why}'`;
-        this.messageEsp = `Formato  ${what1} incorrecto `;
+        if(this.type==="joi"){
+            this.messageEsp =`Formato  ${what1} incorrecto `
+        }else{
+            this.messageEsp = `Formato  ${what1} incorrecto `;
+        }
+        
     }
 }
 
