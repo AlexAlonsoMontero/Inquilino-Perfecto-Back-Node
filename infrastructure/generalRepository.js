@@ -123,7 +123,6 @@ const getItemsMultiTable = async ({table1,table2, t1key, t2key}, queryParams) =>
         const qparam = qParamsBoolValidator(Object.values(queryParams))
         rows= await connection.query(sentence,qparam)
     }
-    
     return rows[0]
 }
 /**
@@ -146,8 +145,11 @@ const getItemsMultiJoin = async (qtable, tables, tkeys, queryParams) => {
     }else{
         const whereCondition = whereCreator(queryParams)
         sentence += whereCondition
+        console.log(sentence)
         const qparam = qParamsBoolValidator(Object.values(queryParams))
+        console.log(qparam)
         rows= await connection.query(sentence,qparam)
+        console.log(rows[0])
     }
     rows[0].forEach(element => {
         if(element?.password){delete element.password}
