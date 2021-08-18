@@ -4,6 +4,10 @@ const { deleteItem, findItems, getItems, save, updateItem} = require('../infrast
 const { validateUuid } = require('../validators/checkGeneral')
 const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty.js')
 const { v4 } = require('uuid')
+const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 
 
 /**
@@ -177,6 +181,7 @@ const getPropertiesSelf = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
+        console.log( req.auth.user.user_uuid);
         const propCasero = { usr_casero_uuid : req.auth.user.user_uuid }
         const selfProp = await findItems(propCasero,tName)
 
@@ -220,20 +225,22 @@ const modifyProperty = async(req, res) =>{
     const tName = 'inmuebles';
     try {
         const oldProp = validateUuid(req.params)
-        const existsProp = await findItems(oldProp, tName)
-        if(Object.keys(existsProp).length === 0){
-            new errorNoEntryFound(
+        let existsProp = await findItems(oldProp, tName)
+        if(!existsProp){
+            throw new errorNoEntryFound(
                 'Prop update by admin or self',
                 'old Prop uuid not found in database',
                 'req.params.inmueble_uuid',
-                req.params.inmueble_uuid
+                oldProp
             )
         }
-        if(
-            req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
-            req.auth?.user?.tipo === 'ADMIN'
+        else if(
+            existsProp.length > 0
+            &&(
+                req.auth?.user?.user_uuid === existsProp[0].usr_casero_uuid ||
+                req.auth?.user?.tipo === 'ADMIN')
         ){
-            //Cannot do that in the middleware since it needs to check the database
+            console.log(req.body);
             let newProp = propUpdateValidate(req.body)
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
@@ -246,8 +253,10 @@ const modifyProperty = async(req, res) =>{
                 }
                 console.log(`Successfully update for ${JSON.stringify(oldProp)} with ${JSON.stringify(newProp)}`);
             }else{
-                new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldProp.inmueble_uuid)
+                throw new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldProp.inmueble_uuid)
             }
+        }else{
+            throw new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldProp.inmueble_uuid)
         }
     } catch (error) {
         console.warn(error)

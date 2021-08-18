@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const {getConnection} = require('./bd/db')
 const connection = getConnection()
 const { dateString } = require('../infrastructure/utils/dateString') 
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 
 /**
  * CREA la tupla dada en la BDD
@@ -49,7 +50,8 @@ const getItems = async (table) => {
 const findItems = async (item, table) => {
     const sentencia = `SELECT * FROM ${table} WHERE ${Object.keys(item)[0]}=?`
     const [rows, field] = await connection.query(sentencia, Object.values(item)[0])
-    return rows[0]
+    return rows
+
 }
 
 /**
@@ -60,6 +62,12 @@ const findItems = async (item, table) => {
  * @returns 
  */
 const updateItem = async (newItem, oldItem, table) => {
+    if (newItem.password) {
+        entity.password = bcrypt.hashSync(entity.password, 10)
+        if (newItem.confirmPassword){
+            delete newItem.confirmPassword
+        }
+    }
     let sentencia = `UPDATE ${table} SET `
     const numValues = Object.keys(newItem).length
     for (let i = 0; i < Object.keys(newItem).length; i++) {

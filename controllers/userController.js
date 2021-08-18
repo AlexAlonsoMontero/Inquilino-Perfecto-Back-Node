@@ -383,7 +383,8 @@ const login = async (request, response, next) => {
                 let user = await findItems(
                     request.body?.email ? {email : request.body?.email} : {username : request.body?.username}, 
                     tName)
-                    // WARNING password send here
+                user = user[0]
+                // WARNING password send here
 
                     if(user){
                         if(user.activated_at === null){
@@ -501,7 +502,8 @@ const activateValidationUser = async (request, response) => {
         if (affectedRows === 0){
             throw new errorUserNotActive ('La cuenta no ha sido activada')
         }
-        const user = await findItems (oldUser,tName)
+        let user = await findItems (oldUser,tName)
+        user = user[0]
         await sendConfirmUserActivation(user.username, user.email)
 
         isStatus= 201

@@ -40,10 +40,6 @@ const endpointAdminReservations = '/api/admin/reservations';
 const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
 
-//ENDPOINTS NoApi
-const endpointVerifiacionUser = '/activation'
-const endpointLogin = '/login';
-const endpointLogout = '/logout';
 
 
 //ENDPOINTS PROPERTIES
@@ -59,9 +55,6 @@ const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews/:resena_uuid';
 const endpointReviewAvg = '/api/avg-reviews/:table/:avg_param'
 
-//ENDPOSINTS SEARCHER
-const endpointGenericSearcher='/search/:table';
-const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
@@ -73,12 +66,16 @@ const endpointSelfProperties = '/api/user/:username/properties';
 const endpointSelfReservations = '/api/user/:username/reservations';
 const endpointSelfReviews = '/api/user/:username/reviews';
 
+//ENDPOINTS NoApi
+const endpointVerifiacionUser = '/activation'
+const endpointLogin = '/login';
+const endpointLogout = '/logout';
+    //ENDPOSINTS SEARCHER
+        const endpointGenericSearcher='/search/:table';
+        const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
-//PRUEBAS ENDOPOINT
-const endpointPruebas = '/pruebas/adv'
 
-//RUTES
-
+//RUTES LOGIN/LOGOUT
 app.post(endpointLogin, login);
 app.post(endpointLogout, validateAuthorization, logout);
 
@@ -93,23 +90,13 @@ app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateU
 app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser);
 app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
 
-//USER ADMIN
-// app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
-// app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
-// app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
-// app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
-
-
-
 //INMUEBLES
-app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties);
-app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp);
-app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf);
-app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropsMid, createNewProperty);
-app.put(endpointPropertiesByProp, validateAuthorization, validateSelfOrAdmin, modifyProperty);
-app.delete(endpointProperties, validateAuthorization, validateSelfOrAdmin, deleteProperty);
-
-
+app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
+app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
+app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
+app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropsMid, createNewProperty); //ok
+app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
+app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty);
 
 //ANUNCIOS
 app.get(endpointAdv, detectType, getAdvertisementsMultiJoin);
@@ -118,38 +105,45 @@ app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, 
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
 app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement);
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement);
-
-
-//RESERVAS
-app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
-app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
-app.get(endpointSelfReservations, validateAuthorization, validateSelfOrAdmin, getReservationsSelf);
-app.post(endpointReservations, detectType, createNewReservation);
-app.put(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, modifyReservation);
-app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, deleteReservation);
-
-
-
-//REVIEWS
-app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
-app.get(endpointReviewByRev, detectType, getReviewByRev);
-app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
-app.get(endpointReviewAvg,getReviewAvg)
-app.post(endpointReviews, detectTypeNoGuests, createNewReview);
-app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
-app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
-
-
-//SEARCHER
-app.get(endpointGenericSearcher, searchMultiParams)
-app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
-
-// Servimos los ficheros estáticos de la carpeta uploads
-app.use('/uploadAvatars', express.static('uploadAvatars'))
-
-
-let port = process.env.WEB_PORT
-let host = process.env.WEB_HOST
-app.listen(port, host, () => {
-    console.log(`Server running at http//${host}:<${port}>`);
-});
+        
+        
+        //RESERVAS
+        app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
+        app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
+        app.get(endpointSelfReservations, validateAuthorization, validateSelfOrAdmin, getReservationsSelf);
+        app.post(endpointReservations, detectType, createNewReservation);
+        app.put(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, modifyReservation);
+        app.delete(endpointReservations, validateAuthorization, validateSelfOrAdmin, deleteReservation);
+        
+        
+        
+        //REVIEWS
+        app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
+        app.get(endpointReviewByRev, detectType, getReviewByRev);
+        app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
+        app.get(endpointReviewAvg, getReviewAvg)
+        app.post(endpointReviews, detectTypeNoGuests, createNewReview);
+        app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
+        app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
+        
+        
+        //SEARCHER
+        app.get(endpointGenericSearcher, searchMultiParams)
+        app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
+        
+        // Servimos los ficheros estáticos de la carpeta uploads
+        app.use('/uploadAvatars', express.static('uploadAvatars'))
+        
+        //TODO PRUEBAS ENDOPOINT
+        const endpointPruebas = '/pruebas/adv'
+        //USER ADMIN
+        // app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
+        // app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
+        // app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
+        // app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
+        
+        let port = process.env.WEB_PORT
+        let host = process.env.WEB_HOST
+        app.listen(port, host, () => {
+            console.log(`Server running at http//${host}:<${port}>`);
+        });
