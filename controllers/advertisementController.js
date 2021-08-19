@@ -2,7 +2,7 @@ const { errorInvalidUser } = require('../customErrors/errorInvalidUser');
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound');
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization');
-const { save, getItems, findItems, updateItem, deleteItem, getItemsMultiTable,getItemsMultiJoin } = require('../infrastructure/generalRepository')
+const { save, getItems, findItems, updateItem, deleteItem, getItemsMultiTable,getItemsMultiJoin, getItemsMultiParams } = require('../infrastructure/generalRepository')
 const { advCreateValidate, advUpdateValidate} = require('../validators/checkAdvertisement')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
@@ -16,7 +16,7 @@ const createAdvertisemenet = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        let newAdv = advCreateValidate(request.params)
+        let newAdv = advCreateValidate(request.body)
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         //En la versión definitiva no dejaremos que el post traiga uuid
         if (!newAdv.anuncio_uuid){
@@ -24,7 +24,7 @@ const createAdvertisemenet = async (request, response) => {
         }
         newAdv.usr_casero_uuid = request.auth.user.user_uuid
 
-        const createAdv = await save(request.body, tName)
+        const createAdv = await save(newAdv, tName)
 
         isStatus = 201
         sendMessage = {
@@ -35,7 +35,7 @@ const createAdvertisemenet = async (request, response) => {
         console.warn(error)
         if(error instanceof errorInvalidField){
             isStatus = 401
-            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+            sendMessage = {error: error.message}
         }else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}
@@ -104,27 +104,51 @@ const createAdvertisemenet = async (request, response) => {
  * @param {*} request
  * @param {*} response
  */
- const getAdvertisementSelf = async (request, response) => {
+ const getAdvertisementUser = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
+    const tUsuarios = 'usuarios';
     try {
-        const advCasero = { usr_casero_uuid : request.auth.user.user_uuid}
-        let selfAdv = await findItems(advCasero,tName)
+        if(request.params.username === request.auth.user.username){
+            const advCasero = { usr_casero_uuid : request.auth.user.user_uuid}
+            const selfAdv = await findItems(advCasero,tName)
 
-        if (!selfAdv){
-            throw new errorNoEntryFound(
-                tName,
-                "no adv was found in getAdvertisementSelf",
-                'usr_casero_uuid',
-                request.auth.user.user_uuid)
-        }else{
-            isStatus = 200
-            sendMessage =   {
-                tuple: selfAdv.anuncio_uuid,
-                info:"Anuncio encontrado",
-                data: selfAdv
+            if (!selfAdv){
+                throw new errorNoEntryFound(
+                    tName,
+                    "no adv was found in getAdvertisementSelf",
+                    'usr_casero_uuid',
+                    request.auth.user.user_uuid)
+            }else{
+                isStatus = 200
+                sendMessage =   {
+                    tuple: request.auth.user.username,
+                    info:"Anuncio propios",
+                    data: selfAdv
+                }
+                console.log(`Successful getAdvertisementUser in ${tName}`);
             }
-            console.log(`Successful getAdvertisementSelf in ${tName}`);
+        }else{
+            const user = await findItems({username: request.params.username},tUsuarios)
+            console.log(user);
+            console.log(user[0].user_uuid);
+            const userAdv = await getItemsMultiParams({usr_casero_uuid: user[0].user_uuid, visibilidad: true},tName)
+            console.log(userAdv);
+            if (!userAdv){
+                throw new errorNoEntryFound(
+                    tName,
+                    "no adv was found in getAdvertisementSelf",
+                    'username',
+                    user.username)
+            }else{
+                isStatus = 200
+                sendMessage =   {
+                    tuple: user.user_uuid,
+                    info:`Anuncios de ${request.auth.user.username}`,
+                    data: userAdv
+                }
+                console.log(`Successful getAdvertisementUser in ${tName}`);
+            }
         }
     }catch(error){
         console.warn(error)
@@ -194,8 +218,8 @@ const modifyAdvertisement = async (request, response) => {
     const tName = 'anuncios';
     try {
         const oldAdv = validateUuid(request.params)
-        const existsAdv = await findItems(oldAdv, tName)
-        if(Object.keys(existsAdv).length === 0){
+        let existsAdv = await findItems(oldAdv, tName)
+        if(!existsAdv || Object.keys(existsAdv).length === 0){
             throw new errorNoEntryFound(
                 'adv update by admin or self',
                 'old adv uuid not found in database',
@@ -204,9 +228,7 @@ const modifyAdvertisement = async (request, response) => {
             )
         }
         if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
-            //Cannot do that in the middleware since it needs to check the database
-            let newAdv = advUpdateValidate(request.body) //throws validation error
-            newAdv = {...oldAdv, ...newAdv}
+            const newAdv = advUpdateValidate(request.body)
             const consulta = await updateItem(newAdv, oldAdv, tName)
             if(consulta >= 1){
                 isStatus = 200
@@ -219,6 +241,8 @@ const modifyAdvertisement = async (request, response) => {
             }else{
                 throw new errorNoEntryFound(tName,'no entry found with the given id','anuncio_uuid',oldAdv.anuncio_uuid)
             }
+        }else{
+            throw new errorInvalidUser('You are trying to update an advertisement that is not yours')
         }
     } catch (error) {
         console.warn(error)
@@ -240,33 +264,32 @@ const deleteAdvertisement = async (request, response) => {
     const tName = 'anuncios';
     try {
         const validatedDelAdv = validateUuid(request.body)
-        // if(!validatedDelAdv.error){
-            const existsAdv = await findItems(validatedDelAdv,tName)
-            if(existsAdv >= 1){
-                if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
-                    const isAdvDel = await deleteItem(validatedDelAdv, tName)
-                    sendMessage = {
-                        "Tuple": validatedDelAdv,
-                        "Delete": isAdvDel
-                    }
-                    isStatus = 200
-                    console.log(isAdvDel ?
-                            `Successfully deletion for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`
-                            : `No tuple could be deleted for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`);
-                }else{
-                    throw new errorNoAuthorization(
-                        request.auth?.user?.user_uuid,
-                        request.auth?.user?.tipo,
-                        'delete advertisement',
-                        'only admin or adv creator can delete it')
-                    }
+        let existsAdv = await findItems(validatedDelAdv,tName)
+        existsAdv = existsAdv[0]
+        if(existsAdv){
+            console.log(request.auth?.user?.user_uuid);
+            console.log(existsAdv.usr_casero_uuid);
+            if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
+                const isAdvDel = await deleteItem(validatedDelAdv, tName)
+                sendMessage = {
+                    "Tuple": validatedDelAdv,
+                    "Delete": isAdvDel
                 }
-                else{
-                    throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
-                }
-        // }else{
-        //     throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
-        // }
+                isStatus = 200
+                console.log(isAdvDel ?
+                        `Successfully deletion for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`
+                        : `No tuple could be deleted for ${Object.keys(validatedDelAdv)[0]} with ${validatedDelAdv.anuncio_uuid}`);
+            }else{
+                throw new errorNoAuthorization(
+                    request.auth?.user?.username,
+                    request.auth?.user?.tipo,
+                    'delete advertisement',
+                    'only admin or adv creator can delete it'
+                )
+            }
+        }else{
+            throw new errorNoEntryFound(tName + 'delete adv','adv not found','request.body',request.body.anuncio_uuid)
+        }
     } catch (error) {
         console.warn(error)
         sendMessage = {error:error.message}
@@ -287,7 +310,7 @@ module.exports = {
     createAdvertisemenet,
     getAdvertisements,
     getAdvertisementByAdv,
-    getAdvertisementSelf,
+    getAdvertisementUser,
     modifyAdvertisement,
     deleteAdvertisement
 }
