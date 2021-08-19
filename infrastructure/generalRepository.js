@@ -240,6 +240,7 @@ const getAvgItems = async(showParam,avgParam,groupParam,whereParams, table) =>{
     return rows[0][0]
 
 }
+
 module.exports = {
     save,
     getItems,

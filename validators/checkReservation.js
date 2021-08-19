@@ -1,7 +1,10 @@
-const Joi = require('joi')
+const Joi = require('joi');
+const { errorInvalidField } = require('../customErrors/errorInvalidField');
 
 
 const schemaCreateReserv = Joi.object().keys({
+    reserva_uuid : Joi.string().guid({ version : 'uuidv4' }),
+    anuncio_uuid : Joi.string().guid({ version : 'uuidv4' }).required(),
     fecha_reserva : Joi.date().iso().required(),
     fecha_inicio : Joi.date().iso().min(Joi.ref('fecha_reserva')),
     fecha_fin : Joi.date().iso().min(Joi.ref('fecha_inicio')),
@@ -19,12 +22,40 @@ const schemaUpdateReserv = Joi.object().keys({
     tipo_pago_reserva : Joi.string().valid(...['MENSUAL','SEMANAL','DIARIO','OTRO'])
 })
 
-const reservCreateValidate = async (reserv) => {
-    return Joi.assert(reserv,schemaCreateReserv)
+const reservCreateValidate = (reserv) => {
+    if(schemaCreateReserv.validate(reserv)?.error){
+        const [errorDetails] = schemaCreateReserv.validate(reserv)?.error.details;
+        const errorMessage = errorDetails.message
+        const errorType = errorDetails.type
+        const errorField = errorDetails.message.split(' ')[0].split('"')[1]
+
+        throw new errorInvalidField(
+            'reserv creation fields joi validation',
+            errorMessage,
+            errorField,
+            errorType
+        )
+    }else{
+        return reserv
+    }
 }
 
-const reservUpdateValidate = async (reserv) => {
-    return Joi.assert(reserv, schemaUpdateReserv)
+const reservUpdateValidate = (reserv) => {
+    if(schemaUpdateReserv.validate(reserv)?.error){
+        const [errorDetails] = schemaUpdateReserv.validate(reserv)?.error.details;
+        const errorMessage = errorDetails.message
+        const errorType = errorDetails.type
+        const errorField = errorDetails.message.split(' ')[0].split('"')[1]
+
+        throw new errorInvalidField(
+            'reserv update fields joi validation',
+            errorMessage,
+            errorField,
+            errorType
+        )
+    }else{
+        return reserv
+    }
 }
 
 module.exports = {
