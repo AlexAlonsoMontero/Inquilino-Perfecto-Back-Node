@@ -6,6 +6,7 @@ const { validateUuid } = require('../validators/checkGeneral')
 const { reservUpdateValidate, reservCreateValidate } = require('../validators/checkReservation')
 const { v4 } = require('uuid')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
 
 
 /**
@@ -17,6 +18,7 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const createNewReservation = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
+    const tAnuncios = 'anuncios';
     try{
         let validatedNewRes = reservCreateValidate(req.body) //only allows estado_reserva = PENDING
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
@@ -24,19 +26,47 @@ const createNewReservation = async(req, res) =>{
         if (!validatedNewRes.reserva_uuid){
             validatedNewRes = {...validatedNewRes, reserva_uuid : v4()}
         }
-        const newRes = await save(validatedNewRes,tName)
-        isStatus = 201
-        sendMessage =   {
-            tuple: req.body.reserva_uuid,
-            data: validatedNewRes
+        validatedNewRes = {...validatedNewRes, usr_inquilino_uuid : req.auth?.user?.user_uuid }
+
+        let anuncioRes = await findItems({anuncio_uuid : validatedNewRes.anuncio_uuid}, tAnuncios)
+        if(anuncioRes){
+            anuncioRes = anuncioRes[0]
+
+            validatedNewRes = {
+                ...validatedNewRes, 
+                usr_casero_uuid : anuncioRes.usr_casero_uuid,
+                inmueble_uuid :  anuncioRes.inmueble_uuid
+            }
+            console.log(validatedNewRes);
+            const newRes = await save(validatedNewRes,tName)
+
+            isStatus = 201
+            sendMessage =   {
+                info: `Creada nueva reserva para ${req.auth?.user?.username}`,
+                data: validatedNewRes
+            }
+            console.log(`Created new element in ${tName}`)
+        }else{
+            throw new errorNoAuthorization(
+                req.auth?.user?.username,
+                req.auth?.user?.tipo,
+                'createNewReservation',
+                'No se encuentra el anuncio relacionado'
+            )
         }
-        console.log(`Created new element in ${tName}`)
     }catch (error) {
         console.warn(error)
         if(error instanceof errorInvalidField){
             isStatus = 401
-            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
-        }else{
+            sendMessage = {error: error.message}
+        }else if(error?.sql){
+            isStatus = 500
+            sendMessage = {
+                error: 'Error de base de datos',
+                message: error.sqlMessage
+            }
+        }
+        else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}
         }

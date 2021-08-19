@@ -115,7 +115,7 @@ app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertis
 app.get(endpointReservations, validateAuthorization, validateRolAdmin, getAllReservations); //ok
 app.get(endpointReservationsByRes, validateAuthorization, detectTypeNoGuests, getReservationByRes); //ok
 app.get(endpointSelfReservations, validateAuthorization, detectTypeNoGuests, getReservationsSelf); 
-app.post(endpointReservations, validateAuthorization, detectTypeNoGuests, createNewReservation);
+app.post(endpointReservations, validateAuthorization, validateRolInquilino, createNewReservation); //ok
 app.put(endpointReservationsByRes, validateAuthorization, detectTypeNoGuests, modifyReservation);
 app.delete(endpointReservations, validateAuthorization, detectTypeNoGuests, deleteReservation);
 
