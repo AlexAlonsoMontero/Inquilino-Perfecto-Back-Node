@@ -5,6 +5,7 @@ const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} 
 const { validateUuid } = require('../validators/checkGeneral')
 const { reservUpdateValidate, reservCreateValidate } = require('../validators/checkReservation')
 const { v4 } = require('uuid')
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 
 
 /**
@@ -197,7 +198,7 @@ const getReservationsSelf = async(req, res) =>{
 }
 
 /**
- * #ADMIN_FUNCTION
+ * #INVOLVED OR ADMIN_FUNCTION
  * gets reservation using :reserva_uuid as key
  * @param {json} req with path param ':reserva_uuid'
  * @param {json} res
@@ -207,16 +208,29 @@ const getReservationByRes = async(req, res) =>{
     const tName = 'reservas';
     try{
         const validatedRes = validateUuid(req.params)
-        const foundRes = await findItems(validatedRes,tName)
+        let foundRes = await findItems(validatedRes,tName)
+        foundRes = foundRes[0]
         if(!foundRes){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRes)[0],validatedRes.reserva_uuid)
         }else{
-            isStatus = 200
-            sendMessage =   {
-                Tuple: validatedRes,
-                Data: foundRes
+            if(    req.auth?.user?.user_uuid === foundRes.usr_casero_uuid
+                || req.auth?.user?.user_uuid === foundRes.usr_inquilino_uuid
+                || req.auth?.user?.tipo === 'ADMIN'){
+
+                isStatus = 200
+                sendMessage =   {
+                    Tuple: validatedRes,
+                    Data: foundRes
+                }
+                console.warn(`Successful query on ${tName}`);
+            }else{
+                console.log(req.auth?.user?.username);
+                throw new errorNoAuthorization(
+                    req.auth?.user?.username,
+                    req.auth?.user?.tipo,
+                    'getReservationByRes',
+                    'no participa en la reserva y no es admin')
             }
-            console.warn(`Successful query on ${tName}`);
         }
     }catch(error){
         console.warn(error)
