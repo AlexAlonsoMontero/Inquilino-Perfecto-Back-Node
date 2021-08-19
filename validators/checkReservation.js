@@ -41,8 +41,8 @@ const reservCreateValidate = (reserv) => {
 }
 
 const reservUpdateValidate = (reserv) => {
-    if(schemaUpdateReserv.validate(adv)?.error){
-        const [errorDetails] = schemaUpdateReserv.validate(adv)?.error.details;
+    if(schemaUpdateReserv.validate(reserv)?.error){
+        const [errorDetails] = schemaUpdateReserv.validate(reserv)?.error.details;
         const errorMessage = errorDetails.message
         const errorType = errorDetails.type
         const errorField = errorDetails.message.split(' ')[0].split('"')[1]

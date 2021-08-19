@@ -287,40 +287,49 @@ const modifyReservation = async(req, res) =>{
     const tName = 'reservas';
     try{
         const oldRes = validateUuid(req.params)
-        const existsRes = await findItems(oldRes, tName)
-        if(Object.keys(existsRes).length === 0){
+        let existsRes = await findItems(oldRes, tName)
+        existsRes = existsRes[0]
+        if(!existsRes || Object.keys(existsRes).length === 0){
             throw new errorNoEntryFound(
                 'Res update by admin or self',
                 'old reservation uuid not found in database',
                 'req.params.reserva_uuid',
                 req.params.reserva_uuid
                 )
-            }
-            if(
-                req.auth?.user?.user_uuid === existsRes.usr_casero_uuid ||
-                req.auth?.user?.tipo === 'ADMIN'
-                ){
-                    //Cannot do that in the middleware since it needs to check the database
-                    let newRes = reservUpdateValidate(req.body)
-                    newRes = {...oldRes, ...newRes}
-                    const consulta = await updateItem(newRes, oldRes, tName)
-                    if(consulta >= 1){
-                        isStatus = 200
-                        sendMessage = {
-                            info: "Inmueble modificado",
-                            newData: newRes,
-                            reference: oldRes
-                        }
-                        console.log(`Successfully updated for ${Object.keys(oldRes)[0]} with ${oldRes}`);
-                    }else{
-                        throw new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldRes.inmueble_uuid)
+            }else{
+                console.log(existsRes);
+                if( req.auth?.user?.user_uuid === existsRes.usr_casero_uuid
+                    || req.auth?.user?.tipo === 'ADMIN'){
+                let newRes = reservUpdateValidate(req.body)
+                newRes = {...oldRes, ...newRes}
+                const consulta = await updateItem(newRes, oldRes, tName)
+                if(consulta >= 1){
+                    isStatus = 200
+                    sendMessage = {
+                        info: "Inmueble modificado",
+                        newData: newRes,
+                        reference: oldRes
                     }
+                    console.log(`Successfully updated for ${Object.keys(oldRes)[0]} with ${oldRes}`);
+                }else{
+                    throw new errorNoEntryFound(tName,'no entry found with the given id','inmueble_uuid',oldRes.inmueble_uuid)
                 }
+            }else{
+                throw new errorNoAuthorization(
+                    req.auth.user.username,
+                    req.auth.user.tipo,
+                    'modifyReservation',
+                    'only the related casero or admin can update'
+                )
+            }
+        }
     }catch(error){
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
             isStatus = 404
+        }else if(error instanceof errorInvalidField){
+            isStatus = 401
         }else{
             isStatus = 500
         }
@@ -328,7 +337,11 @@ const modifyReservation = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
-
+/**
+ * ADMIN_FUNCTION
+ * @param {*} req 
+ * @param {*} res 
+ */
 const deleteReservation = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
