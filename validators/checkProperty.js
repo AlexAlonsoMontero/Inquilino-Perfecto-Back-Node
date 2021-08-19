@@ -51,23 +51,18 @@ const schemaUpdateProp = Joi.object().keys({
     x : Joi.number().precision(6),
     y : Joi.number().precision(6),
 
+    inmueble_uuid : Joi.string().forbidden(),
     usr_casero_uuid : Joi.string().guid({
         version: [
             'uuidv4',
             'uuidv5'
         ]
     }),
-    inmueble_uuid : Joi.string().guid({
-        version: [
-            'uuidv4',
-            'uuidv5'
-        ]
-    }),
-    metros_2 : Joi.number(),
     numero : Joi.string().max(16),
     piso : Joi.string().max(16),
     comunidad : Joi.string().max(128),
 
+    metros_2 : Joi.number(),
     banos: Joi.number(),
     habitaciones: Joi.number(),
     amueblado: Joi.boolean(),
@@ -85,7 +80,7 @@ const propCreateValidate = (prop) => {
         const errorMessage = errorDetails.message
         const errorType = errorDetails.type
         const errorField = errorDetails.message.split(' ')[0].split('"')[1]
-        
+
         throw new errorInvalidField(
             'prop creation fields joi validation',
             errorMessage,

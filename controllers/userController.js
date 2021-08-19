@@ -124,15 +124,15 @@ const getUsers = async (request, response) => {
         if(Object.keys(request.query).length !== 0){
             if(request.auth?.user?.tipo !== 'INQUILINO'){
                 let foundUsers = await getItemsMultiParams(request.query,tName)
-                foundUsers = foundUsers
-                    .filter( (user) => {
-                        return user.tipo !== 'ADMIN'
-                    })
-                    .map( (user) => {
-                        delete user.password
-                        return user
-                    })
                 if (foundUsers) {
+                    foundUsers = foundUsers
+                        .filter( (user) => {
+                            return user.tipo !== 'ADMIN'
+                        })
+                        .map( (user) => {
+                            delete user.password
+                            return user
+                        })
                     isStatus = 200
                     sendMessage = {
                         info: foundUsers.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
@@ -149,14 +149,9 @@ const getUsers = async (request, response) => {
                     return user
                 })
             }
-        }else{ //no query
-            const foundUsers = await findUsersNoPass()
-            if (foundUsers) {
-                isStatus = 200
-                sendMessage = {
-                    info: foundUsers.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
-                    foundUsers
-                }
+        }else{ //get with no query
+            if(request.auth?.user?.tipo !== 'INQUILINO'){
+                const foundUsers = await findUsersNoPass()
                 if (foundUsers) {
                     isStatus = 200
                     sendMessage = {
@@ -166,8 +161,21 @@ const getUsers = async (request, response) => {
                 } else {
                     throw new errorNoEntryFound('getting all users with query params', 'empty result')
                 }
-            } else {
-                throw new errorNoEntryFound('getting all users', 'null result')
+            }else {
+                let foundUsers = await findItems({tipo:'CASERO'},tName)
+                if (foundUsers) {
+                    foundUsers = foundUsers.map( (user) => {
+                        delete user.password
+                        return user
+                    })
+                    isStatus = 200
+                    sendMessage = {
+                        info: foundUsers.length >= 1 ? 'Usuarios localizados' : 'No se han encontrado usuarios',
+                        foundUsers
+                    }
+                } else {
+                    throw new errorNoEntryFound('getting all users with query params', 'empty result')
+                }
             }
         }
     } catch (error) {
@@ -191,11 +199,12 @@ const getUsers = async (request, response) => {
  * @param {json} request
  * @param {json} response
  */
-const getSelfUser = (request, response) => {
+const getSelfUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
         if(request.auth?.user){
-            const bddUserData = getUserNoPass(request.auth.user.user_uuid)
+            const bddUserData = await getUserNoPass(request.auth.user.user_uuid)
+            console.log(bddUserData);
             isStatus = 200
             sendMessage = {
                 info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
@@ -220,8 +229,8 @@ const getSelfUser = (request, response) => {
 
 /**
  * Actualiza los datos de usuario y devuelve un token nuevo
- * @param {*} request 
- * @param {*} response 
+ * @param {*} request
+ * @param {*} response
  */
 const updateSelfUser = async (request, response) =>{
     let isStatus, sendMessage;

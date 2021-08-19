@@ -8,7 +8,7 @@ const { updateUserForAdmin, getUsersForAdmin }
 = require('./controllers/adminController')
 const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementSelf,    modifyAdvertisement,    deleteAdvertisement } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementUser,    modifyAdvertisement,    deleteAdvertisement } 
 = require('./controllers/advertisementController')
 const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
 = require('./controllers/reservationController')
@@ -82,14 +82,14 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 
 //USUARIOS
-app.get(endpointVerifiacionUser, activateValidationUser);
-app.get(endpointUserProfile, validateAuthorization, validateSelfOrAdmin, getSelfUser);
-app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
+app.get(endpointVerifiacionUser, activateValidationUser); //ok
+app.get(endpointUserProfile, validateAuthorization, detectTypeNoGuests, getSelfUser); //ok
+app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers); 
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
-app.post(endpointUser, detectType, upload.single('avatar'), createNewUser);
-app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser);
-app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser);
-app.delete(endpointUser, validateAuthorization, validateSelfOrAdmin, deleteUser);
+app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //ok
+app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser); //ok
+app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser); //ok
+app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser); //ok
 
 //INMUEBLES
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
@@ -104,12 +104,13 @@ app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteP
 //TODO borrar entradas de tabla imágenes al borrar
 
 //ANUNCIOS
-app.get(endpointAdv, detectType, getAdvertisements);
-app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv);
-app.get(endpointSelfAdvertisements, validateAuthorization, validateSelfOrAdmin, getAdvertisementSelf);
-app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet);
-app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement);
-app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement);
+app.get(endpointAdv, detectType, getAdvertisements); //ok
+app.get(enpointAdvByAdv, detectType, getAdvertisementByAdv); //ok
+app.get(endpointSelfAdvertisements, detectType, getAdvertisementUser); //ok
+app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet); //ok
+app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvertisement); //ok
+app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement); //ok
+
 //RESERVAS
 app.get(endpointAdminReservations, validateAuthorization, validateRolAdmin, getAllReservations);
 app.get(endpointReservationsByRes, validateAuthorization, validateSelfOrAdmin, getReservationByRes);
