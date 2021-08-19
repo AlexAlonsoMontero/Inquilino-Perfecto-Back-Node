@@ -80,6 +80,8 @@ const endpointLogout = '/logout';
 app.post(endpointLogin, login);
 app.post(endpointLogout, validateAuthorization, logout);
 
+// ficheros estáticos de la carpeta uploads
+app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 //USUARIOS
 app.get(endpointVerifiacionUser, activateValidationUser); //ok
@@ -122,10 +124,10 @@ app.delete(endpointReservations, validateAuthorization, validateRolAdmin, delete
 
 
 //REVIEWS
-app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
+app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //ok
 app.get(endpointReviewByRev, detectType, getReviewByRev);
-app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
-app.get(endpointReviewAvg, getReviewAvg)
+app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews);
+app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
 app.post(endpointReviews, detectTypeNoGuests, createNewReview);
 app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
 app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
@@ -135,8 +137,7 @@ app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
 app.get(endpointGenericSearcher, searchMultiParams)
 app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
 
-// Servimos los ficheros estáticos de la carpeta uploads
-app.use('/uploadAvatars', express.static('uploadAvatars'))
+
 
 //TODO PRUEBAS ENDOPOINT
 const endpointPruebas = '/pruebas/adv'
