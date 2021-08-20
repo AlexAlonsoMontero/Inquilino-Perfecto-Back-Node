@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const fs = require('fs')
 const { deleteItem, findItems, getItems, save, updateItem} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty')
-const { propDirectory, revsDirectory } = require('../infrastructure/utils/multerUploads')
+const { propDirectory } = require('../infrastructure/utils/multerUploads')
 
 const { v4 } = require('uuid')
 const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
@@ -47,20 +48,19 @@ const createNewProperty = async(req, res) =>{
 
         const createdProp = await save(newProp, tName)
 
-        console.log(propDirectory);
-        // const files = req.files
-        // if (Array.isArray(files) && files.length >0){
-        //     for(const file of files) {
-        //         let imgEntry = {
-        //             img_inmueble_uuid: v4(),
-        //             inmueble_uuid: newProp.inmueble_uuid,
-        //             img_inmueble: propDirectory + req.body.inmueble_uuid + file.originalname
-        //         }
-        //         console.log(imgEntry);
-        //         let save = await save(imgEntry,tImgs)
-        //         console.log(save);
-        //     }
-        // }
+        const prevDir = propDirectory + '/' + req.auth.user.user_uuid
+        const newDir = propDirectory + '/' + newProp.inmueble_uuid
+        fs.renameSync(prevDir, newDir)
+
+        const filenames = fs.readdirSync(newDir)
+        for(const f in filenames){
+            const tuple = {
+                img_inmueble_uuid: v4(),
+                inmueble_uuid: newProp.inmueble_uuid,
+                img_inmueble: newDir + '/' + filenames[f]
+            }
+            const saveIt = await save(tuple,tImgs)
+        }
 
         isStatus = 201
         sendMessage = {
