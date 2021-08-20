@@ -186,37 +186,55 @@ const getSelfReviews = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas'
     try {
-        if(Object.keys(req.query).length !== 0){
-            const foundRevs = await getItemsMultiParams(req.query,tName)
-            if (foundRevs) {
-                isStatus = 200
-                sendMessage = {
-                    "info": foundRevs.length >= 1 ? 'Resenas localizadas' : 'No se han encontrado resenas',
-                    "data": foundRevs
+        if(req.params.username === req.auth.user.username){
+            if(Object.keys(req.query).length !== 0){
+                const foundRevs = await getItemsMultiParams({...req.query,autor_uuid:req.auth.user.user_uuid},tName)
+                if (foundRevs) {
+                    isStatus = 200
+                    sendMessage = {
+                        "info": foundRevs.length >= 1 ? 'Resenas localizadas' : 'No se han encontrado resenas',
+                        "data": foundRevs
+                    }
+                } else {
+                    throw new errorNoEntryFound(
+                        'getSelfReviews',
+                        'null result from database',
+                        'req.query',
+                        JSON.stringify(req.query)
+                        )
                 }
-            } else {
-                throw new errorNoEntryFound('getting all props with query params', 'empty result')
+            }else{
+                const foundRevs = await findItems({autor_uuid:req.auth.user.user_uuid},tName)
+                if (foundRevs) {
+                    isStatus = 200
+                    sendMessage = {
+                        "info": foundRevs.length >= 1 ? 'Resenas localizadas' : 'No se han encontrado resenas',
+                        "data": foundRevs
+                    }
+                } else {
+                    throw new errorNoEntryFound(
+                        'getSelfReviews no query params',
+                        'null result from database',
+                        `autor_uuid is ${req.auth.user.username}`,
+                        req.auth.user.user_uuid
+                    )
+                }
             }
         }else{
-            const foundRevs = await getItems(tName)
-            if (foundRevs) {
-                isStatus = 200
-                sendMessage = {
-                    "info": foundRevs.length >= 1 ? 'Resenas localizadas' : 'No se han encontrado resenas',
-                    "data": foundRevs
-                }
-            } else {
-                throw new errorNoEntryFound('getting all props with query params', 'empty result')
-            }
+            throw new errorNoAuthorization(
+                req.auth.user.username,
+                req.auth.user.tipo,
+                `checking ${req.params.username} reviews`,
+                'this is not your profile'
+            )
         }
     } catch (error) {
         console.warn(error.message)
+        sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
             isStatus = 404
-            sendMessage = {error:"No se han encontrado resenas"}
         }else{
             isStatus = 500
-            sendMessage = {error:"Error interno del servidor"}
         }
     }finally{
         res.status(isStatus).send(sendMessage)

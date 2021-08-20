@@ -51,8 +51,6 @@ const checkIsInvolved = async (reqUser, validatedReview) => {
             checkInvolved = {...checkInvolvedInq, ...checkInvolvedCas}
             break;
         case 'ADMIN':
-            checkInvolved = true
-            break;
         default:
             checkInvolved = false
             break;

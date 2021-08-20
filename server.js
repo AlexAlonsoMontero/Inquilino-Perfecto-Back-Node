@@ -114,7 +114,7 @@ app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvert
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement); //ok
 
 //RESERVAS
-app.get(endpointReservations, validateAuthorization, validateRolAdmin, getAllReservations); //ok
+app.get(endpointReservations, validateAuthorization, validateRolCasero, getAllReservations); //ok
 app.get(endpointReservationsByRes, validateAuthorization, detectTypeNoGuests, getReservationByRes); //ok
 app.get(endpointSelfReservations, validateAuthorization, detectTypeNoGuests, getReservationsSelf); //ok
 app.post(endpointReservations, validateAuthorization, validateRolInquilino, createNewReservation); //ok
@@ -126,9 +126,9 @@ app.delete(endpointReservations, validateAuthorization, validateRolAdmin, delete
 //REVIEWS
 app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //ok
 app.get(endpointReviewByRev, detectType, getReviewByRev);
-app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews);
+app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
-app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, createNewReview);
+app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, createNewReview);//ok
 app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);
 
