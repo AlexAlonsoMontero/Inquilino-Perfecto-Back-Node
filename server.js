@@ -80,6 +80,8 @@ const endpointLogout = '/logout';
 app.post(endpointLogin, login);
 app.post(endpointLogout, validateAuthorization, logout);
 
+// ficheros estáticos de la carpeta uploads
+app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 //USUARIOS
 app.get(endpointVerifiacionUser, activateValidationUser); //ok
@@ -97,7 +99,7 @@ app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getP
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
 app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty); //ok
 //TODO upload imgs
-    //uploadPropsMid, 
+    //uploadPropsMid,
 app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
 //TODO actualizar imágenes
 app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
@@ -112,7 +114,7 @@ app.put(enpointAdvByAdv,  validateAuthorization, validateRolCasero, modifyAdvert
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement); //ok
 
 //RESERVAS
-app.get(endpointReservations, validateAuthorization, validateRolAdmin, getAllReservations); //ok
+app.get(endpointReservations, validateAuthorization, validateRolCasero, getAllReservations); //ok
 app.get(endpointReservationsByRes, validateAuthorization, detectTypeNoGuests, getReservationByRes); //ok
 app.get(endpointSelfReservations, validateAuthorization, detectTypeNoGuests, getReservationsSelf); //ok
 app.post(endpointReservations, validateAuthorization, validateRolInquilino, createNewReservation); //ok
@@ -122,21 +124,20 @@ app.delete(endpointReservations, validateAuthorization, validateRolAdmin, delete
 
 
 //REVIEWS
-app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews);
-app.get(endpointReviewByRev, detectType, getReviewByRev);
-app.get(endpointSelfReviews, validateAuthorization, validateSelfOrAdmin, getSelfReviews);
-app.get(endpointReviewAvg, getReviewAvg)
-app.post(endpointReviews, detectTypeNoGuests, createNewReview);
-app.put(endpointReviewByRev, detectTypeNoGuests, modifyReview);
-app.delete(endpointReviews, detectTypeNoGuests, deleteReview);
+app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //ok
+app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
+app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
+app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
+app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, createNewReview);//ok
+app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);
+app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);
 
 
 //SEARCHER
 app.get(endpointGenericSearcher, searchMultiParams)
 app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
 
-// Servimos los ficheros estáticos de la carpeta uploads
-app.use('/uploadAvatars', express.static('uploadAvatars'))
+
 
 //TODO PRUEBAS ENDOPOINT
 const endpointPruebas = '/pruebas/adv'
