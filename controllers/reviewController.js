@@ -252,24 +252,41 @@ const getReviewByRev = async(req, res) =>{
     const tName = 'resenas';
     try{
         const validatedRev = validateUuid(req.params)
-        if(checkIsInvolved(req.auth.user, validatedRev)){
-            const foundRev = await findItems(validatedRev,tName)
-            if(!foundRev){
-                throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRev)[0],validatedRev.reserva_uuid)
-            }else{
-                isStatus = 200
-                sendMessage =   {
-                    "tuple": validatedRev,
-                    "data": foundRev
+        let findRev = findItems(validatedRev,tName)
+        if(findRev){
+            findRev = findRev[0]
+            if(findRev.objetivo === 'INQUILINO'){
+                if( req.auth.user.tipo !== 'INQUILINO'
+                    || findRev.usr_inquilino_uuid === req.auth.user.user_uuid
+                    || findRev.usr_casero_uuid === req.auth.user.user_uuid
+                    || findRev.autor_uuid === req.auth.user.user_uuid ){
+                        isStatus = 200
+                        sendMessage = {
+                            info : 'review found',
+                            data : findRev
+                        }
+                }else{
+                    throw new errorNoAuthorization(
+                        req.auth.user.username,
+                        req.auth.user.tipo,
+                        'getReviewByRev',
+                        `INQUILINOS can't check on other reviews`
+                    )
                 }
-                console.warn(`Successful query on ${tName}`);
+            }else{ //las reviews de inmuebles y caseros son visibles para todos los usuarios
+                isStatus = 200
+                sendMessage = {
+                    info : 'review found',
+                    data : findRev
+                }
             }
         }else{
-            throw new errorNoAuthorization(
-                req.auth.user.username,
-                req.auth.user.tipo,
+            throw new errorNoEntryFound(
                 'getReviewByRev',
-                'user not related with review')
+                'null',
+                'req.params.resena_uuid',
+                req.params.resena_uuid
+            )
         }
     }catch(error){
         console.warn(error)

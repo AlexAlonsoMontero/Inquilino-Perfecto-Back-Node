@@ -125,7 +125,7 @@ app.delete(endpointReservations, validateAuthorization, validateRolAdmin, delete
 
 //REVIEWS
 app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews); //ok
-app.get(endpointReviewByRev, detectType, getReviewByRev);
+app.get(endpointReviewByRev, detectType, getReviewByRev); 
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
 app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, createNewReview);//ok
