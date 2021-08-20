@@ -47,19 +47,20 @@ const createNewProperty = async(req, res) =>{
 
         const createdProp = await save(newProp, tName)
 
-        const files = req.files
-        if (Array.isArray(files) && files.length >0){
-            for(const file of files) {
-                let imgEntry = {
-                    img_inmueble_uuid: v4(),
-                    inmueble_uuid: newProp.inmueble_uuid,
-                    img_inmueble: propDirectory + req.body.inmueble_uuid + file.originalname
-                }
-                console.log(imgEntry);
-                let save = await save(imgEntry,tImgs)
-                console.log(save);
-            }
-        }
+        console.log(propDirectory);
+        // const files = req.files
+        // if (Array.isArray(files) && files.length >0){
+        //     for(const file of files) {
+        //         let imgEntry = {
+        //             img_inmueble_uuid: v4(),
+        //             inmueble_uuid: newProp.inmueble_uuid,
+        //             img_inmueble: propDirectory + req.body.inmueble_uuid + file.originalname
+        //         }
+        //         console.log(imgEntry);
+        //         let save = await save(imgEntry,tImgs)
+        //         console.log(save);
+        //     }
+        // }
 
         isStatus = 201
         sendMessage = {
