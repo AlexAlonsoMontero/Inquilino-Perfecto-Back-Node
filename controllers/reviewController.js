@@ -317,7 +317,7 @@ const modifyReview = async(req, res) =>{
     try{
         const oldResRef = validateUuid(req.params)
         let findRes = await findItems(oldResRef,tName)
-        if(findRes){
+        if(findRes && findRes.length !== 0){
             findRes = findRes[0]
             if(req.auth.user.tipo === 'ADMIN'
                 || findRes.usr_inquilino_uuid === req.auth.user.user_uuid
@@ -377,34 +377,9 @@ const deleteReview = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
     try{
-        const delRev = validateUuid(req.body)
-        if(checkIsInvolved(req.auth.user, delRev)){
-            const isRedDel = await deleteItem(delRev, tName)
-            if(!isRedDel){
-                throw new errorNoEntryFound(
-                    tName,
-                    "no tuple was deleted",
-                    Object.keys(delRev)[0],
-                    delRev.reserva_uuid)
-            }else{
-                isStatus = 200
-                sendMessage =   {
-                    "tuple": delRev,
-                    "delete": isRedDel
-                }
-                console.warn(`Successfully deletion for ${Object.keys(delRev)[0]} with ${delRev}`);
-            }
-        }else{
-            throw new errorNoAuthorization(
-                req.auth.user.username,
-                req.auth.user.tipo,
-                'deleteReview',
-                'user not related with review')
-        }
-
         const checkRes = validateUuid(req.body)
         let findRes = await findItems(checkRes,tName)
-        if(findRes){
+        if(findRes && findRes.length !== 0){
             findRes = findRes[0]
             if(req.auth.user.tipo === 'ADMIN'
                 || findRes.usr_inquilino_uuid === req.auth.user.user_uuid
