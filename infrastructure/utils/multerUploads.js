@@ -9,8 +9,24 @@ const revsDirectory = './imgs/reviews'
 const storageProps = multer.diskStorage({
     destination: ( req, file, callback ) => {
         const uuid = req.auth.user.user_uuid;
-        const calle = req.body.calle;
-        const dt = new Date().getDate()
+        const dir = propDirectory + '/' + uuid + '/'
+        if(!fs.existsSync(propDirectory)){
+            fs.mkdirSync(propDirectory)}
+        if(!fs.existsSync(propDirectory + '/' + uuid)){
+            fs.mkdirSync(propDirectory + '/' + uuid)}
+        callback( null, dir )
+    },
+    filename: ( req, file, callback )=> {
+        const uuid = req.auth.user.user_uuid;
+        callback(null,
+            uuid + '_' + file.originalname
+        )
+    }
+})
+
+const storageUpdateProp = multer.diskStorage({
+    destination: ( req, file, callback ) => {
+        const uuid = req.auth.user.user_uuid;
         const dir = propDirectory + '/' + uuid + '/'
         if(!fs.existsSync(propDirectory)){
             fs.mkdirSync(propDirectory)}
@@ -30,8 +46,6 @@ const storageProps = multer.diskStorage({
 const storageRevs = multer.diskStorage({
     destination: ( req, file, callback ) => {
         const uuid = req.auth.user.user_uuid;
-        const calle = req.body.calle;
-        const dt = new Date().getDate()
         const dir = revsDirectory + '/' + uuid + '/'
         if(!fs.existsSync(revsDirectory)){
             fs.mkdirSync(revsDirectory)}
@@ -47,6 +61,25 @@ const storageRevs = multer.diskStorage({
     }
 })
 
+const storageUpdateRevs = multer.diskStorage({
+    destination: ( req, file, callback ) => {
+        const uuid = req.params.resena_uuid
+        const dir = revsDirectory + '/' + uuid + '/'
+        if(!fs.existsSync(revsDirectory)){
+            fs.mkdirSync(revsDirectory)}
+        if(!fs.existsSync(revsDirectory + '/' + uuid)){
+            fs.mkdirSync(revsDirectory + '/' + uuid)}
+        callback( null, dir )
+    },
+    filename: ( req, file, callback )=> {
+        const uuid = req.params.resena_uuid
+        callback(null,
+            uuid + '_' + file.originalname
+        )
+    }
+})
+
 module.exports = {
-    storageProps, storageRevs, propDirectory, revsDirectory
+    storageProps, storageUpdateProp, storageRevs, storageUpdateRevs,
+    propDirectory, revsDirectory
 }

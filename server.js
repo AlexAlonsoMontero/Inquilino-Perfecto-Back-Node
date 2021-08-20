@@ -12,7 +12,7 @@ const { getReservationByRes, getAllReservations, getReservationsSelf, createNewR
 = require('./controllers/reservationController')
 const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg } 
 = require('./controllers/reviewController')
-const { storageProps, storageRevs }
+const { storageProps, storageRevs, storageUpdateProp, storageUpdateRevs }
 = require('./infrastructure/utils/multerUploads')
 
 
@@ -22,8 +22,10 @@ const cors = require('cors')
 
 const app = express()
 const upload = multer()
-const uploadProp = multer( {storage: storageProps} )
-const uploadRev = multer( {storage: storageRevs} )
+const uploadPropCreation = multer( {storage: storageProps} )
+const uploadRevCreation = multer( {storage: storageRevs} )
+const uploadPropUpdate = multer( {storage: storageUpdateProp} )
+const uploadRevsUpdate = multer( {storage: storageUpdateProp} )
 
 app.use(cors())
 app.use(express.urlencoded({extended: true}));
@@ -99,7 +101,7 @@ app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser);
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero,uploadProp.array('imgsprop',12),createNewProperty);//ok
+app.post(endpointProperties, validateAuthorization, validateRolCasero,uploadPropCreation.array('imgsprop',12),createNewProperty);//ok
 app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
 //TODO actualizar imágenes
 app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
@@ -128,7 +130,7 @@ app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews)
 app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
-app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRev.array('imgsrevs',12), createNewReview);//ok
+app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRevCreation.array('imgsrevs',12), createNewReview);//ok
 app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);//ok
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);//ok
 
