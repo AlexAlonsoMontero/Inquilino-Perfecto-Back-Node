@@ -99,11 +99,7 @@ app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser);
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero,
-    uploadProp.array('imgsprop',12),
-    createNewProperty);
-
-app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty); //ok
+app.post(endpointProperties, validateAuthorization, validateRolCasero,uploadProp.array('imgsprop',12),createNewProperty);//ok
 app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
 //TODO actualizar imágenes
 app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
@@ -132,7 +128,7 @@ app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews)
 app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
-app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, createNewReview);//ok
+app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRev.array('imgsrevs',12), createNewReview);//ok
 app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);//ok
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);//ok
 

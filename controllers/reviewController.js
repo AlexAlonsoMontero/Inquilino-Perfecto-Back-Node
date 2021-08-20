@@ -1,14 +1,16 @@
-const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound') 
-const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization') 
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const fs = require('fs')
+const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
+const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
+const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/checkReview')
 const { updatePunctuation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
-const { errorInvalidField } = require('../customErrors/errorInvalidField')
-const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
+const { revsDirectory } = require('../infrastructure/utils/multerUploads')
 
 
 /**
@@ -21,6 +23,8 @@ const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
     let isStatus, sendMessage
     const tName = 'resenas'
     const tRes = 'reservas'
+    const tImgs = 'img_resenas';
+
     let tUpdate
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
@@ -80,15 +84,30 @@ const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
                         tUpdate='inmuebles'
                         break;
                     default:
-                            throw new errorInvalidField(
-                                'createNewReview',
-                                'invalid content for objetivo',
-                                'validatedNewRev.objetivo',
-                                validatedNewRev.objetivo
-                                )
+                        throw new errorInvalidField(
+                            'createNewReview',
+                            'invalid content for objetivo',
+                            'validatedNewRev.objetivo',
+                            validatedNewRev.objetivo
+                            )
                         break;
                 }
                 await updatePunctuation(punctuationInRes,punctuationTarget,tUpdate)
+
+                const prevDir = revsDirectory + '/' + req.auth.user.user_uuid
+                const newDir = revsDirectory + '/' + validatedNewRev.resena_uuid
+                fs.renameSync(prevDir, newDir)
+
+                const filenames = fs.readdirSync(newDir)
+                for(const f in filenames){
+                    const tuple = {
+                        img_resenas_uuid: v4(),
+                        resena_uuid: validatedNewRev.resena_uuid,
+                        autor_uuid: validatedNewRev.autor_uuid,
+                        img_resena: newDir + '/' + filenames[f]
+                    }
+                    const saveIt = await save(tuple,tImgs)
+                }
 
                 isStatus = 201
                 sendMessage = {
