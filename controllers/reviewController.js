@@ -340,8 +340,8 @@ const modifyReview = async(req, res) =>{
                 throw new errorNoAuthorization(
                     req.auth.user.username,
                     req.auth.user.tipo,
-                    'getReviewByRev',
-                    `INQUILINOS can't check on other reviews`
+                    'modifyReview',
+                    `unrelated users can't update other's reviews`
                 )
             }
         }else{
@@ -400,6 +400,41 @@ const deleteReview = async(req, res) =>{
                 req.auth.user.tipo,
                 'deleteReview',
                 'user not related with review')
+        }
+
+        const checkRes = validateUuid(req.body)
+        let findRes = await findItems(checkRes,tName)
+        if(findRes){
+            findRes = findRes[0]
+            if(req.auth.user.tipo === 'ADMIN'
+                || findRes.usr_inquilino_uuid === req.auth.user.user_uuid
+                || findRes.usr_casero_uuid === req.auth.user.user_uuid
+                || findRes.autor_uuid === req.auth.user.user_uuid ){
+                const delRev = await deleteItem(checkRes,tName)
+                if(delRev){
+                    isStatus = 200
+                    sendMessage = {
+                        tuple: checkRes,
+                        info: 'deleted review'
+                    }
+                }else{
+                    throw new errorCouldNotUpdate(`Couldn't delete review ${oldResRef}`,req.auth.user.username)
+                }
+            }else{
+                throw new errorNoAuthorization(
+                    req.auth.user.username,
+                    req.auth.user.tipo,
+                    'deleteReview',
+                    `unrelated users can't delete reviews`
+                )
+            }
+        }else{
+            throw new errorNoEntryFound(
+                'deleteReview',
+                'null',
+                'req.body.resena_uuid',
+                req.body.resena_uuid
+            )
         }
     }catch(error){
         console.warn(error)
