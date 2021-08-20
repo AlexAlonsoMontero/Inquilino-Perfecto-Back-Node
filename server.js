@@ -1,11 +1,9 @@
 const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout } 
 = require ('./controllers/userController')
-const { searchMultiParams, searchMultiTableMultiParams } 
+const { searchMultiParams, searchMultiTableMultiParams }
 = require('./controllers/generalControllers')
 const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
 = require('./infrastructure/middlewares/checkRolMiddle')
-const { updateUserForAdmin, getUsersForAdmin } 
-= require('./controllers/adminController')
 const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
 = require ('./controllers/propertyController')
 const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementUser,    modifyAdvertisement,    deleteAdvertisement } 
@@ -14,6 +12,9 @@ const { getReservationByRes, getAllReservations, getReservationsSelf, createNewR
 = require('./controllers/reservationController')
 const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg } 
 = require('./controllers/reviewController')
+const { storageProps, storageRevs, storageUpdateProp, storageUpdateRevs }
+= require('./infrastructure/utils/multerUploads')
+
 
 const multer= require('multer')
 const express = require('express')
@@ -21,11 +22,14 @@ const cors = require('cors')
 
 const app = express()
 const upload = multer()
-const { uploadPropsMid, uploadRevsMid } = require('./infrastructure/middlewares/multerUploads')
+const uploadPropCreation = multer( {storage: storageProps} )
+const uploadRevCreation = multer( {storage: storageRevs} )
+const uploadPropUpdate = multer( {storage: storageUpdateProp} )
+const uploadRevsUpdate = multer( {storage: storageUpdateProp} )
 
 app.use(cors())
 app.use(express.urlencoded({extended: true}));
-app.use(express.json()) 
+app.use(express.json())
 app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 require('dotenv').config();
@@ -97,9 +101,7 @@ app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser);
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero, createNewProperty); //ok
-//TODO upload imgs
-    //uploadPropsMid,
+app.post(endpointProperties, validateAuthorization, validateRolCasero,uploadPropCreation.array('imgsprop',12),createNewProperty);//ok
 app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
 //TODO actualizar imágenes
 app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
@@ -128,9 +130,9 @@ app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews)
 app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
-app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, createNewReview);//ok
-app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);
-app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);
+app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRevCreation.array('imgsrevs',12), createNewReview);//ok
+app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);//ok
+app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);//ok
 
 
 //SEARCHER
@@ -141,11 +143,6 @@ app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
 
 //TODO PRUEBAS ENDOPOINT
 const endpointPruebas = '/pruebas/adv'
-//USER ADMIN
-// app.post(endpointAdminUsers,validateAuthorization, validateRolAdmin, createNewUser);
-// app.put(endpointAdminUsers,validateAuthorization,validateRolAdmin,updateUserForAdmin);
-// app.delete(endpointAdminUsers,validateAuthorization,validateRolAdmin,deleteUser);
-// app.get(endpointAdminUsers, validateAuthorization, validateRolAdmin, getUsersForAdmin);
 
 let port = process.env.WEB_PORT
 let host = process.env.WEB_HOST
