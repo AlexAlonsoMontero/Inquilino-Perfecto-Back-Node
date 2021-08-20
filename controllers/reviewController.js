@@ -4,9 +4,10 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate } = require('../validators/checkReview')
-const { updateUserPunctuation, checkIsInvolved } = require('../infrastructure/reviewRepository')
+const { updatePunctuation, checkIsInvolved } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
+const { errorInvalidField } = require('../customErrors/errorInvalidField')
 
 
 /**
@@ -18,44 +19,109 @@ const { v4 } = require('uuid')
  const createNewReview = async(req, res) =>{
     let isStatus, sendMessage
     const tName = 'resenas'
+    const tRes = 'reservas'
+    let tUpdate
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
-        if(checkIsInvolved(req.auth.user), validatedNewRev){
-            //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
-            //En la versión definitiva no dejaremos que el post traiga uuid
-            if (!validatedNewRev.resena_uuid){
-                validatedNewRev = {...validatedNewRev, resena_uuid : v4()}
+        // TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
+        // En la versión definitiva no dejaremos que el post traiga uuid
+        if (!validatedNewRev.resena_uuid){
+            validatedNewRev = {...validatedNewRev, resena_uuid : v4()}
+        }
+
+        let reserv = await findItems({reserva_uuid:validatedNewRev.reserva_uuid},tRes)
+        reserv = reserv[0]
+        if(reserv){
+            let relatedInq = false
+            let relatedCas = false
+            switch(req.auth.user.tipo){
+                case 'INQUILINO':
+                    relatedInq = req.auth.user.user_uuid === reserv.usr_inquilino_uuid ? true : false
+                    break;
+                case 'CASERO':
+                    relatedCas = req.auth.user.user_uuid === reserv.usr_casero_uuid ? true : false
+                    break;
+                case 'INQUILINO/CASERO':
+                    relatedInq = req.auth.user.user_uuid === reserv.usr_inquilino_uuid ? true : false
+                    relatedCas = req.auth.user.user_uuid === reserv.usr_casero_uuid ? true : false
+                    break;
+                case 'ADMIN':
+                default:
+                    break;
             }
-            validatedNewRev = {...validatedNewRev, author_uuid : req.auth.user.user_uuid}
+            if(relatedInq || relatedCas){
+                validatedNewRev = {
+                    ...validatedNewRev,
+                    autor_uuid: req.auth.user.user_uuid,
+                    usr_inquilino_uuid: relatedInq ? req.auth.user.user_uuid : reserv.usr_inquilino_uuid,
+                    usr_casero_uuid: relatedCas ? req.auth.user.user_uuid : reserv.usr_casero_uuid,
+                    inmueble_uuid: reserv.inmueble_uuid,
+                    rol: req.auth.user.tipo
+                }
 
-            //update user puntuación media
-            const userPunctuations = await getItemsMultiParams(
-                {user_uuid:req.auth.user.user_uuid}
-                ,tName
-            )
-            const newRev = await save(validatedNewRev,tName)
-            await updateUserPunctuation(usr)
+                await save(validatedNewRev,tName)
+                let punctuationTarget
+                let punctuationInRes
+                switch(validatedNewRev.objetivo){
+                    case 'INQUILINO':
+                        punctuationInRes = {usr_inquilino_uuid: validatedNewRev.usr_inquilino_uuid}
+                        punctuationTarget = {user_uuid : validatedNewRev.usr_inquilino_uuid}
+                        tUpdate='usuarios'
+                        break;
+                    case 'CASERO':
+                        punctuationInRes = {usr_casero_uuid: validatedNewRev.usr_casero_uuid}
+                        punctuationTarget = {user_uuid : validatedNewRev.usr_casero_uuid}
+                        tUpdate='usuarios'
+                        break;
+                    case 'INMUEBLE':
+                        punctuationInRes = {inmueble_uuid: validatedNewRev.inmueble_uuid}
+                        punctuationTarget = {inmueble_uuid : reserv.inmueble_uuid}
+                        tUpdate='inmuebles'
+                        break;
+                    default:
+                            throw new errorInvalidField(
+                                'createNewReview',
+                                'invalid content for objetivo',
+                                'validatedNewRev.objetivo',
+                                validatedNewRev.objetivo
+                                )
+                        break;
+                }
+                await updatePunctuation(punctuationInRes,punctuationTarget,tUpdate)
 
-            isStatus = 201
-            sendMessage = {
-                tuple: req.body.resena_uuid,
-                data: validatedNewRev
+                isStatus = 201
+                sendMessage = {
+                    info: 'review created',
+                    data: validatedNewRev
+                }
+                console.log(`Created new element in ${tName}`)
+            }else{
+                throw new errorNoAuthorization(
+                    req.auth.user.username,
+                    req.auth.user.tipo,
+                    'createNewReview',
+                    `isn't related to the reservation`
+                )
             }
         }else{
-            throw new errorNoAuthorization(
-                req.auth.user.username,
-                req.auth.user.tipo,
+            throw new errorNoEntryFound(
                 'createNewReview',
-                'user not related with review')
+                'the reservation doesn\'t exists',
+                'reserva_uuid',
+                validatedNewRev.reserva_uuid
+            )
         }
-        console.log(`Created new element in ${tName}`)
     }catch (error) {
         console.warn(error)
         if(error instanceof errorInvalidField){
             isStatus = 401
-            sendMessage = {error: 'Formato de datos incorrecto, introdúcelo de nuevo'}
+            sendMessage = {error: error.messageEsp}
+        }else if(error.code === 'ER_DUP_ENTRY'){
+            isStatus = 500
+            sendMessage = { error: 'existe ya una reseña para este alquiler'}
         }else if(error instanceof errorNoAuthorization){
             isStatus = 403
+            sendMessage = {error: error.message}
         }else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}
@@ -68,7 +134,7 @@ const { v4 } = require('uuid')
 /**
  * #ADMIN_FUNCTION
  * @param {json} req
- * @param {json} res all the database reviews
+ * @param {json} res
  */
 const getAllReviews = async(req, res) =>{
     let isStatus, sendMessage;
@@ -136,7 +202,7 @@ const getSelfReviews = async(req, res) =>{
             if (foundRevs) {
                 isStatus = 200
                 sendMessage = {
-                    "info": foundRevs.length >= 1 ? 'Resenas localizados' : 'No se han encontrado resenas',
+                    "info": foundRevs.length >= 1 ? 'Resenas localizadas' : 'No se han encontrado resenas',
                     "data": foundRevs
                 }
             } else {
@@ -313,8 +379,9 @@ const getReviewAvg = async(request,response)=>{
             result.puntuacion = parseInt(result.puntuacion)
             isStatus = 200
             sendMessage =   {
-                "Tuple": "all",
-                "data": result
+                tuple: "all",
+                info: "getReviewAvg",
+                data: result
             }
             console.warn(`Successful query on ${table}`);
         }

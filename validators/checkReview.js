@@ -1,9 +1,12 @@
-const Joi = require('joi')
+const Joi = require('joi');
+const { errorInvalidField } = require('../customErrors/errorInvalidField');
 
 const schemaCreateReview = Joi.object().keys({
+    resena_uuid: Joi.string().guid({ version : 'uuidv4' }),
     reserva_uuid : Joi.string().guid({ version : 'uuidv4' }).required(),
     puntuacion : Joi.number().min(1).max(5).required(),
-    contenido : Joi.string().max(65535).required()
+    contenido : Joi.string().max(65535).required(),
+    objetivo : Joi.string().valid(...['INQUILINO','CASERO', 'INMUEBLE']).required()
 })
 const schemaUpdateReview = Joi.object().keys({
     puntuacion : Joi.number().min(1).max(5),

@@ -7,18 +7,18 @@ const connection = getConnection()
  * @param {json} uuid indicates which kind of user is (casero or inquilino)
  * @returns user data in database without password
  */
-const updateUserPunctuation = async (uuid) => {
+const updatePunctuation = async (uuidRes, uuid, tName) => {
     const avgQuery =
         `SELECT round(avg(puntuacion),2) AS 'puntuacion_media' FROM resenas 
-        WHERE ${Object.keys(uuid)[0]} = ?`;
-    const [rows, _] = await connection.query(avgQuery,Object.values(uuid)[0])
+        WHERE ${Object.keys(uuidRes)[0]} = ?`;
+    const [rows, _] = await connection.query(avgQuery,Object.values(uuidRes)[0])
     const avg = rows[0]
     const updateUserQuery =
-        `UPDATE usuarios SET puntuacion_media = ${avg.puntuacion_media}
-        WHERE ${Object.keys(uuid)} = ?`
-    const updateUser = await connection.query(updateUserQuery,...Object.values(uuid)[0])
+        `UPDATE ${tName} SET puntuacion_media = ${avg.puntuacion_media}
+        WHERE ${Object.keys(uuid)[0]} = ?`
+    const updateUser = await connection.query(updateUserQuery, Object.values(uuid)[0])
     if(updateUser < 1){
-        throw new errorCouldNotUpdate('updateUserPunctuation',JSON.stringify(uuid));
+        throw new errorCouldNotUpdate('updatePunctuation',JSON.stringify(uuid));
     }
 }
 
@@ -52,12 +52,14 @@ const checkIsInvolved = async (reqUser, validatedReview) => {
             break;
         case 'ADMIN':
             checkInvolved = true
+            break;
         default:
+            checkInvolved = false
             break;
     }
     return checkInvolved
 }
 
 module.exports = {
-    updateUserPunctuation, checkIsInvolved
+    updatePunctuation, checkIsInvolved
 }
