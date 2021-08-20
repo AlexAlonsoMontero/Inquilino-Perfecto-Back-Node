@@ -48,7 +48,7 @@ const createNewProperty = async(req, res) =>{
 
         const createdProp = await save(newProp, tName)
 
-        const prevDir = propDirectory + '/' + req.auth.user.user_uuid
+        const prevDir = propDirectory + '/' + newProp.usr_casero_uuid
         const newDir = propDirectory + '/' + newProp.inmueble_uuid
         fs.renameSync(prevDir, newDir)
 
@@ -258,11 +258,22 @@ const modifyProperty = async(req, res) =>{
                 req.auth?.user?.user_uuid === existsProp[0].usr_casero_uuid ||
                 req.auth?.user?.tipo === 'ADMIN')
         ){
-            console.log(req.body);
             let newProp = propUpdateValidate(req.body)
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
             if(consulta >= 1){
+
+                if(req.file){
+                    if(fs.existsSync(newDir)){
+                        const prevDir = propDirectory + '/' + newProp.usr_casero_uuid
+                        const newDir = propDirectory + '/' + newProp.inmueble_uuid
+                        fs.rmdirSync(newDir, { recursive: true });
+                        fs.renameSync(prevDir, newDir)
+                    }else{
+                        
+                    }
+                }
+
                 isStatus = 200
                 sendMessage = {
                     info: "Inmueble modificado",
@@ -302,21 +313,26 @@ const deleteProperty = async(req, res) =>{
     try {
         const validatedDelProp = validateUuid(req.body)
         let existsProp = await findItems(validatedDelProp,tName)
-        existsProp = existsProp[0]
         if(existsProp){
+            existsProp = existsProp[0]
             if(
-                req.auth?.user?.user_uuid === existsProp.usr_casero_uuid 
+                req.auth?.user?.user_uuid === existsProp.usr_casero_uuid
                 ||req.auth?.user?.tipo === 'ADMIN'
             ){
                 const isPropDel = await deleteItem(validatedDelProp, tName)
-                sendMessage = {
-                    "tuple": validatedDelProp,
-                    "delete": isPropDel
-                }
-                isStatus = 200
-                console.log(isPropDel ?
+                if(isPropDel){
+                    fs.rmdirSync(propDirectory, { recursive: true });
+                    const isPropImgDel = await deleteItem(validatedDelProp, tName)
+
+                    sendMessage = {
+                        "tuple": validatedDelProp,
+                        "delete": isPropDel
+                    }
+                    isStatus = 200
+                    console.log(isPropDel ?
                         `Successfully deletion for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`
                         : `No tuple could be deleted for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`);
+                    }
             }else{
                 throw new errorNoAuthorization(
                     req.auth?.user?.username,

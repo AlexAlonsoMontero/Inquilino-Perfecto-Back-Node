@@ -101,11 +101,9 @@ app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser);
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero,uploadPropCreation.array('imgsprop',12),createNewProperty);//ok
-app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
-//TODO actualizar imágenes
-app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
-//TODO borrar entradas de tabla imágenes al borrar
+app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropCreation.array('imgsprop',12),createNewProperty);//ok
+app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, uploadPropUpdate.array('imgsprop',12), modifyProperty); 
+app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); 
 
 //ANUNCIOS
 app.get(endpointAdv, detectType, getAdvertisements); //ok
@@ -131,8 +129,8 @@ app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
 app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRevCreation.array('imgsrevs',12), createNewReview);//ok
-app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);//ok
-app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);//ok
+app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRevsUpdate.array('imgsrevs',12), modifyReview);
+app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);
 
 
 //SEARCHER

@@ -63,7 +63,7 @@ const storageRevs = multer.diskStorage({
 
 const storageUpdateRevs = multer.diskStorage({
     destination: ( req, file, callback ) => {
-        const uuid = req.params.resena_uuid
+        const uuid = req.auth.user.user_uuid
         const dir = revsDirectory + '/' + uuid + '/'
         if(!fs.existsSync(revsDirectory)){
             fs.mkdirSync(revsDirectory)}
@@ -72,7 +72,7 @@ const storageUpdateRevs = multer.diskStorage({
         callback( null, dir )
     },
     filename: ( req, file, callback )=> {
-        const uuid = req.params.resena_uuid
+        const uuid = req.auth.user.user_uuid
         callback(null,
             uuid + '_' + file.originalname
         )
