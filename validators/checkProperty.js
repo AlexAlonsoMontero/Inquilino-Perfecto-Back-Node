@@ -25,9 +25,9 @@ const schemaCreateProp = Joi.object().keys({
         ]
     }),
     metros_2 : Joi.number().positive(),
-    numero : Joi.string().max(16),
-    piso : Joi.string().max(16),
     comunidad : Joi.string().max(128),
+    piso : Joi.string().max(16),
+    numero : Joi.string().max(16),
 
     banos: Joi.number(),
     habitaciones: Joi.number(),

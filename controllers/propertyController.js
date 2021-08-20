@@ -2,7 +2,9 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { deleteItem, findItems, getItems, save, updateItem} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
-const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty.js')
+const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty')
+const { propDirectory, revsDirectory } = require('../infrastructure/utils/multerUploads')
+
 const { v4 } = require('uuid')
 const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
@@ -19,6 +21,8 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const createNewProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
+    const tImgs = 'img_inmuebles';
+
     try {
         let auxBodyContentKeys = Object.keys(req.body)
         let auxBodyContentValues = Object.values(req.body)
@@ -32,7 +36,6 @@ const createNewProperty = async(req, res) =>{
                 auxBody[k]=auxBodyContentValues[i]
             }
         })
-        console.log(auxBody);
         let newProp = propCreateValidate(auxBody)
 
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
@@ -43,6 +46,20 @@ const createNewProperty = async(req, res) =>{
         newProp = {...newProp, usr_casero_uuid: req.auth.user.user_uuid}
 
         const createdProp = await save(newProp, tName)
+
+        const files = req.files
+        if (Array.isArray(files) && files.length >0){
+            for(const file of files) {
+                let imgEntry = {
+                    img_inmueble_uuid: v4(),
+                    inmueble_uuid: newProp.inmueble_uuid,
+                    img_inmueble: propDirectory + req.body.inmueble_uuid + file.originalname
+                }
+                console.log(imgEntry);
+                let save = await save(imgEntry,tImgs)
+                console.log(save);
+            }
+        }
 
         isStatus = 201
         sendMessage = {
@@ -287,8 +304,8 @@ const deleteProperty = async(req, res) =>{
         existsProp = existsProp[0]
         if(existsProp){
             if(
-                req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
-                req.auth?.user?.tipo === 'ADMIN'
+                req.auth?.user?.user_uuid === existsProp.usr_casero_uuid 
+                ||req.auth?.user?.tipo === 'ADMIN'
             ){
                 const isPropDel = await deleteItem(validatedDelProp, tName)
                 sendMessage = {
