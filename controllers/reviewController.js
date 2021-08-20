@@ -3,11 +3,12 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
-const { reviewCreateValidate } = require('../validators/checkReview')
-const { updatePunctuation, checkIsInvolved } = require('../infrastructure/reviewRepository')
+const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/checkReview')
+const { updatePunctuation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
+const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
 
 
 /**
@@ -242,7 +243,7 @@ const getSelfReviews = async(req, res) =>{
 }
 
 /**
- * #REGISTRED [RESERVATION-RELATED] /ADMIN
+ * # [RESERVATION-RELATED] /ADMIN
  * CHECKS an existing tuple identified by ':resena_uuid'
  * @param {json} req param :resena_uuid
  * @param {json} res review data
@@ -252,8 +253,9 @@ const getReviewByRev = async(req, res) =>{
     const tName = 'resenas';
     try{
         const validatedRev = validateUuid(req.params)
-        let findRev = findItems(validatedRev,tName)
+        let findRev = await findItems(validatedRev,tName)
         if(findRev){
+            console.log(findRev);
             findRev = findRev[0]
             if(findRev.objetivo === 'INQUILINO'){
                 if( req.auth.user.tipo !== 'INQUILINO'
@@ -311,29 +313,44 @@ const getReviewByRev = async(req, res) =>{
  */
 const modifyReview = async(req, res) =>{
     let isStatus, sendMessage;
-    const tName = 'reservas';
+    const tName = 'resenas';
     try{
         const oldResRef = validateUuid(req.params)
-        if(checkIsInvolved(req.auth.user, oldResRef)){
-            const newRevData = reviewUpdateValidate(req.body)
-            const updatedRes = await updateItem(newRevData, oldResRef, tName)
-            if(updatedRes===0){
-                throw new errorNoEntryFound(tName,"no tuple was updated",Object.keys(oldResRef)[0],oldResRef.reserva_uuid)
-            }else{
-                isStatus = 200
-                sendMessage =   {
-                    "tuple": oldResRef,
-                    "info_query": updatedRes,
-                    "new_data": newRevData
+        let findRes = await findItems(oldResRef,tName)
+        if(findRes){
+            findRes = findRes[0]
+            if(req.auth.user.tipo === 'ADMIN'
+                || findRes.usr_inquilino_uuid === req.auth.user.user_uuid
+                || findRes.usr_casero_uuid === req.auth.user.user_uuid
+                || findRes.autor_uuid === req.auth.user.user_uuid ){
+                const newRev = reviewUpdateValidate(req.body)
+                const updateRev = await updateItem(newRev,oldResRef,tName)
+                if(updateRev === 1){
+                    isStatus = 200
+                    sendMessage = {
+                        tuple: oldResRef,
+                        info: 'reeview modificada',
+                        oldData: findRes,
+                        newData: newRev
+                    }
+                }else{
+                    throw new errorCouldNotUpdate(`Couldn't update review ${oldResRef}`,req.auth.user.username)
                 }
-                console.warn(`Successfully updated for ${Object.keys(oldResRef)[0]} with ${oldResRef}`);
+            }else{
+                throw new errorNoAuthorization(
+                    req.auth.user.username,
+                    req.auth.user.tipo,
+                    'getReviewByRev',
+                    `INQUILINOS can't check on other reviews`
+                )
             }
         }else{
-            throw new errorNoAuthorization(
-                req.auth.user.username,
-                req.auth.user.tipo,
+            throw new errorNoEntryFound(
                 'modifyReview',
-                'user not related with review')
+                'null',
+                'req.params.resena_uuid',
+                req.params.resena_uuid
+            )
         }
     }catch(error){
         console.warn(error)
