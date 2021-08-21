@@ -331,7 +331,6 @@ const deleteProperty = async(req, res) =>{
                 const isPropDel = await deleteItem(validatedDelProp, tName)
                 if(isPropDel){
                     const imgDir = propDirectory + '/' + validatedDelProp.inmueble_uuid
-                    console.log(imgDir);
                     if(fs.existsSync(imgDir)){
                         fs.rmdirSync(imgDir, {recursive : true})
                     }
@@ -345,7 +344,7 @@ const deleteProperty = async(req, res) =>{
                     console.log(isPropDel ?
                         `Successfully deletion for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`
                         : `No tuple could be deleted for ${Object.keys(validatedDelProp)[0]} with ${validatedDelProp.inmueble_uuid}`);
-                    }
+                }
             }else{
                 throw new errorNoAuthorization(
                     req.auth?.user?.username,

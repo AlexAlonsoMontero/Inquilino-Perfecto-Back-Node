@@ -10,7 +10,7 @@ const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/ch
 const { updatePunctuation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
-const { revsDirectory } = require('../infrastructure/utils/multerUploads')
+const { revDirectory } = require('../infrastructure/utils/multerUploads')
 
 
 /**
@@ -64,7 +64,7 @@ const { revsDirectory } = require('../infrastructure/utils/multerUploads')
                     rol: req.auth.user.tipo
                 }
 
-                await save(validatedNewRev,tName)
+                const saveRev = await save(validatedNewRev,tName)
                 let punctuationTarget
                 let punctuationInRes
                 switch(validatedNewRev.objetivo){
@@ -94,8 +94,8 @@ const { revsDirectory } = require('../infrastructure/utils/multerUploads')
                 }
                 await updatePunctuation(punctuationInRes,punctuationTarget,tUpdate)
 
-                const prevDir = revsDirectory + '/' + req.auth.user.user_uuid
-                const newDir = revsDirectory + '/' + validatedNewRev.resena_uuid
+                const prevDir = revDirectory + '/' + req.auth.user.user_uuid
+                const newDir = revDirectory + '/' + validatedNewRev.resena_uuid
                 fs.renameSync(prevDir, newDir)
 
                 const filenames = fs.readdirSync(newDir)
@@ -406,6 +406,13 @@ const deleteReview = async(req, res) =>{
                 || findRes.autor_uuid === req.auth.user.user_uuid ){
                 const delRev = await deleteItem(checkRes,tName)
                 if(delRev){
+
+                const imgDir = revDirectory + '/' + checkRes.resena_uuid
+                if(fs.existsSync(imgDir)){
+                    fs.rmdirSync(imgDir, {recursive : true})
+                }
+                const isPropImgDel = await deleteItem(validatedDelProp, tImgs)
+
                     isStatus = 200
                     sendMessage = {
                         tuple: checkRes,

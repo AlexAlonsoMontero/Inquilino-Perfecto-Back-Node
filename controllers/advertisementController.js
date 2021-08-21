@@ -36,6 +36,9 @@ const createAdvertisemenet = async (request, response) => {
         if(error instanceof errorInvalidField){
             isStatus = 401
             sendMessage = {error: error.message}
+        }else if(error.code === 'ER_DUP_ENTRY'){
+            isStatus = 500
+            sendMessage = {error: 'Ya existe un anuncio para este inmueble'}
         }else{
             isStatus = 500
             sendMessage = {error: 'Error interno servidor'}

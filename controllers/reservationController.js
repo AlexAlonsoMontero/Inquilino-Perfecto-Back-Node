@@ -32,8 +32,9 @@ const createNewReservation = async(req, res) =>{
         if(anuncioRes){
             anuncioRes = anuncioRes[0]
 
+            console.log(anuncioRes);
             validatedNewRes = {
-                ...validatedNewRes, 
+                ...validatedNewRes,
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }

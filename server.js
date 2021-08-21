@@ -88,10 +88,10 @@ app.post(endpointLogout, validateAuthorization, logout);
 app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 //USUARIOS
+app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.get(endpointVerifiacionUser, activateValidationUser); //ok
 app.get(endpointUserProfile, validateAuthorization, detectTypeNoGuests, getSelfUser); //ok
 app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
-// app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //ok
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser); //ok
 app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser); //ok
@@ -102,8 +102,8 @@ app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllPrope
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
 app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropCreation.array('imgsprop',12), createNewProperty);//ok
-app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, uploadPropUpdate.array('imgsprop',12), modifyProperty);
-app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty);
+app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, uploadPropUpdate.array('imgsprop',12), modifyProperty);//ok
+app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty);//ok
 
 //ANUNCIOS
 app.get(endpointAdv, detectType, getAdvertisements); //ok

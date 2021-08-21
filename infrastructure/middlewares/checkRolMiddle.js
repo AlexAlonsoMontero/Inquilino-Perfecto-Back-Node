@@ -41,11 +41,15 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
             isStatus = 401
             sendMessage = { error: "Token expirado, vuélvete a logear"}
             console.warn("Token expirado, vuélvete a logear")
+        }else if(error instanceof jwt.JsonWebTokenError){
+            isStatus = 401
+            sendMessage = { error: "Token no válido, vuélvete a logear"}
+            console.warn("Token no válido")
         }else{
             isStatus = 500
             sendMessage = "error interno del servidor"
         }
-        response.status(isStatus).send({'Error': sendMessage})
+        response.status(isStatus).send(sendMessage)
     }
 }
 
