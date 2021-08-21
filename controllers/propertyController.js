@@ -199,7 +199,6 @@ const getPropertiesSelf = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        console.log( req.auth.user.user_uuid);
         const propCasero = { usr_casero_uuid : req.auth.user.user_uuid }
         const selfProp = await findItems(propCasero,tName)
 
@@ -241,9 +240,11 @@ const getPropertiesSelf = async(req, res) =>{
 const modifyProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
+    const tImgs = 'img_inmuebles';
     try {
         const oldProp = validateUuid(req.params)
         let existsProp = await findItems(oldProp, tName)
+        existsProp = existsProp[0]
         if(!existsProp){
             throw new errorNoEntryFound(
                 'Prop update by admin or self',
@@ -253,24 +254,30 @@ const modifyProperty = async(req, res) =>{
             )
         }
         else if(
-            existsProp.length > 0
-            &&(
-                req.auth?.user?.user_uuid === existsProp[0].usr_casero_uuid ||
-                req.auth?.user?.tipo === 'ADMIN')
+                req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
+                req.auth?.user?.tipo === 'ADMIN'
         ){
             let newProp = propUpdateValidate(req.body)
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
             if(consulta >= 1){
-
-                if(req.file){
-                    if(fs.existsSync(newDir)){
-                        const prevDir = propDirectory + '/' + newProp.usr_casero_uuid
-                        const newDir = propDirectory + '/' + newProp.inmueble_uuid
+                if(req.files){
+                    const prevDir = propDirectory + '/' + existsProp.usr_casero_uuid
+                    const newDir = propDirectory + '/' + newProp.inmueble_uuid
+                    if(fs.existsSync(prevDir+'/')){
                         fs.rmdirSync(newDir, { recursive: true });
+                        const delPropImg = deleteItem({inmueble_uuid: newProp.inmueble_uuid},tImgs)
                         fs.renameSync(prevDir, newDir)
-                    }else{
-                        
+
+                        const filenames = fs.readdirSync(newDir)
+                        for(const f in filenames){
+                            const tuple = {
+                                img_inmueble_uuid: v4(),
+                                inmueble_uuid: newProp.inmueble_uuid,
+                                img_inmueble: newDir + '/' + filenames[f]
+                            }
+                            const saveIt = await save(tuple,tImgs)
+                        }
                     }
                 }
 
@@ -310,10 +317,12 @@ const modifyProperty = async(req, res) =>{
 const deleteProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
+    const tImgs = 'img_inmuebles';
     try {
         const validatedDelProp = validateUuid(req.body)
         let existsProp = await findItems(validatedDelProp,tName)
-        if(existsProp){
+
+        if(existsProp && existsProp.length!== 0){
             existsProp = existsProp[0]
             if(
                 req.auth?.user?.user_uuid === existsProp.usr_casero_uuid
@@ -321,8 +330,12 @@ const deleteProperty = async(req, res) =>{
             ){
                 const isPropDel = await deleteItem(validatedDelProp, tName)
                 if(isPropDel){
-                    fs.rmdirSync(propDirectory, { recursive: true });
-                    const isPropImgDel = await deleteItem(validatedDelProp, tName)
+                    const imgDir = propDirectory + '/' + validatedDelProp.inmueble_uuid
+                    console.log(imgDir);
+                    if(fs.existsSync(imgDir)){
+                        fs.rmdirSync(imgDir, {recursive : true})
+                    }
+                    const isPropImgDel = await deleteItem(validatedDelProp, tImgs)
 
                     sendMessage = {
                         "tuple": validatedDelProp,

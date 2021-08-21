@@ -1,4 +1,3 @@
-const path = require("path");
 const multer = require("multer");
 const fs = require('fs')
 
@@ -6,13 +5,13 @@ const propDirectory = './imgs/properties'
 const revsDirectory = './imgs/reviews'
 
 //properties
-const storageProps = multer.diskStorage({
+const storageProp = multer.diskStorage({
     destination: ( req, file, callback ) => {
         const uuid = req.auth.user.user_uuid;
         const dir = propDirectory + '/' + uuid + '/'
-        if(!fs.existsSync(propDirectory)){
+        if(!fs.existsSync(propDirectory+'/')){
             fs.mkdirSync(propDirectory)}
-        if(!fs.existsSync(propDirectory + '/' + uuid)){
+        if(!fs.existsSync(propDirectory + '/' + uuid+'/')){
             fs.mkdirSync(propDirectory + '/' + uuid)}
         callback( null, dir )
     },
@@ -43,7 +42,7 @@ const storageUpdateProp = multer.diskStorage({
 })
 
 //revs
-const storageRevs = multer.diskStorage({
+const storageRev = multer.diskStorage({
     destination: ( req, file, callback ) => {
         const uuid = req.auth.user.user_uuid;
         const dir = revsDirectory + '/' + uuid + '/'
@@ -61,7 +60,7 @@ const storageRevs = multer.diskStorage({
     }
 })
 
-const storageUpdateRevs = multer.diskStorage({
+const storageUpdateRev = multer.diskStorage({
     destination: ( req, file, callback ) => {
         const uuid = req.auth.user.user_uuid
         const dir = revsDirectory + '/' + uuid + '/'
@@ -80,6 +79,10 @@ const storageUpdateRevs = multer.diskStorage({
 })
 
 module.exports = {
-    storageProps, storageUpdateProp, storageRevs, storageUpdateRevs,
-    propDirectory, revsDirectory
+    storageProp, 
+    storageUpdateProp, 
+    storageRev, 
+    storageUpdateRev,
+    propDirectory, 
+    revsDirectory
 }
