@@ -298,7 +298,6 @@ const modifyReservation = async(req, res) =>{
                 req.params.reserva_uuid
                 )
             }else{
-                console.log(existsRes);
                 if( req.auth?.user?.user_uuid === existsRes.usr_casero_uuid
                     || req.auth?.user?.tipo === 'ADMIN'){
                 let newRes = reservUpdateValidate(req.body)

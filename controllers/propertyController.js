@@ -261,6 +261,7 @@ const modifyProperty = async(req, res) =>{
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
             if(consulta >= 1){
+
                 if(req.files){
                     const prevDir = propDirectory + '/' + existsProp.usr_casero_uuid
                     const newDir = propDirectory + '/' + newProp.inmueble_uuid
