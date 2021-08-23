@@ -10,7 +10,7 @@ const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/ch
 const { updatePunctuation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
-const { revsDirectory } = require('../infrastructure/utils/multerUploads')
+const { revDirectory } = require('../infrastructure/utils/multerUploads')
 
 
 /**
@@ -64,7 +64,7 @@ const { revsDirectory } = require('../infrastructure/utils/multerUploads')
                     rol: req.auth.user.tipo
                 }
 
-                await save(validatedNewRev,tName)
+                const saveRev = await save(validatedNewRev,tName)
                 let punctuationTarget
                 let punctuationInRes
                 switch(validatedNewRev.objetivo){
@@ -94,8 +94,8 @@ const { revsDirectory } = require('../infrastructure/utils/multerUploads')
                 }
                 await updatePunctuation(punctuationInRes,punctuationTarget,tUpdate)
 
-                const prevDir = revsDirectory + '/' + req.auth.user.user_uuid
-                const newDir = revsDirectory + '/' + validatedNewRev.resena_uuid
+                const prevDir = revDirectory + '/' + req.auth.user.user_uuid
+                const newDir = revDirectory + '/' + validatedNewRev.resena_uuid
                 fs.renameSync(prevDir, newDir)
 
                 const filenames = fs.readdirSync(newDir)
@@ -333,6 +333,7 @@ const getReviewByRev = async(req, res) =>{
 const modifyReview = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
+    const tImgs = 'img_resenas';
     try{
         const oldResRef = validateUuid(req.params)
         let findRes = await findItems(oldResRef,tName)
@@ -345,6 +346,45 @@ const modifyReview = async(req, res) =>{
                 const newRev = reviewUpdateValidate(req.body)
                 const updateRev = await updateItem(newRev,oldResRef,tName)
                 if(updateRev === 1){
+                    if(newRev.puntuacion){
+                    await updatePunctuation(
+                        findRes.objetivo === 'IMBUEBLE' ?
+                            { inmueble_uuid : findRes.inmueble_uuid }
+                            :
+                            findRes.objetivo === 'INQUILINO' ?
+                                { usr_inquilino_uuid : findRes.usr_inquilino_uuid }
+                                :
+                                { usr_casero_uuid : findRes.usr_casero_uuid },
+                        findRes.objetivo === 'IMBUEBLE' ?
+                            { inmueble_uuid : findRes.inmueble_uuid }
+                            :
+                            findRes.objetivo === 'INQUILINO' ?
+                                { user_uuid : findRes.usr_inquilino_uuid }
+                                :
+                                { user_uuid : findRes.usr_casero_uuid },
+                        findRes.objetivo === 'IMBUEBLE' ? 'inmuebles' : 'usuarios')
+                    }
+                    if(req.files){
+                        const prevDir = revDirectory + '/' + req.auth.user.user_uuid
+                        const newDir = revDirectory + '/' + findRes.resena_uuid
+                        if(fs.existsSync(prevDir+'/')){
+                            fs.rmdirSync(newDir, { recursive: true });
+                            const delResImg = deleteItem({resena_uuid: findRes.resena_uuid},tImgs)
+                            fs.renameSync(prevDir, newDir)
+
+                            const filenames = fs.readdirSync(newDir)
+                            for(const f in filenames){
+                                const tuple = {
+                                    img_resenas_uuid: v4(),
+                                    resena_uuid: findRes.resena_uuid,
+                                    autor_uuid: findRes.autor_uuid,
+                                    img_resena: newDir + '/' + filenames[f]
+                                }
+                                const saveIt = await save(tuple,tImgs)
+                            }
+                        }
+                    }
+
                     isStatus = 200
                     sendMessage = {
                         tuple: oldResRef,
@@ -395,6 +435,7 @@ const modifyReview = async(req, res) =>{
 const deleteReview = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
+    const tImgs = 'img_resenas';
     try{
         const checkRes = validateUuid(req.body)
         let findRes = await findItems(checkRes,tName)
@@ -406,6 +447,31 @@ const deleteReview = async(req, res) =>{
                 || findRes.autor_uuid === req.auth.user.user_uuid ){
                 const delRev = await deleteItem(checkRes,tName)
                 if(delRev){
+
+                    await updatePunctuation(
+                            findRes.objetivo === 'IMBUEBLE' ?
+                                { inmueble_uuid : findRes.inmueble_uuid }
+                                :
+                                findRes.objetivo === 'INQUILINO' ?
+                                    { usr_inquilino_uuid : findRes.usr_inquilino_uuid }
+                                    :
+                                    { usr_casero_uuid : findRes.usr_casero_uuid },
+                            findRes.objetivo === 'IMBUEBLE' ?
+                                { inmueble_uuid : findRes.inmueble_uuid }
+                                :
+                                findRes.objetivo === 'INQUILINO' ?
+                                    { user_uuid : findRes.usr_inquilino_uuid }
+                                    :
+                                    { user_uuid : findRes.usr_casero_uuid },
+                            findRes.objetivo === 'IMBUEBLE' ? 'inmuebles' : 'usuarios')
+
+                    const imgDir = revDirectory + '/' + checkRes.resena_uuid
+                    if(fs.existsSync(imgDir)){
+                        fs.rmdirSync(imgDir, {recursive : true})
+                    }
+
+                    const isPropImgDel = await deleteItem(checkRes, tImgs)
+
                     isStatus = 200
                     sendMessage = {
                         tuple: checkRes,

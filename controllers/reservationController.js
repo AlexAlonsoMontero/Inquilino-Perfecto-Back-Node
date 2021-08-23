@@ -32,8 +32,9 @@ const createNewReservation = async(req, res) =>{
         if(anuncioRes){
             anuncioRes = anuncioRes[0]
 
+            console.log(anuncioRes);
             validatedNewRes = {
-                ...validatedNewRes, 
+                ...validatedNewRes,
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }
@@ -297,7 +298,6 @@ const modifyReservation = async(req, res) =>{
                 req.params.reserva_uuid
                 )
             }else{
-                console.log(existsRes);
                 if( req.auth?.user?.user_uuid === existsRes.usr_casero_uuid
                     || req.auth?.user?.tipo === 'ADMIN'){
                 let newRes = reservUpdateValidate(req.body)

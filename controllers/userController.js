@@ -40,7 +40,6 @@ const createNewUser = async (request, response) => {
             if (!newUser.user_uuid){
                 newUser = {...newUser, user_uuid : v4()}
             }
-            //console.log(request.file ? "viene":"noviene")
             if(request.file){
                 newUser.avatar = '/uploadAvatars/user-'+ request.body.username +'.jpg'
             }else{

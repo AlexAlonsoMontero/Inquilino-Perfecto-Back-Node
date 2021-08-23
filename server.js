@@ -1,18 +1,18 @@
-const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout } 
+const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout }
 = require ('./controllers/userController')
 const { searchMultiParams, searchMultiTableMultiParams }
 = require('./controllers/generalControllers')
-const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin} 
+const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin}
 = require('./infrastructure/middlewares/checkRolMiddle')
-const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty} 
+const { getPropertyByProp, getAllProperties, getPropertiesSelf, createNewProperty, modifyProperty, deleteProperty}
 = require ('./controllers/propertyController')
-const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementUser,    modifyAdvertisement,    deleteAdvertisement } 
+const { createAdvertisemenet,    getAdvertisements,    getAdvertisementByAdv, getAdvertisementUser,    modifyAdvertisement,    deleteAdvertisement }
 = require('./controllers/advertisementController')
-const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation } 
+const { getReservationByRes, getAllReservations, getReservationsSelf, createNewReservation, modifyReservation, deleteReservation }
 = require('./controllers/reservationController')
-const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg } 
+const { getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg }
 = require('./controllers/reviewController')
-const { storageProps, storageRevs, storageUpdateProp, storageUpdateRevs }
+const { storageProp, storageRev, storageUpdateProp, storageUpdateRev }
 = require('./infrastructure/utils/multerUploads')
 
 
@@ -22,10 +22,10 @@ const cors = require('cors')
 
 const app = express()
 const upload = multer()
-const uploadPropCreation = multer( {storage: storageProps} )
-const uploadRevCreation = multer( {storage: storageRevs} )
+const uploadPropCreation = multer( {storage: storageProp} )
+const uploadRevCreation = multer( {storage: storageRev} )
 const uploadPropUpdate = multer( {storage: storageUpdateProp} )
-const uploadRevsUpdate = multer( {storage: storageUpdateProp} )
+const uploadRevsUpdate = multer( {storage: storageUpdateRev} )
 
 app.use(cors())
 app.use(express.urlencoded({extended: true}));
@@ -88,10 +88,10 @@ app.post(endpointLogout, validateAuthorization, logout);
 app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 //USUARIOS
+app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.get(endpointVerifiacionUser, activateValidationUser); //ok
 app.get(endpointUserProfile, validateAuthorization, detectTypeNoGuests, getSelfUser); //ok
-app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers); 
-// app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
+app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //ok
 app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser); //ok
 app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser); //ok
@@ -101,11 +101,9 @@ app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser);
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero,uploadPropCreation.array('imgsprop',12),createNewProperty);//ok
-app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, modifyProperty); //ok
-//TODO actualizar imágenes
-app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty); //ok
-//TODO borrar entradas de tabla imágenes al borrar
+app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropCreation.array('imgsprop',12), createNewProperty);//ok
+app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, uploadPropUpdate.array('imgsprop',12), modifyProperty);//ok
+app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty);//ok
 
 //ANUNCIOS
 app.get(endpointAdv, detectType, getAdvertisements); //ok
@@ -131,8 +129,8 @@ app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
 app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRevCreation.array('imgsrevs',12), createNewReview);//ok
-app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, modifyReview);//ok
-app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);//ok
+app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRevsUpdate.array('imgsrevs',12), modifyReview);
+app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);
 
 
 //SEARCHER
