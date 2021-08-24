@@ -360,7 +360,7 @@ const deleteUser = async (request, response) => {
     try {
         const delUser = userUpdateValidate(request.body)
         const isUserDel = await deleteItem(delUser, 'usuarios')
-        if (isUserDel >= 1) {
+        if (isUserDel) {
             isStatus = 200
             sendMessage = {
                 "tuple": delUser,
