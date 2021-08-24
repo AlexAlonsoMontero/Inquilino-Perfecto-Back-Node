@@ -9,8 +9,8 @@ const schemaCreateProp = Joi.object().keys({
     pais : Joi.string().max(128).required(),
     cp : Joi.string().max(5).required(),
 
-    x : Joi.number().precision(6),
-    y : Joi.number().precision(6),
+    lng : Joi.number().precision(6),
+    lat : Joi.number().precision(6),
 
     usr_casero_uuid :  Joi.string().guid({
         version: [
