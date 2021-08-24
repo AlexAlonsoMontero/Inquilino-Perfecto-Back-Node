@@ -22,7 +22,13 @@ const createAdvertisemenet = async (request, response) => {
         if (!newAdv.anuncio_uuid){
             newAdv = {...newAdv, anuncio_uuid : v4()}
         }
-        newAdv.usr_casero_uuid = request.auth.user.user_uuid
+        // newAdv.usr_casero_uuid = request.auth.user.user_uuid
+        newAdv = {
+            ...newAdv,
+            usr_casero_uuid : request.auth.user.user_uuid,
+            visibilidad : true
+        }
+
 
         const createAdv = await save(newAdv, tName)
 
