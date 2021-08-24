@@ -2,7 +2,7 @@ const Joi = require('joi');
 const { errorInvalidField } = require('../customErrors/errorInvalidField');
 
 const schemaCreateProp = Joi.object().keys({
-    disponibilidad : Joi.boolean().required(),
+    //disponibilidad : Joi.boolean().required(),
     calle : Joi.string().max(256).required(),
     ciudad : Joi.string().max(128).required(),
     provincia : Joi.string().max(128).required(),

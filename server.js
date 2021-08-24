@@ -34,18 +34,9 @@ app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 require('dotenv').config();
 
-//ENDPOINTS ADMIN USER
-const endpointAdminUsers='/api/admin/users';
-const endpointAdminUsersUuid='/api/admin/users/:user_uuid';
-const endpointAdminReviews = '/api/admin/reviews';
-const endpointAdminReservations = '/api/admin/reservations';
-
-
 //ENDPOINTS ADVERTISEMENT
 const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
-
-
 
 //ENDPOINTS PROPERTIES
 const endpointProperties = '/api/properties';
@@ -59,7 +50,6 @@ const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
 const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews/:resena_uuid';
 const endpointReviewAvg = '/api/avg-reviews/:table/:avg_param'
-
 
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
@@ -75,9 +65,6 @@ const endpointSelfReviews = '/api/user/:username/reviews';
 const endpointVerifiacionUser = '/activation'
 const endpointLogin = '/login';
 const endpointLogout = '/logout';
-    //ENDPOSINTS SEARCHER
-        const endpointGenericSearcher='/search/:table';
-        const endpointGenericMultiSearcher='/searches/:table1/:table2/:t1key/:t2key';
 
 
 //RUTES LOGIN/LOGOUT
@@ -88,12 +75,12 @@ app.post(endpointLogout, validateAuthorization, logout);
 app.use('/uploadAvatars', express.static('uploadAvatars'))
 
 //USUARIOS
-app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
+// app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
 app.get(endpointVerifiacionUser, activateValidationUser); //ok
 app.get(endpointUserProfile, validateAuthorization, detectTypeNoGuests, getSelfUser); //ok
 app.get(endpointUser, validateAuthorization, detectTypeNoGuests, getUsers);
 app.post(endpointUser, detectType, upload.single('avatar'), createNewUser); //ok
-app.put(endpointAdminUsersUuid, validateAuthorization, validateRolAdmin, updateUser); //ok
+app.put(endpointUser, validateAuthorization, validateRolAdmin, updateUser); //ok
 app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, updateSelfUser); //ok
 app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser); //ok
 
@@ -129,18 +116,8 @@ app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
 app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRevCreation.array('imgsrevs',12), createNewReview);//ok
-app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRevsUpdate.array('imgsrevs',12), modifyReview);
-app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview);
-
-
-//SEARCHER
-app.get(endpointGenericSearcher, searchMultiParams)
-app.get(endpointGenericMultiSearcher, searchMultiTableMultiParams)
-
-
-
-//TODO PRUEBAS ENDOPOINT
-const endpointPruebas = '/pruebas/adv'
+app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRevsUpdate.array('imgsrevs',12), modifyReview);//ok
+app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview); //ok
 
 let port = process.env.WEB_PORT
 let host = process.env.WEB_HOST

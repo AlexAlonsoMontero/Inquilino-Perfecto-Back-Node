@@ -44,22 +44,28 @@ const createNewProperty = async(req, res) =>{
         if (!newProp.inmueble_uuid){
             newProp = {...newProp, inmueble_uuid : v4()}
         }
-        newProp = {...newProp, usr_casero_uuid: req.auth.user.user_uuid}
+        newProp = {
+            ...newProp, 
+            usr_casero_uuid: req.auth.user.user_uuid, 
+            disponibilidad : true
+        }
 
         const createdProp = await save(newProp, tName)
 
         const prevDir = propDirectory + '/' + newProp.usr_casero_uuid
         const newDir = propDirectory + '/' + newProp.inmueble_uuid
-        fs.renameSync(prevDir, newDir)
+        if(fs.existsSync(prevDir)){
+            fs.renameSync(prevDir, newDir)
 
-        const filenames = fs.readdirSync(newDir)
-        for(const f in filenames){
-            const tuple = {
-                img_inmueble_uuid: v4(),
-                inmueble_uuid: newProp.inmueble_uuid,
-                img_inmueble: newDir + '/' + filenames[f]
+            const filenames = fs.readdirSync(newDir)
+            for(const f in filenames){
+                const tuple = {
+                    img_inmueble_uuid: v4(),
+                    inmueble_uuid: newProp.inmueble_uuid,
+                    img_inmueble: newDir + '/' + filenames[f]
+                }
+                const saveIt = await save(tuple,tImgs)
             }
-            const saveIt = await save(tuple,tImgs)
         }
 
         isStatus = 201
