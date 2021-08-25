@@ -19,14 +19,16 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
  * @param {json} req
  * @param {json} res
  */
-const createNewProperty = async(req, res) =>{
+ const createNewProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
-
+    console.log(req.body)
     try {
         let auxBodyContentKeys = Object.keys(req.body)
         let auxBodyContentValues = Object.values(req.body)
+        auxBodyContentKeys.push("disponibilidad")
+        auxBodyContentValues.push(true)
         let auxBody = {}
         auxBodyContentKeys.forEach((k,i) => {
             if(auxBodyContentValues[i] === 'true'){
@@ -38,30 +40,27 @@ const createNewProperty = async(req, res) =>{
             }
         })
         let newProp = propCreateValidate(auxBody)
-
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         //En la versión definitiva no dejaremos que el post traiga uuid
         if (!newProp.inmueble_uuid){
             newProp = {...newProp, inmueble_uuid : v4()}
         }
         newProp = {...newProp, usr_casero_uuid: req.auth.user.user_uuid}
-
         const createdProp = await save(newProp, tName)
-
         const prevDir = propDirectory + '/' + newProp.usr_casero_uuid
         const newDir = propDirectory + '/' + newProp.inmueble_uuid
-        fs.renameSync(prevDir, newDir)
-
-        const filenames = fs.readdirSync(newDir)
-        for(const f in filenames){
-            const tuple = {
-                img_inmueble_uuid: v4(),
-                inmueble_uuid: newProp.inmueble_uuid,
-                img_inmueble: newDir + '/' + filenames[f]
+        if(fs.existsSync(prevDir)){
+            fs.renameSync(prevDir, newDir)
+            const filenames = fs.readdirSync(newDir)
+            for(const f in filenames){
+                const tuple = {
+                    img_inmueble_uuid: v4(),
+                    inmueble_uuid: newProp.inmueble_uuid,
+                    img_inmueble: newDir + '/' + filenames[f]
+                }
+                const saveIt = await save(tuple,tImgs)
             }
-            const saveIt = await save(tuple,tImgs)
         }
-
         isStatus = 201
         sendMessage = {
             info: "Inmueble created",
@@ -87,7 +86,6 @@ const createNewProperty = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
-
 /**
  * #ADMIN_FUNCTION
  * Gets all properties in database
