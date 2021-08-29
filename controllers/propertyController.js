@@ -11,7 +11,7 @@ const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
-
+ 
 
 /**
  * #CASERO_FUNCTION / ADMIN
@@ -20,10 +20,13 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
  * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
+    console.log("FICHEROSSSSSSS")
+    console.log(req.body)
+    
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
-
+    
     try {
         let auxBodyContentKeys = Object.keys(req.body)
         let auxBodyContentValues = Object.values(req.body)

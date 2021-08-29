@@ -139,10 +139,7 @@ const createAdvertisemenet = async (request, response) => {
             }
         }else{
             const user = await findItems({username: request.params.username},tUsuarios)
-            console.log(user);
-            console.log(user[0].user_uuid);
             const userAdv = await getItemsMultiParams({usr_casero_uuid: user[0].user_uuid, visibilidad: true},tName)
-            console.log(userAdv);
             if (!userAdv){
                 throw new errorNoEntryFound(
                     tName,
@@ -189,12 +186,10 @@ const getAdvertisements = async (request, response) => {
         const visibilidad = { visibilidad : request.auth?.user?.tipo === 'ADMIN' ? request.query.visibilidad : true }
         if(request.query && Object.keys(request?.query).length !== 0){
             const isquery = {...request?.query, ...visibilidad}
-            console.log(isquery);
             advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, isquery)
         }else{
             advInm = await getItemsMultiJoin(queryTable, joinAdvPlusInmueblesTables, joinAdvPlusInmueblesKeys, visibilidad)
         }
-        console.log(advInm);
         if(!advInm){
             throw new errorNoEntryFound("get advertisements","no advertisements found","advInm",JSON.stringify(advInm))
         }else{

@@ -60,7 +60,6 @@ const createNewUser = async (request, response) => {
                 data: newUser
             }
             if (request.file){
-                // console.log(request.file)
                 fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
             }
             console.log(`Created new user`)
