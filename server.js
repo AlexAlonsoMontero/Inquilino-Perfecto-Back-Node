@@ -56,10 +56,10 @@ const endpointUserProfile = '/api/users/:username';
 const endpointUser = '/api/users';
 
 //ENDPOINTS SELF
-const endpointSelfAdvertisements = '/api/user/:username/advertisements';
-const endpointSelfProperties = '/api/user/:username/properties';
-const endpointSelfReservations = '/api/user/:username/reservations';
-const endpointSelfReviews = '/api/user/:username/reviews';
+const endpointSelfAdvertisements = '/api/self/advertisements/:username';
+const endpointSelfProperties = '/api/self/properties/:username';
+const endpointSelfReservations = '/api/self/reservations/:username';
+const endpointSelfReviews = '/api/self/reviews/:username';
 
 //ENDPOINTS NoApi
 const endpointVerifiacionUser = '/activation'
