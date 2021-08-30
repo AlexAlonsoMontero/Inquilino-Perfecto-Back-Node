@@ -27,11 +27,14 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
                 token: decodedToken,
                 user: user
             }
+
             next()
         }
     } catch (error) {
+
         console.warn(error)
         if (error instanceof errorNoEntryFound){
+
             isStatus = 404
             sendMessage = "token correcto, usuario no encontrado en la base de datos"
         }else if(error instanceof errorInvalidToken){
@@ -49,6 +52,7 @@ const validateAuthorization = async (request, response, next) => { //TEST .env S
             isStatus = 500
             sendMessage = "error interno del servidor"
         }
+
         response.status(isStatus).send(sendMessage)
     }
 }
@@ -160,8 +164,12 @@ const validateRolAdmin = async (request, response, next) => {
 }
 
 const validateRolCasero = async (request, response, next) => {
+
     let isStatus, sendMessage
+    
+
     try{
+
         if (request.auth.user.tipo && request.auth?.user?.tipo !== 'INQUILINO'){
             next()
         }else{
@@ -213,6 +221,8 @@ const validateRolInquiCas = async (request, response, next) => {
             console.log('validated inquilino_casero/admin');
             next()
         }else{
+            
+
             throw new errorNoAuthorization(request.auth.user.username,request.auth.user.tipo, '?', 'area restringida a inquilino_casero o admin')
         }
     }catch(error){

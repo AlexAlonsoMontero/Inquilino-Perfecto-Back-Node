@@ -159,19 +159,16 @@ const getPropertyByProp = async(req, res) =>{
     const tName = 'inmuebles';
     try {
         const validatedProp = validateUuid(req.params)
-        const propByProp = await findItems(validatedProp,tName)
 
+        const propByProp = await findItems(validatedProp,tName)
         if (!propByProp){
             throw new errorNoEntryFound(
                 tName,
                 "no Prop was found in getPropertyByProp",
                 Object.keys(validatedProp)[0],
                 validatedProp.inmueble_uuid)
+
         }else{
-            if(
-                req.auth?.user?.user_uuid === propByProp.usr_casero_uuid ||
-                req.auth?.user?.tipo === 'ADMIN'
-            ){
                 isStatus = 200
                 sendMessage =   {
                     tuple: validatedProp.inmueble_uuid,
@@ -179,11 +176,10 @@ const getPropertyByProp = async(req, res) =>{
                     data: propByProp
                 }
                 console.log(`Successful getPropByProp in ${tName}`);
-            }else{
-                throw new errorInvalidUser('the prop is not visible for you')
-            }
+            
         }
     }catch(error){
+
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
