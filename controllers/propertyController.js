@@ -11,7 +11,7 @@ const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
- 
+const { stringToBoolean } = require('../infrastructure/utils/stringtoboolean')
 
 /**
  * #CASERO_FUNCTION / ADMIN
@@ -20,8 +20,6 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
  * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
-    console.log("FICHEROSSSSSSS")
-    console.log(req.body)
     
     let isStatus, sendMessage;
     const tName = 'inmuebles';
@@ -246,6 +244,11 @@ const modifyProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
+
+    delete req.body.inmueble_uuid
+    delete req.body.id_inmueble
+    delete req.body.puntuacion_media
+    req.body = parseProperty(req.body)
     try {
         const oldProp = validateUuid(req.params)
         let existsProp = await findItems(oldProp, tName)
@@ -262,7 +265,9 @@ const modifyProperty = async(req, res) =>{
                 req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
                 req.auth?.user?.tipo === 'ADMIN'
         ){
+            
             let newProp = propUpdateValidate(req.body)
+
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
             if(consulta >= 1){
@@ -376,6 +381,21 @@ const deleteProperty = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
+
+
+const parseProperty = (property)=>{
+    
+    property.banos= parseInt(property.banos)
+    property.metros_2=parseInt(property.metros_2)
+    property.habitaciones= parseInt(property.habitaciones)
+    property = stringToBoolean(property)
+    console.log(property)
+    
+    return property
+
+}
+
+
 
 module.exports = {
     getPropertyByProp, getAllProperties, getPropertiesSelf,

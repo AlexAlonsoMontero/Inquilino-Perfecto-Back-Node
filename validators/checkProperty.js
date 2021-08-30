@@ -106,6 +106,8 @@ const propUpdateValidate = (prop) => {
             errorType
         )
     }else{
+        console.log("entra")
+        console.log(prop)
         return prop
     }
 }
