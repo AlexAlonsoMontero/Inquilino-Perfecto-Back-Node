@@ -31,6 +31,8 @@ app.use(cors())
 app.use(express.urlencoded({extended: true}));
 app.use(express.json())
 app.use('/uploadAvatars', express.static('uploadAvatars'))
+app.use('/imgs', express.static('imgs'))
+
 
 require('dotenv').config();
 
@@ -124,7 +126,7 @@ app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRe
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview); //ok
 
 //IMAGES
-app.get(endpointImages,validateAuthorization,getImages)
+app.get(endpointImages,getImages)
 
 
 
