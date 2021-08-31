@@ -6,7 +6,7 @@ const schemaCreateProp = Joi.object().keys({
     calle : Joi.string().max(256).required(),
     ciudad : Joi.string().max(128).required(),
     provincia : Joi.string().max(128).required(),
-    pais : Joi.string().max(128).required(),
+    pais : Joi.string().max(128).optional(),
     cp : Joi.string().max(5).required(),
 
     lng : Joi.number().precision(6),

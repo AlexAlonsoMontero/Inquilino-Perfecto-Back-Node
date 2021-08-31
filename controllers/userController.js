@@ -201,7 +201,7 @@ const getSelfUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
         if(request.auth?.user){
-            const bddUserData = await getUserPass(request.auth.user.user_uuid)
+            const bddUserData = await getUserNoPass(request.auth.user.user_uuid)
             console.log(bddUserData);
             isStatus = 200
             sendMessage = {

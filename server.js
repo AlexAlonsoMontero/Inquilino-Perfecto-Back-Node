@@ -1,6 +1,6 @@
 const { createNewUser, updateSelfUser, login, getSelfUser, updateUser,activateValidationUser, deleteUser, getUsers, logout }
 = require ('./controllers/userController')
-const { searchMultiParams, searchMultiTableMultiParams }
+const { searchMultiParams, searchMultiTableMultiParams,getImages }
 = require('./controllers/generalControllers')
 const { detectTypeNoGuests, detectType, validateAuthorization, validateRolAdmin, validateRolCasero, validateRolInquilino, validateSelfOrAdmin}
 = require('./infrastructure/middlewares/checkRolMiddle')
@@ -66,6 +66,8 @@ const endpointVerifiacionUser = '/activation'
 const endpointLogin = '/login';
 const endpointLogout = '/logout';
 
+//ENDPOINT IMAGES
+const endpointImages = '/img/:table/'
 
 //RUTES LOGIN/LOGOUT
 app.post(endpointLogin, login);
@@ -73,6 +75,8 @@ app.post(endpointLogout, validateAuthorization, logout);
 
 // ficheros estáticos de la carpeta uploads
 app.use('/uploadAvatars', express.static('uploadAvatars'))
+
+
 
 //USUARIOS
 // app.post(endpointUser, createNewUser); //descomentar para crear el primer admin
@@ -88,8 +92,8 @@ app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser);
 app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
-app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropCreation.array('imgsprop',12), createNewProperty);//ok
-app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, uploadPropUpdate.array('imgsprop',12), modifyProperty);//ok
+app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropCreation.array('file',12), createNewProperty);//ok
+app.put(endpointPropertiesByProp, validateAuthorization, validateRolCasero, uploadPropUpdate.array('file',12), modifyProperty);//ok
 app.delete(endpointProperties, validateAuthorization, validateRolCasero, deleteProperty);//ok
 
 //ANUNCIOS
@@ -118,6 +122,11 @@ app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haci
 app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,uploadRevCreation.array('imgsrevs',12), createNewReview);//ok
 app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRevsUpdate.array('imgsrevs',12), modifyReview);//ok
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview); //ok
+
+//IMAGES
+app.get(endpointImages,getImages)
+
+
 
 let port = process.env.WEB_PORT
 let host = process.env.WEB_HOST
