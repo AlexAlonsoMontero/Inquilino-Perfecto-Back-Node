@@ -5,9 +5,9 @@ const fs = require('fs')
 const path = require('path')
 const { v4 } = require('uuid')
 require('dotenv').config()
-const {    userCreateValidate, userUpdateValidate, userUpdatePassValidate, userPassValidate, userMailValidate, userUsernameValidate } = require('../validators/checkUser')
-const {    save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
-const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
+const { userCreateValidate, userUpdateValidate, userUpdatePassValidate, userPassValidate, userMailValidate, userUsernameValidate } = require('../validators/checkUser')
+const { save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
+const { getUserPass, getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
 const { validateUuid } = require('../validators/checkGeneral')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
@@ -201,7 +201,7 @@ const getSelfUser = async (request, response) => {
     let isStatus, sendMessage;
     try {
         if(request.auth?.user){
-            const bddUserData = await getUserNoPass(request.auth.user.user_uuid)
+            const bddUserData = await getUserPass(request.auth.user.user_uuid)
             console.log(bddUserData);
             isStatus = 200
             sendMessage = {
