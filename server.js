@@ -124,7 +124,7 @@ app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRe
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview); //ok
 
 //IMAGES
-app.get(endpointImages,getImages)
+app.get(endpointImages,validateAuthorization,getImages)
 
 
 
