@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const fs = require('fs')
-const { deleteItem, findItems, getItems, save, updateItem} = require('../infrastructure/generalRepository')
+const { deleteItem, findItems, getItems, save, updateItem, getItemsMultiParams} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty')
 const { propDirectory } = require('../infrastructure/utils/multerUploads')
@@ -199,11 +199,13 @@ const getPropertyByProp = async(req, res) =>{
  * @param {json} res 
  */
 const getPropertiesSelf = async(req, res) =>{
+    console.log("****************************************************")
+    console.log(req.body)
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid }
-        const selfProp = await findItems(propCasero,tName)
+        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid, disponibilidad:true }
+        const selfProp = await getItemsMultiParams(propCasero,tName)
 
         if (!selfProp){
             throw new errorNoEntryFound(
