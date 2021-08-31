@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const fs = require('fs')
-const { deleteItem, findItems, getItems, save, updateItem} = require('../infrastructure/generalRepository')
+const { deleteItem, findItems, getItems, save, updateItem, getItemsMultiParams} = require('../infrastructure/generalRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { propCreateValidate, propUpdateValidate } = require('../validators/checkProperty')
 const { propDirectory } = require('../infrastructure/utils/multerUploads')
@@ -11,7 +11,7 @@ const { errorInvalidUser } = require('../customErrors/errorInvalidUser')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
- 
+const { stringToBoolean } = require('../infrastructure/utils/stringtoboolean')
 
 /**
  * #CASERO_FUNCTION / ADMIN
@@ -20,8 +20,6 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
  * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
-    console.log("FICHEROSSSSSSS")
-    console.log(req.body)
     
     let isStatus, sendMessage;
     const tName = 'inmuebles';
@@ -159,19 +157,16 @@ const getPropertyByProp = async(req, res) =>{
     const tName = 'inmuebles';
     try {
         const validatedProp = validateUuid(req.params)
-        const propByProp = await findItems(validatedProp,tName)
 
+        const propByProp = await findItems(validatedProp,tName)
         if (!propByProp){
             throw new errorNoEntryFound(
                 tName,
                 "no Prop was found in getPropertyByProp",
                 Object.keys(validatedProp)[0],
                 validatedProp.inmueble_uuid)
+
         }else{
-            if(
-                req.auth?.user?.user_uuid === propByProp.usr_casero_uuid ||
-                req.auth?.user?.tipo === 'ADMIN'
-            ){
                 isStatus = 200
                 sendMessage =   {
                     tuple: validatedProp.inmueble_uuid,
@@ -179,11 +174,10 @@ const getPropertyByProp = async(req, res) =>{
                     data: propByProp
                 }
                 console.log(`Successful getPropByProp in ${tName}`);
-            }else{
-                throw new errorInvalidUser('the prop is not visible for you')
-            }
+            
         }
     }catch(error){
+
         console.warn(error)
         sendMessage = {error:error.message}
         if(error instanceof errorNoEntryFound){
@@ -205,11 +199,13 @@ const getPropertyByProp = async(req, res) =>{
  * @param {json} res 
  */
 const getPropertiesSelf = async(req, res) =>{
+    console.log("****************************************************")
+    console.log(req.body)
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {
-        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid }
-        const selfProp = await findItems(propCasero,tName)
+        const propCasero = { usr_casero_uuid : req.auth.user.user_uuid, disponibilidad:true }
+        const selfProp = await getItemsMultiParams(propCasero,tName)
 
         if (!selfProp){
             throw new errorNoEntryFound(
@@ -250,6 +246,11 @@ const modifyProperty = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
+
+    delete req.body.inmueble_uuid
+    delete req.body.id_inmueble
+    delete req.body.puntuacion_media
+    req.body = parseProperty(req.body)
     try {
         const oldProp = validateUuid(req.params)
         let existsProp = await findItems(oldProp, tName)
@@ -266,7 +267,9 @@ const modifyProperty = async(req, res) =>{
                 req.auth?.user?.user_uuid === existsProp.usr_casero_uuid ||
                 req.auth?.user?.tipo === 'ADMIN'
         ){
+            
             let newProp = propUpdateValidate(req.body)
+
             newProp = {...oldProp, ...newProp}
             const consulta = await updateItem(newProp, oldProp, tName)
             if(consulta >= 1){
@@ -380,6 +383,21 @@ const deleteProperty = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
+
+
+const parseProperty = (property)=>{
+    
+    property.banos= parseInt(property.banos)
+    property.metros_2=parseInt(property.metros_2)
+    property.habitaciones= parseInt(property.habitaciones)
+    property = stringToBoolean(property)
+    console.log(property)
+    
+    return property
+
+}
+
+
 
 module.exports = {
     getPropertyByProp, getAllProperties, getPropertiesSelf,
