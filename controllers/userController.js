@@ -232,6 +232,8 @@ const getSelfUser = async (request, response) => {
  */
 const updateSelfUser = async (request, response) =>{
     let isStatus, sendMessage;
+    console.log("-**********************************************************************************")
+    console.log(request.body)
     const tName = 'usuarios';
     try {
         const uuidSelf = request?.auth?.user?.user_uuid
