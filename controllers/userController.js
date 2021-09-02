@@ -202,7 +202,6 @@ const getSelfUser = async (request, response) => {
     try {
         if(request.auth?.user){
             const bddUserData = await getUserNoPass(request.auth.user.user_uuid)
-            console.log(bddUserData);
             isStatus = 200
             sendMessage = {
                 info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
@@ -232,8 +231,6 @@ const getSelfUser = async (request, response) => {
  */
 const updateSelfUser = async (request, response) =>{
     let isStatus, sendMessage;
-    console.log("-**********************************************************************************")
-    console.log(request.body)
     const tName = 'usuarios';
     try {
         const uuidSelf = request?.auth?.user?.user_uuid
@@ -248,9 +245,15 @@ const updateSelfUser = async (request, response) =>{
                 request?.auth?.user?.user_uuid)
         }else{
             const newSelfData = userUpdateValidate(request.body)
+            if(request.file){
+                newSelfData.avatar = '/uploadAvatars/user-'+ request.body.username +'.jpg'
+                fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
+            }else{
+                newSelfData.avatar = '/uploadAvatars/default-avatar.png'
+            }
             const oldUuid = {user_uuid : oldSelfData.user_uuid}
             const updatedRows = await updateItem(newSelfData,oldUuid,tName)
-
+            
             if(updatedRows && updatedRows >= 1){
                 const newUser = await getUserNoPass(oldUuid.user_uuid)
                 if(newUser){
@@ -507,8 +510,6 @@ const activateValidationUser = async (request, response) => {
 
     try {
         const activation_code = request.query
-        console.log("code")
-        console.log(activation_code)
         if (!activation_code){
             throw new Error ('Código de verificación requerido')
         }

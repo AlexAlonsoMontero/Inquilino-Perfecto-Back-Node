@@ -13,8 +13,6 @@ const { v4 } = require('uuid')
  * @param {*} response 
  */
 const createAdvertisemenet = async (request, response) => {
-    console.log("***********************************************")
-    console.log(request.body)
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
