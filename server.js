@@ -97,6 +97,8 @@ require('dotenv').config();
 //ENDPOINTS ADVERTISEMENT
 const enpointAdvByAdv = '/api/adv/:anuncio_uuid';
 const endpointAdv = '/api/adv/'
+const endpointAdvByProp = '/api/adv/prop/:inmueble_uuid'
+const endpointAdvByUser = '/api/adv/user/:usr_caser_uuid'
 
 //ENDPOINTS PROPERTIES
 const endpointProperties = '/api/properties';
@@ -169,6 +171,8 @@ app.get(endpointSelfAdvertisements, detectType, getAdvertisementUser); //ok
 app.post(endpointAdv, validateAuthorization, validateRolCasero, createAdvertisemenet); //ok
 app.put(enpointAdvByAdv, validateAuthorization, validateRolCasero, modifyAdvertisement); //ok
 app.delete(endpointAdv, validateAuthorization, validateRolCasero, deleteAdvertisement); //ok
+app.get(endpointAdvByProp, validateAuthorization,getAdvertisementByAdv)
+app.get(endpointAdvByUser, validateAuthorization,getAdvertisementByAdv)
 
 //RESERVAS
 app.get(endpointReservations, validateAuthorization, validateRolCasero, getAllReservations); //ok

@@ -63,9 +63,10 @@ const createAdvertisemenet = async (request, response) => {
  const getAdvertisementByAdv = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
-    try {
+    try {console.log(request.params)
         const validatedAdv = validateUuid(request.params)
-        let advByAdv = await findItems(validatedAdv,tName)
+        validatedAdv.visibilidad = true
+        let advByAdv = await getItemsMultiParams(validatedAdv,tName)
         advByAdv = advByAdv[0]
         if (!advByAdv){
             throw new errorNoEntryFound(

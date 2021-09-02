@@ -7,6 +7,7 @@ const schemaCreateAdv = Joi.object().keys({
     usr_casero_uuid : Joi.string().guid({ version : 'uuidv4' }),
     // visibilidad : Joi.boolean().required(),
     fecha_disponibilidad : Joi.date().iso(),
+    // fecha_disponibilidad : Joi.string(),
     precio : Joi.number().min(0)
 })
 
@@ -35,7 +36,10 @@ const schemaUpdateAdv = Joi.object().keys({
 })
 
 const advCreateValidate = (adv) => {
-    if(schemaCreateAdv.validate(adv)?.error){
+    const auxAdv = adv
+    auxAdv.fecha_disponibilidad = new Date(adv.fecha_disponibilidad)
+    console.log(auxAdv.fecha_disponibilidad)
+    if(schemaCreateAdv.validate(auxAdv)?.error){
         const [errorDetails] = schemaCreateAdv.validate(adv)?.error.details;
         const errorMessage = errorDetails.message
         const errorType = errorDetails.type
@@ -52,6 +56,7 @@ const advCreateValidate = (adv) => {
     }
 }
 const advUpdateValidate = (adv) => {
+    
     if(schemaUpdateAdv.validate(adv)?.error){
         const [errorDetails] = schemaUpdateAdv.validate(adv)?.error.details;
         const errorMessage = errorDetails.message
@@ -72,3 +77,4 @@ const advUpdateValidate = (adv) => {
 module.exports = {
     advCreateValidate, advUpdateValidate
 }
+
