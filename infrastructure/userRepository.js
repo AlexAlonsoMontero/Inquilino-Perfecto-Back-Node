@@ -22,6 +22,23 @@ const getUserNoPass = async (user_uuid) => {
     }
 }
 
+const getUserPass = async (user_uuid) => {
+    const aux = {user_uuid}
+    let user = await findItems(aux, 'usuarios')
+    user = user[0]
+    if(user){
+        return user
+    }else{
+        throw new errorNoEntryFound(
+            'finding user in bdd',
+            'user uuid not found in database',
+            'user_uuid',
+            user_uuid
+        )
+    }
+}
+
+
 const findUsersNoPass = async() =>{
     let rows = await getItems('usuarios')
     if(rows){
@@ -39,5 +56,6 @@ const findUsersNoPass = async() =>{
 
 module.exports = {
     getUserNoPass,
-    findUsersNoPass
+    findUsersNoPass,
+    getUserPass
 }

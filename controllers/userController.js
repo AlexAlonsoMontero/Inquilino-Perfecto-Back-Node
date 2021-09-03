@@ -5,9 +5,9 @@ const fs = require('fs')
 const path = require('path')
 const { v4 } = require('uuid')
 require('dotenv').config()
-const {    userCreateValidate, userUpdateValidate, userUpdatePassValidate, userPassValidate, userMailValidate, userUsernameValidate } = require('../validators/checkUser')
-const {    save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
-const {    getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
+const { userCreateValidate, userUpdateValidate, userUpdatePassValidate, userPassValidate, userMailValidate, userUsernameValidate } = require('../validators/checkUser')
+const { save,    findItems,    updateItem,    deleteItem, getItemsMultiParams } = require('../infrastructure/generalRepository')
+const { getUserPass, getUserNoPass, findUsersNoPass} = require('../infrastructure/userRepository')
 const { sendConfirmUserActivation, sendRegistrationMail } = require('../infrastructure/utils/smtpMail')
 const { validateUuid } = require('../validators/checkGeneral')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
@@ -202,7 +202,6 @@ const getSelfUser = async (request, response) => {
     try {
         if(request.auth?.user){
             const bddUserData = await getUserNoPass(request.auth.user.user_uuid)
-            console.log(bddUserData);
             isStatus = 200
             sendMessage = {
                 info: "Usuario verficado: eres admin, tú mismo o tienes permiso para estar aquí",
@@ -246,9 +245,15 @@ const updateSelfUser = async (request, response) =>{
                 request?.auth?.user?.user_uuid)
         }else{
             const newSelfData = userUpdateValidate(request.body)
+            if(request.file){
+                newSelfData.avatar = '/uploadAvatars/user-'+ request.body.username +'.jpg'
+                fs.writeFileSync(path.join('uploadAvatars','user-'+ request.body.username +'.jpg'),request.file.buffer)
+            }else{
+                newSelfData.avatar = '/uploadAvatars/default-avatar.png'
+            }
             const oldUuid = {user_uuid : oldSelfData.user_uuid}
             const updatedRows = await updateItem(newSelfData,oldUuid,tName)
-
+            
             if(updatedRows && updatedRows >= 1){
                 const newUser = await getUserNoPass(oldUuid.user_uuid)
                 if(newUser){
@@ -505,8 +510,6 @@ const activateValidationUser = async (request, response) => {
 
     try {
         const activation_code = request.query
-        console.log("code")
-        console.log(activation_code)
         if (!activation_code){
             throw new Error ('Código de verificación requerido')
         }

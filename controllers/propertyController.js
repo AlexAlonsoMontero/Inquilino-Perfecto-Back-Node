@@ -20,7 +20,7 @@ const { stringToBoolean } = require('../infrastructure/utils/stringtoboolean')
  * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
-    
+    console.log("****************************************************************************")
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
@@ -43,7 +43,7 @@ const createNewProperty = async(req, res) =>{
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         //En la versión definitiva no dejaremos que el post traiga uuid
         if (!newProp.inmueble_uuid){
-            newProp = {...newProp, inmueble_uuid : v4()}
+            newProp = {...newProp,pais:"España", inmueble_uuid : v4()}
         }
         newProp = {
             ...newProp, 
@@ -60,6 +60,7 @@ const createNewProperty = async(req, res) =>{
 
             const filenames = fs.readdirSync(newDir)
             for(const f in filenames){
+                console.log(newDir + '/' + filenames[f])
                 const tuple = {
                     img_inmueble_uuid: v4(),
                     inmueble_uuid: newProp.inmueble_uuid,
@@ -391,7 +392,11 @@ const parseProperty = (property)=>{
     property.metros_2=parseInt(property.metros_2)
     property.habitaciones= parseInt(property.habitaciones)
     property = stringToBoolean(property)
-    console.log(property)
+    if (property.piso===true){
+        property.piso="1"
+    }else if(property.piso===false){
+        property.piso="0"
+    }
     
     return property
 

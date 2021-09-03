@@ -32,11 +32,19 @@ const searchMultiTableMultiParams  = async(request,response) =>{
     }
 }
 
+const getImages =async(request,response) =>{
+    try{
+        const images = await getItemsMultiParams(request.query,request.params.table)
+        response.status(200).send({info: "Datos localizados",data: images})
 
+    }catch(error){
+        response.status(400).send("Bad request")
+    }
+}
 
 module.exports = {
     searchMultiParams,
     searchMultiTableMultiParams,
-    
+    getImages
 }
 
