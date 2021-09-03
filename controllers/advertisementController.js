@@ -16,7 +16,11 @@ const createAdvertisemenet = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
     try {
-        let newAdv = advCreateValidate(request.body)
+        let aux = request.body
+        console.log(aux)
+
+        aux.fecha_disponibilidad = new Date(aux.fecha_disponibilidad)
+        let newAdv = advCreateValidate(aux)
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         //En la versión definitiva no dejaremos que el post traiga uuid
         if (!newAdv.anuncio_uuid){
@@ -223,7 +227,7 @@ const modifyAdvertisement = async (request, response) => {
     const tName = 'anuncios';
     try {
         const oldAdv = validateUuid(request.params)
-        let existsAdv = await findItems(oldAdv, tName)
+        let [existsAdv] = await findItems(oldAdv, tName)
         if(!existsAdv || Object.keys(existsAdv).length === 0){
             throw new errorNoEntryFound(
                 'adv update by admin or self',
@@ -232,7 +236,11 @@ const modifyAdvertisement = async (request, response) => {
                 request.params.anuncio_uuid
             )
         }
+        
         if(request.auth?.user?.user_uuid === existsAdv.usr_casero_uuid || request.auth?.user?.tipo === 'ADMIN'){
+            console.log(request.auth?.user?.user_uuid)
+            delete request.body.anuncio_uuid
+            request.body.fecha_disponibilidad=new Date(request.body.fecha_disponibilidad)
             const newAdv = advUpdateValidate(request.body)
             const consulta = await updateItem(newAdv, oldAdv, tName)
             if(consulta >= 1){
