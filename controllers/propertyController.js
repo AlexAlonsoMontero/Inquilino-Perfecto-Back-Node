@@ -20,11 +20,9 @@ const { stringToBoolean } = require('../infrastructure/utils/stringtoboolean')
  * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
-    console.log("****************************************************************************")
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
-    
     try {
         let auxBodyContentKeys = Object.keys(req.body)
         let auxBodyContentValues = Object.values(req.body)
@@ -60,6 +58,7 @@ const createNewProperty = async(req, res) =>{
 
             const filenames = fs.readdirSync(newDir)
             for(const f in filenames){
+                console.log("entra")
                 console.log(newDir + '/' + filenames[f])
                 const tuple = {
                     img_inmueble_uuid: v4(),
