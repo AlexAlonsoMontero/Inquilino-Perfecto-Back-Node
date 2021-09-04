@@ -17,8 +17,6 @@ const createAdvertisemenet = async (request, response) => {
     const tName = 'anuncios';
     try {
         let aux = request.body
-        console.log(aux)
-
         aux.fecha_disponibilidad = new Date(aux.fecha_disponibilidad)
         let newAdv = advCreateValidate(aux)
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos

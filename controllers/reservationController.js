@@ -7,7 +7,7 @@ const { reservUpdateValidate, reservCreateValidate } = require('../validators/ch
 const { v4 } = require('uuid')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
-
+const { sendStarReservationCasero, sendStarReservationInquilino} = require('../infrastructure/utils/smtpMail')
 
 /**
  * #REGISTRED_FUNCTION [ANY]
@@ -20,27 +20,32 @@ const createNewReservation = async(req, res) =>{
     const tName = 'reservas';
     const tAnuncios = 'anuncios';
     try{
+        req.body.tipo_pago_reserva='MENSUAL'
+        req.body.fecha_inicio = new Date(req.body.fecha_inicio)
+        req.body.fecha_fin = new Date(req.body.fecha_fin)
         let validatedNewRes = reservCreateValidate(req.body) //only allows estado_reserva = PENDING
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
-        //En la versión definitiva no dejaremos que el post traiga uuid
         if (!validatedNewRes.reserva_uuid){
             validatedNewRes = {...validatedNewRes, reserva_uuid : v4()}
         }
         validatedNewRes = {...validatedNewRes, usr_inquilino_uuid : req.auth?.user?.user_uuid }
-
+        
+    
         let anuncioRes = await findItems({anuncio_uuid : validatedNewRes.anuncio_uuid}, tAnuncios)
         if(anuncioRes){
             anuncioRes = anuncioRes[0]
-
-            console.log(anuncioRes);
             validatedNewRes = {
                 ...validatedNewRes,
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }
-            console.log(validatedNewRes);
             const newRes = await save(validatedNewRes,tName)
-
+            const casero = await findItems({user_uuid:req.body.usr_casero_uuid}, 'usuarios')
+            const mailCasero = await sendStarReservationCasero(casero.username, casero.email)
+            const inquilino  = await findItems({user_uuid:req.body.usr_inquilino_uuid}, 'usuarios')
+            const mailInquilino = await sendStarReservationInquilino(inquilino.username, inquilino.email)
+            console.log(mailCasero)
+            console.log(mailInquilino)
             isStatus = 201
             sendMessage =   {
                 info: `Creada nueva reserva para ${req.auth?.user?.username}`,

@@ -4,6 +4,9 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField');
 
 const schemaCreateReserv = Joi.object().keys({
     reserva_uuid : Joi.string().guid({ version : 'uuidv4' }),
+    usr_casero_uuid:Joi.string().guid({ version : 'uuidv4' }),
+    usr_inquilino_uuid:Joi.string().guid({ version : 'uuidv4' }),
+    inmuebles_uuid:Joi.string().guid({ version : 'uuidv4' }),
     anuncio_uuid : Joi.string().guid({ version : 'uuidv4' }).required(),
     fecha_reserva : Joi.date().iso().required(),
     fecha_inicio : Joi.date().iso().min(Joi.ref('fecha_reserva')),

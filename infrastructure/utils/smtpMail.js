@@ -23,7 +23,33 @@ const sendConfirmUserActivation = async(userName, userMail) => {
     return data
 }
 
+//RESERVAS
+//MAILS CASERO
+const sendStarReservationCasero = async(userName, userMail)=>{
+    const mailData ={from:SMTP_FROM, to:userMail,cc:'lxalonso@gmail.com' , subject: "Nueva solicitud de reserva",
+        html:`<p>Hola ${userName} tienes una nueva sollicitud de reserva consulta que perfil de inquilino perfecto </p>
+        <a href="http://127.0.0.1:3000"><button>Visitar Web</button></a>`
+    }
+    const data = await transporter.sendMail(mailData)
+    return data
+}
+
+
+//MAILS INQUILINO
+const sendStarReservationInquilino = async(userName, userMail)=>{
+    const mailData ={from:SMTP_FROM, to:userMail,cc:'lxalonso@gmail.com', subject: "Nueva solicitud de reserva",
+        html:`<p>Hola ${userName} has ralizado una nueva sollicitud de reserva consulta que perfil de inquilino perfecto </p>
+        <a href="http://127.0.0.1:3000"><button>Visitar web</button></a>`
+    }
+    const data = await transporter.sendMail(mailData)
+    return data
+}
+
+
+
 module.exports = {
     sendConfirmUserActivation,
-    sendRegistrationMail
+    sendRegistrationMail,
+    sendStarReservationCasero,
+    sendStarReservationInquilino
 }
