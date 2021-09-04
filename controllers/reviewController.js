@@ -335,6 +335,7 @@ const modifyReview = async(req, res) =>{
     const tName = 'resenas';
     const tImgs = 'img_resenas';
     try{
+        console.log(req.params)
         const oldResRef = validateUuid(req.params)
         let findRes = await findItems(oldResRef,tName)
         if(findRes && findRes.length !== 0){

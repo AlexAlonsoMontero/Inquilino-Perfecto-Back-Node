@@ -306,6 +306,12 @@ const modifyReservation = async(req, res) =>{
             }else{
                 if( req.auth?.user?.user_uuid === existsRes.usr_casero_uuid
                     || req.auth?.user?.tipo === 'ADMIN'){
+                delete req.body.id_reserva
+                delete req.body.reserva_uuid
+                delete req.body.usr_casero_uuid
+                delete req.body.usr_inquilino_uuid
+                delete req.body.inmueble_uuid
+                delete req.body.anuncio_uuid
                 let newRes = reservUpdateValidate(req.body)
                 newRes = {...oldRes, ...newRes}
                 const consulta = await updateItem(newRes, oldRes, tName)
