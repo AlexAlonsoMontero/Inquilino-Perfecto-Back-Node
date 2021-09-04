@@ -40,7 +40,7 @@ const {
     deleteAdvertisement
 } = require('./controllers/advertisementController')
 const {
-    getReservationByRes,
+    getReservationByUUID,
     getAllReservations,
     getReservationsSelf,
     createNewReservation,
@@ -67,6 +67,7 @@ const {
 const multer = require('multer')
 const express = require('express')
 const cors = require('cors')
+const { addListener } = require('nodemon')
 
 const app = express()
 const upload = multer()
@@ -107,6 +108,8 @@ const endpointPropertiesByProp = '/api/properties/:inmueble_uuid';
 //ENDPOINTS RESERVATIONS
 const endpointReservations = '/api/reservations';
 const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
+const endpointReservationsByInmueble = '/api/reservations/property/:inmueble_uuid';
+const endpointReservationsByUserUUID = '/api/reservations/user/:usr_inquilino_uuid';
 
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
@@ -176,11 +179,15 @@ app.get(endpointAdvByUser, validateAuthorization,getAdvertisementByAdv)
 
 //RESERVAS
 app.get(endpointReservations, validateAuthorization, validateRolCasero, getAllReservations); //ok
-app.get(endpointReservationsByRes, validateAuthorization, detectTypeNoGuests, getReservationByRes); //ok
+app.get(endpointReservationsByRes, validateAuthorization, detectTypeNoGuests, getReservationByUUID); //ok
+app.get(endpointReservationsByInmueble,validateAuthorization,detectTypeNoGuests,getReservationByUUID)
+app.get(endpointReservationsByUserUUID,validateAuthorization,detectTypeNoGuests,getReservationByUUID)
 app.get(endpointSelfReservations, validateAuthorization, detectTypeNoGuests, getReservationsSelf); //ok
 app.post(endpointReservations, validateAuthorization, validateRolInquilino, createNewReservation); //ok
 app.put(endpointReservationsByRes, validateAuthorization, validateRolCasero, modifyReservation); //ok
 app.delete(endpointReservations, validateAuthorization, validateRolAdmin, deleteReservation); //ok
+
+
 
 
 

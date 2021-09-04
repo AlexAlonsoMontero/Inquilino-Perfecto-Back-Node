@@ -239,19 +239,20 @@ const getReservationsSelf = async(req, res) =>{
  * @param {json} req with path param ':reserva_uuid'
  * @param {json} res
  */
-const getReservationByRes = async(req, res) =>{
+const getReservationByUUID = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try{
         const validatedRes = validateUuid(req.params)
         let foundRes = await findItems(validatedRes,tName)
-        foundRes = foundRes[0]
-        if(!foundRes){
+        console.log(foundRes)
+        // foundRes = foundRes[0]
+        if(!foundRes[0]){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRes)[0],validatedRes.reserva_uuid)
         }else{
-            if(    req.auth?.user?.user_uuid === foundRes.usr_casero_uuid
-                || req.auth?.user?.user_uuid === foundRes.usr_inquilino_uuid
-                || req.auth?.user?.tipo === 'ADMIN'){
+            // if(    req.auth?.user?.user_uuid === foundRes.usr_casero_uuid
+            //     || req.auth?.user?.user_uuid === foundRes.usr_inquilino_uuid
+            //     || req.auth?.user?.tipo === 'ADMIN'){
 
                 isStatus = 200
                 sendMessage =   {
@@ -259,14 +260,14 @@ const getReservationByRes = async(req, res) =>{
                     Data: foundRes
                 }
                 console.warn(`Successful query on ${tName}`);
-            }else{
-                console.log(req.auth?.user?.username);
-                throw new errorNoAuthorization(
-                    req.auth?.user?.username,
-                    req.auth?.user?.tipo,
-                    'getReservationByRes',
-                    'no participa en la reserva y no es admin')
-            }
+            // }else{
+            //     console.log(req.auth?.user?.username);
+            //     throw new errorNoAuthorization(
+            //         req.auth?.user?.username,
+            //         req.auth?.user?.tipo,
+            //         'getReservationByUUID',
+            //         'no participa en la reserva y no es admin')
+            // }
         }
     }catch(error){
         console.warn(error)
@@ -377,6 +378,6 @@ const deleteReservation = async(req, res) =>{
 }
 
 module.exports = {
-    getReservationsByUser, getReservationByRes, getAllReservations, getReservationsSelf,
+    getReservationsByUser, getReservationByUUID, getAllReservations, getReservationsSelf,
     createNewReservation, modifyReservation, deleteReservation
 }
