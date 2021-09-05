@@ -58,7 +58,6 @@ const createNewProperty = async(req, res) =>{
 
             const filenames = fs.readdirSync(newDir)
             for(const f in filenames){
-                console.log("entra")
                 console.log(newDir + '/' + filenames[f])
                 const tuple = {
                     img_inmueble_uuid: v4(),
@@ -199,8 +198,6 @@ const getPropertyByProp = async(req, res) =>{
  * @param {json} res 
  */
 const getPropertiesSelf = async(req, res) =>{
-    console.log("****************************************************")
-    console.log(req.body)
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {

@@ -8,6 +8,9 @@ const { v4 } = require('uuid')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { sendStarReservationCasero, sendStarReservationInquilino} = require('../infrastructure/utils/smtpMail')
+const {getConnection} = require('../infrastructure/bd/db')
+const connection = getConnection()
+
 
 /**
  * #REGISTRED_FUNCTION [ANY]
@@ -44,8 +47,6 @@ const createNewReservation = async(req, res) =>{
             const mailCasero = await sendStarReservationCasero(casero.username, casero.email)
             const inquilino  = await findItems({user_uuid:req.body.usr_inquilino_uuid}, 'usuarios')
             const mailInquilino = await sendStarReservationInquilino(inquilino.username, inquilino.email)
-            console.log(mailCasero)
-            console.log(mailInquilino)
             isStatus = 201
             sendMessage =   {
                 info: `Creada nueva reserva para ${req.auth?.user?.username}`,
@@ -310,12 +311,18 @@ const modifyReservation = async(req, res) =>{
                 delete req.body.reserva_uuid
                 delete req.body.usr_casero_uuid
                 delete req.body.usr_inquilino_uuid
+                const inmueble_uuid = req.body.inmueble_uuid
                 delete req.body.inmueble_uuid
                 delete req.body.anuncio_uuid
                 let newRes = reservUpdateValidate(req.body)
                 newRes = {...oldRes, ...newRes}
                 const consulta = await updateItem(newRes, oldRes, tName)
                 if(consulta >= 1){
+                    if(newRes.estado_reserva==="ACEPTADA"){
+                        const query = `UPDATE ${tName} SET estado_reserva="RECHAZADO" WHERE estado_reserva="PENDIENTE" AND inmueble_uuid="${inmueble_uuid}" AND reserva_uuid!="${newRes.reserva_uuid}"`
+                        const [rows, fields] = await connection.query(query)
+                    }
+
                     isStatus = 200
                     sendMessage = {
                         info: "Inmueble modificado",
@@ -349,6 +356,13 @@ const modifyReservation = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
+
+
+
+
+
+
+
 /**
  * ADMIN_FUNCTION
  * @param {*} req 

@@ -65,7 +65,7 @@ const createAdvertisemenet = async (request, response) => {
  const getAdvertisementByAdv = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
-    try {console.log(request.params)
+    try {
         const validatedAdv = validateUuid(request.params)
         validatedAdv.visibilidad = true
         let advByAdv = await getItemsMultiParams(validatedAdv,tName)
