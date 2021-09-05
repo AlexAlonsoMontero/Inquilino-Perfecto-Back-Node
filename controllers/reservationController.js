@@ -128,6 +128,46 @@ const getAllReservations = async(req, res) =>{
     }
 }
 
+const getInquilinoReservations=async(req,res)=>{
+    let isStatus, sendMessage;
+    const tName = 'reservas';
+    try {
+        let selfUuid= { usr_inquilino_uuid : req.auth.user.user_uuid}
+        selfRes = await findItems(selfUuid,tName)
+        
+
+        if (!selfRes){
+            throw new errorNoEntryFound(
+                tName,
+                "no reservation was found in getReservationSelf",
+                'selfUuid',
+                selfUuid)
+        }else{
+            isStatus = 200
+            sendMessage =   {
+                tuple: selfUuid,
+                info:"Alquiler encontrado",
+                data: selfRes
+            }
+            console.log(`Successful getReservationsSelf in ${tName}`);
+        }
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
+    }
+}
+
+
+
 
 /**
  * ADMIN_FUNCTION
@@ -399,5 +439,5 @@ const deleteReservation = async(req, res) =>{
 
 module.exports = {
     getReservationsByUser, getReservationByUUID, getAllReservations, getReservationsSelf,
-    createNewReservation, modifyReservation, deleteReservation
+    createNewReservation, modifyReservation, deleteReservation,getInquilinoReservations
 }

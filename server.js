@@ -45,7 +45,8 @@ const {
     getReservationsSelf,
     createNewReservation,
     modifyReservation,
-    deleteReservation
+    deleteReservation,
+    getInquilinoReservations
 } = require('./controllers/reservationController')
 const {
     getReviewByRev,
@@ -110,6 +111,8 @@ const endpointReservations = '/api/reservations';
 const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
 const endpointReservationsByInmueble = '/api/reservations/property/:inmueble_uuid';
 const endpointReservationsByUserUUID = '/api/reservations/user/:usr_inquilino_uuid';
+const endpointReservationsInquilino = '/api/reservations/inquilino/:usr_inquilino_uuid'
+
 
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
@@ -186,7 +189,8 @@ app.get(endpointSelfReservations, validateAuthorization, detectTypeNoGuests, get
 app.post(endpointReservations, validateAuthorization, validateRolInquilino, createNewReservation); //ok
 app.put(endpointReservationsByRes, validateAuthorization, validateRolCasero, modifyReservation); //ok
 app.delete(endpointReservations, validateAuthorization, validateRolAdmin, deleteReservation); //ok
-
+//RESERVAS INQUILINO
+app.get(endpointReservationsInquilino,validateAuthorization,validateRolInquilino,getInquilinoReservations)
 
 
 
