@@ -9,6 +9,7 @@ const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { sendStarReservationCasero, sendStarReservationInquilino} = require('../infrastructure/utils/smtpMail')
 const {getConnection} = require('../infrastructure/bd/db')
+const { query } = require('express')
 const connection = getConnection()
 
 
@@ -132,7 +133,9 @@ const getInquilinoReservations=async(req,res)=>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try {
-        let selfUuid= { usr_inquilino_uuid : req.auth.user.user_uuid}
+        (req.params.rol==='inquilino'? {usr_inquilino_uuid : req.auth.user.user_uuid}:{usr_casero_uuid : req.auth.user.user_uuid})
+        
+        let selfUuid= (req.params.rol==='inquilino'? {usr_inquilino_uuid : req.auth.user.user_uuid}:{usr_casero_uuid : req.auth.user.user_uuid})
         selfRes = await findItems(selfUuid,tName)
         
 

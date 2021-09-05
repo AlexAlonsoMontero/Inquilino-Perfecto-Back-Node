@@ -111,7 +111,7 @@ const endpointReservations = '/api/reservations';
 const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
 const endpointReservationsByInmueble = '/api/reservations/property/:inmueble_uuid';
 const endpointReservationsByUserUUID = '/api/reservations/user/:usr_inquilino_uuid';
-const endpointReservationsInquilino = '/api/reservations/inquilino/:usr_inquilino_uuid'
+const endpointReservationsInquilino = '/api/reservations/:rol/:usr_inquilino_uuid'
 
 
 //ENDPOINTS REVIEWS
@@ -163,7 +163,7 @@ app.put(endpointUserProfile, validateAuthorization, detectTypeNoGuests, upload.s
 app.delete(endpointUser, validateAuthorization, detectTypeNoGuests, deleteUser); //ok
 
 //INMUEBLES
-app.get(endpointProperties, validateAuthorization, validateRolAdmin, getAllProperties); //ok
+app.get(endpointProperties, validateAuthorization, getAllProperties); //ok
 app.get(endpointPropertiesByProp, validateAuthorization, validateRolCasero, getPropertyByProp); //ok
 app.get(endpointSelfProperties, validateAuthorization, validateRolCasero, getPropertiesSelf); //ok
 app.post(endpointProperties, validateAuthorization, validateRolCasero, uploadPropCreation.array('file', 12), createNewProperty); //ok
@@ -200,8 +200,8 @@ app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews)
 app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
-app.post(endpointReviews, validateAuthorization, detectTypeNoGuests, uploadRevCreation.array('imgsrevs', 12), createNewReview); //ok
-app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests, uploadRevsUpdate.array('imgsrevs', 12), modifyReview); //ok
+app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,  createNewReview); //ok uploadRevCreation.array('imgsrevs', 12),
+app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests,  modifyReview); //ok uploadRevsUpdate.array('imgsrevs', 12),
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview); //ok
 
 //IMAGES

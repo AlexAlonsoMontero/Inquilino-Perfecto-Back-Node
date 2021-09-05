@@ -24,91 +24,15 @@ const { revDirectory } = require('../infrastructure/utils/multerUploads')
     const tName = 'resenas'
     const tRes = 'reservas'
     const tImgs = 'img_resenas';
-
+    
     let tUpdate
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
-        // TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
-        // En la versión definitiva no dejaremos que el post traiga uuid
-        if (!validatedNewRev.resena_uuid){
-            validatedNewRev = {...validatedNewRev, resena_uuid : v4()}
-        }
-
         let reserv = await findItems({reserva_uuid:validatedNewRev.reserva_uuid},tRes)
         reserv = reserv[0]
         if(reserv){
-            let relatedInq = false
-            let relatedCas = false
-            switch(req.auth.user.tipo){
-                case 'INQUILINO':
-                    relatedInq = req.auth.user.user_uuid === reserv.usr_inquilino_uuid ? true : false
-                    break;
-                case 'CASERO':
-                    relatedCas = req.auth.user.user_uuid === reserv.usr_casero_uuid ? true : false
-                    break;
-                case 'INQUILINO/CASERO':
-                    relatedInq = req.auth.user.user_uuid === reserv.usr_inquilino_uuid ? true : false
-                    relatedCas = req.auth.user.user_uuid === reserv.usr_casero_uuid ? true : false
-                    break;
-                case 'ADMIN':
-                default:
-                    break;
-            }
-            if(relatedInq || relatedCas){
-                validatedNewRev = {
-                    ...validatedNewRev,
-                    autor_uuid: req.auth.user.user_uuid,
-                    usr_inquilino_uuid: relatedInq ? req.auth.user.user_uuid : reserv.usr_inquilino_uuid,
-                    usr_casero_uuid: relatedCas ? req.auth.user.user_uuid : reserv.usr_casero_uuid,
-                    inmueble_uuid: reserv.inmueble_uuid,
-                    rol: req.auth.user.tipo
-                }
-
+                validatedNewRev ={...validatedNewRev,resena_uuid : v4()}
                 const saveRev = await save(validatedNewRev,tName)
-                let punctuationTarget
-                let punctuationInRes
-                switch(validatedNewRev.objetivo){
-                    case 'INQUILINO':
-                        punctuationInRes = {usr_inquilino_uuid: validatedNewRev.usr_inquilino_uuid}
-                        punctuationTarget = {user_uuid : validatedNewRev.usr_inquilino_uuid}
-                        tUpdate='usuarios'
-                        break;
-                    case 'CASERO':
-                        punctuationInRes = {usr_casero_uuid: validatedNewRev.usr_casero_uuid}
-                        punctuationTarget = {user_uuid : validatedNewRev.usr_casero_uuid}
-                        tUpdate='usuarios'
-                        break;
-                    case 'INMUEBLE':
-                        punctuationInRes = {inmueble_uuid: validatedNewRev.inmueble_uuid}
-                        punctuationTarget = {inmueble_uuid : reserv.inmueble_uuid}
-                        tUpdate='inmuebles'
-                        break;
-                    default:
-                        throw new errorInvalidField(
-                            'createNewReview',
-                            'invalid content for objetivo',
-                            'validatedNewRev.objetivo',
-                            validatedNewRev.objetivo
-                            )
-                        break;
-                }
-                await updatePunctuation(punctuationInRes,punctuationTarget,tUpdate)
-
-                const prevDir = revDirectory + '/' + req.auth.user.user_uuid
-                const newDir = revDirectory + '/' + validatedNewRev.resena_uuid
-                fs.renameSync(prevDir, newDir)
-
-                const filenames = fs.readdirSync(newDir)
-                for(const f in filenames){
-                    const tuple = {
-                        img_resenas_uuid: v4(),
-                        resena_uuid: validatedNewRev.resena_uuid,
-                        autor_uuid: validatedNewRev.autor_uuid,
-                        img_resena: newDir + '/' + filenames[f]
-                    }
-                    const saveIt = await save(tuple,tImgs)
-                }
-
                 isStatus = 201
                 sendMessage = {
                     info: 'review created',
@@ -116,14 +40,6 @@ const { revDirectory } = require('../infrastructure/utils/multerUploads')
                 }
                 console.log(`Created new element in ${tName}`)
             }else{
-                throw new errorNoAuthorization(
-                    req.auth.user.username,
-                    req.auth.user.tipo,
-                    'createNewReview',
-                    `isn't related to the reservation`
-                )
-            }
-        }else{
             throw new errorNoEntryFound(
                 'createNewReview',
                 'the reservation doesn\'t exists',
@@ -260,6 +176,9 @@ const getSelfReviews = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
+
+
+
 
 /**
  * # [RESERVATION-RELATED] /ADMIN
