@@ -287,9 +287,9 @@ const getReservationByUUID = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try{
+        console.log(req.params)
         const validatedRes = validateUuid(req.params)
         let foundRes = await findItems(validatedRes,tName)
-        console.log(foundRes)
         // foundRes = foundRes[0]
         if(!foundRes[0]){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRes)[0],validatedRes.reserva_uuid)

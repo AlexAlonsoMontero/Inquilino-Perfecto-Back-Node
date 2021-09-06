@@ -110,7 +110,7 @@ const endpointPropertiesByProp = '/api/properties/:inmueble_uuid';
 const endpointReservations = '/api/reservations';
 const endpointReservationsByRes = '/api/reservations/:reserva_uuid';
 const endpointReservationsByInmueble = '/api/reservations/property/:inmueble_uuid';
-const endpointReservationsByUserUUID = '/api/reservations/user/:usr_inquilino_uuid';
+const endpointReservationsByUserUUID = '/api/reservations/user/:usr_casero_uuid';
 const endpointReservationsInquilino = '/api/reservations/:rol/:usr_inquilino_uuid'
 
 
