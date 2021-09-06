@@ -17,8 +17,6 @@ const createAdvertisemenet = async (request, response) => {
     const tName = 'anuncios';
     try {
         let aux = request.body
-        console.log(aux)
-
         aux.fecha_disponibilidad = new Date(aux.fecha_disponibilidad)
         let newAdv = advCreateValidate(aux)
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
@@ -67,7 +65,7 @@ const createAdvertisemenet = async (request, response) => {
  const getAdvertisementByAdv = async (request, response) => {
     let isStatus, sendMessage;
     const tName = 'anuncios';
-    try {console.log(request.params)
+    try {
         const validatedAdv = validateUuid(request.params)
         validatedAdv.visibilidad = true
         let advByAdv = await getItemsMultiParams(validatedAdv,tName)

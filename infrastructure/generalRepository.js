@@ -82,6 +82,7 @@ const updateItem = async (newItem, oldItem, table) => {
 }
 
 
+
 /**
  * Generic item delete
  * @param {json} item data key we want to find placed in the first field

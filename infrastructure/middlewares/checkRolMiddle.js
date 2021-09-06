@@ -73,7 +73,6 @@ const detectType = async (request, response, next) => {
             const decodedToken = jwt.verify(token, process.env.SECRET)
             let user = await getUserNoPass(decodedToken.user_uuid)
             if(Object.keys(user).length > 0){
-                console.log(user);
                 request.auth = {
                     user,
                     token: decodedToken }
@@ -117,7 +116,6 @@ const detectType = async (request, response, next) => {
             const decodedToken = jwt.verify(token, process.env.SECRET)
             let user = await getUserNoPass(decodedToken.user_uuid)
             if(Object.keys(user).length > 0){
-                console.log(user);
                 request.auth = {
                     user,
                     token: decodedToken

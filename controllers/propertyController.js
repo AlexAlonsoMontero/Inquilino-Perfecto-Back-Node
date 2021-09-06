@@ -20,11 +20,9 @@ const { stringToBoolean } = require('../infrastructure/utils/stringtoboolean')
  * @param {json} res
  */
 const createNewProperty = async(req, res) =>{
-    console.log("****************************************************************************")
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     const tImgs = 'img_inmuebles';
-    
     try {
         let auxBodyContentKeys = Object.keys(req.body)
         let auxBodyContentValues = Object.values(req.body)
@@ -200,8 +198,6 @@ const getPropertyByProp = async(req, res) =>{
  * @param {json} res 
  */
 const getPropertiesSelf = async(req, res) =>{
-    console.log("****************************************************")
-    console.log(req.body)
     let isStatus, sendMessage;
     const tName = 'inmuebles';
     try {

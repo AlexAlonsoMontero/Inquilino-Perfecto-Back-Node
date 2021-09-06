@@ -7,6 +7,10 @@ const { reservUpdateValidate, reservCreateValidate } = require('../validators/ch
 const { v4 } = require('uuid')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
+const { sendStarReservationCasero, sendStarReservationInquilino} = require('../infrastructure/utils/smtpMail')
+const {getConnection} = require('../infrastructure/bd/db')
+const { query } = require('express')
+const connection = getConnection()
 
 
 /**
@@ -20,27 +24,30 @@ const createNewReservation = async(req, res) =>{
     const tName = 'reservas';
     const tAnuncios = 'anuncios';
     try{
+        req.body.tipo_pago_reserva='MENSUAL'
+        req.body.fecha_inicio = new Date(req.body.fecha_inicio)
+        req.body.fecha_fin = new Date(req.body.fecha_fin)
         let validatedNewRes = reservCreateValidate(req.body) //only allows estado_reserva = PENDING
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
-        //En la versión definitiva no dejaremos que el post traiga uuid
         if (!validatedNewRes.reserva_uuid){
             validatedNewRes = {...validatedNewRes, reserva_uuid : v4()}
         }
         validatedNewRes = {...validatedNewRes, usr_inquilino_uuid : req.auth?.user?.user_uuid }
-
+        
+    
         let anuncioRes = await findItems({anuncio_uuid : validatedNewRes.anuncio_uuid}, tAnuncios)
         if(anuncioRes){
             anuncioRes = anuncioRes[0]
-
-            console.log(anuncioRes);
             validatedNewRes = {
                 ...validatedNewRes,
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }
-            console.log(validatedNewRes);
             const newRes = await save(validatedNewRes,tName)
-
+            const casero = await findItems({user_uuid:req.body.usr_casero_uuid}, 'usuarios')
+            const mailCasero = await sendStarReservationCasero(casero.username, casero.email)
+            const inquilino  = await findItems({user_uuid:req.body.usr_inquilino_uuid}, 'usuarios')
+            const mailInquilino = await sendStarReservationInquilino(inquilino.username, inquilino.email)
             isStatus = 201
             sendMessage =   {
                 info: `Creada nueva reserva para ${req.auth?.user?.username}`,
@@ -121,6 +128,48 @@ const getAllReservations = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
+
+const getInquilinoReservations=async(req,res)=>{
+    let isStatus, sendMessage;
+    const tName = 'reservas';
+    try {
+        (req.params.rol==='inquilino'? {usr_inquilino_uuid : req.auth.user.user_uuid}:{usr_casero_uuid : req.auth.user.user_uuid})
+        
+        let selfUuid= (req.params.rol==='inquilino'? {usr_inquilino_uuid : req.auth.user.user_uuid}:{usr_casero_uuid : req.auth.user.user_uuid})
+        selfRes = await findItems(selfUuid,tName)
+        
+
+        if (!selfRes){
+            throw new errorNoEntryFound(
+                tName,
+                "no reservation was found in getReservationSelf",
+                'selfUuid',
+                selfUuid)
+        }else{
+            isStatus = 200
+            sendMessage =   {
+                tuple: selfUuid,
+                info:"Alquiler encontrado",
+                data: selfRes
+            }
+            console.log(`Successful getReservationsSelf in ${tName}`);
+        }
+    }catch(error){
+        console.warn(error)
+        sendMessage = {error:error.message}
+        if(error instanceof errorNoEntryFound){
+            isStatus = 404
+        }else if(error instanceof errorInvalidUser){
+            isStatus = 403
+        }else{
+            isStatus = 500
+        }
+    }finally{
+        res.status(isStatus).send(sendMessage)
+    }
+}
+
+
 
 
 /**
@@ -234,19 +283,20 @@ const getReservationsSelf = async(req, res) =>{
  * @param {json} req with path param ':reserva_uuid'
  * @param {json} res
  */
-const getReservationByRes = async(req, res) =>{
+const getReservationByUUID = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try{
+        console.log(req.params)
         const validatedRes = validateUuid(req.params)
         let foundRes = await findItems(validatedRes,tName)
-        foundRes = foundRes[0]
-        if(!foundRes){
+        // foundRes = foundRes[0]
+        if(!foundRes[0]){
             throw new errorNoEntryFound(tName,"no tuples were found",Object.keys(validatedRes)[0],validatedRes.reserva_uuid)
         }else{
-            if(    req.auth?.user?.user_uuid === foundRes.usr_casero_uuid
-                || req.auth?.user?.user_uuid === foundRes.usr_inquilino_uuid
-                || req.auth?.user?.tipo === 'ADMIN'){
+            // if(    req.auth?.user?.user_uuid === foundRes.usr_casero_uuid
+            //     || req.auth?.user?.user_uuid === foundRes.usr_inquilino_uuid
+            //     || req.auth?.user?.tipo === 'ADMIN'){
 
                 isStatus = 200
                 sendMessage =   {
@@ -254,14 +304,14 @@ const getReservationByRes = async(req, res) =>{
                     Data: foundRes
                 }
                 console.warn(`Successful query on ${tName}`);
-            }else{
-                console.log(req.auth?.user?.username);
-                throw new errorNoAuthorization(
-                    req.auth?.user?.username,
-                    req.auth?.user?.tipo,
-                    'getReservationByRes',
-                    'no participa en la reserva y no es admin')
-            }
+            // }else{
+            //     console.log(req.auth?.user?.username);
+            //     throw new errorNoAuthorization(
+            //         req.auth?.user?.username,
+            //         req.auth?.user?.tipo,
+            //         'getReservationByUUID',
+            //         'no participa en la reserva y no es admin')
+            // }
         }
     }catch(error){
         console.warn(error)
@@ -300,10 +350,22 @@ const modifyReservation = async(req, res) =>{
             }else{
                 if( req.auth?.user?.user_uuid === existsRes.usr_casero_uuid
                     || req.auth?.user?.tipo === 'ADMIN'){
+                delete req.body.id_reserva
+                delete req.body.reserva_uuid
+                delete req.body.usr_casero_uuid
+                delete req.body.usr_inquilino_uuid
+                const inmueble_uuid = req.body.inmueble_uuid
+                delete req.body.inmueble_uuid
+                delete req.body.anuncio_uuid
                 let newRes = reservUpdateValidate(req.body)
                 newRes = {...oldRes, ...newRes}
                 const consulta = await updateItem(newRes, oldRes, tName)
                 if(consulta >= 1){
+                    if(newRes.estado_reserva==="ACEPTADA"){
+                        const query = `UPDATE ${tName} SET estado_reserva="RECHAZADO" WHERE estado_reserva="PENDIENTE" AND inmueble_uuid="${inmueble_uuid}" AND reserva_uuid!="${newRes.reserva_uuid}"`
+                        const [rows, fields] = await connection.query(query)
+                    }
+
                     isStatus = 200
                     sendMessage = {
                         info: "Inmueble modificado",
@@ -337,6 +399,13 @@ const modifyReservation = async(req, res) =>{
         res.status(isStatus).send(sendMessage)
     }
 }
+
+
+
+
+
+
+
 /**
  * ADMIN_FUNCTION
  * @param {*} req 
@@ -372,6 +441,6 @@ const deleteReservation = async(req, res) =>{
 }
 
 module.exports = {
-    getReservationsByUser, getReservationByRes, getAllReservations, getReservationsSelf,
-    createNewReservation, modifyReservation, deleteReservation
+    getReservationsByUser, getReservationByUUID, getAllReservations, getReservationsSelf,
+    createNewReservation, modifyReservation, deleteReservation,getInquilinoReservations
 }
