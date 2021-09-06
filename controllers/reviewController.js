@@ -5,7 +5,7 @@ const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
 const { errorNoAuthorization } = require('../customErrors/errorNoAuthorization')
 const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
-const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem} = require('../infrastructure/generalRepository')
+const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem, getItemsMultiTable, getItemsMultiJoin} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/checkReview')
 const { updatePunctuation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
@@ -190,36 +190,17 @@ const getReviewByRev = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'resenas';
     try{
-        const validatedRev = validateUuid(req.params)
-        let findRev = await findItems(validatedRev,tName)
+        const validatedRev = validateUuid(req.query)
+        const  findRev = await getItemsMultiParams(req.query,tName)
+        
+
         if(findRev){
-            console.log(findRev);
-            findRev = findRev[0]
-            if(findRev.objetivo === 'INQUILINO'){
-                if( req.auth.user.tipo !== 'INQUILINO'
-                    || findRev.usr_inquilino_uuid === req.auth.user.user_uuid
-                    || findRev.usr_casero_uuid === req.auth.user.user_uuid
-                    || findRev.autor_uuid === req.auth.user.user_uuid ){
-                        isStatus = 200
-                        sendMessage = {
-                            info : 'review found',
-                            data : findRev
-                        }
-                }else{
-                    throw new errorNoAuthorization(
-                        req.auth.user.username,
-                        req.auth.user.tipo,
-                        'getReviewByRev',
-                        `INQUILINOS can't check on other reviews`
-                    )
-                }
-            }else{ //las reviews de inmuebles y caseros son visibles para todos los usuarios
-                isStatus = 200
-                sendMessage = {
-                    info : 'review found',
-                    data : findRev
-                }
+            isStatus = 200
+            sendMessage = {
+                info : 'review found',
+                data : findRev
             }
+            
         }else{
             throw new errorNoEntryFound(
                 'getReviewByRev',

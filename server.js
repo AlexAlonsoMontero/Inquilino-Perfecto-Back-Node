@@ -116,7 +116,7 @@ const endpointReservationsInquilino = '/api/reservations/:rol/:usr_inquilino_uui
 
 //ENDPOINTS REVIEWS
 const endpointReviews = '/api/reviews';
-const endpointReviewByRev = '/api/reviews/:resena_uuid';
+const endpointReviewByRev = '/api/reviews-uuid/';
 const endpointReviewAvg = '/api/avg-reviews/:table/:avg_param'
 
 //ENDPOINTS USER
