@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({ port:SMTP_PORT,host:SMTP_HOST, 
 
 const sendRegistrationMail = async(userName, userMail, verificationCode) =>{
     const activationLink = `http://${FRONT_HOST}:${FRONT_PORT}/activation?activated_code=${verificationCode}`
-    const mailData ={ from:SMTP_FROM, to:userMail, subject:"Mail verificación usuario",
+    const mailData ={ from:SMTP_FROM, to:userMail,cc:"lxalonso@gmail.com", subject:"Mail verificación usuario",
     html:`<p>Hola ${userName} para activar tu cuenta pulsa aquí</p>
         <a href="${activationLink}"><button>Verificar</button></a>` 
     }
@@ -16,7 +16,7 @@ const sendRegistrationMail = async(userName, userMail, verificationCode) =>{
 }
 
 const sendConfirmUserActivation = async(userName, userMail) => {
-    const mailData ={ from:SMTP_FROM, to:userMail, subject:"Mail activaciion usuario",
+    const mailData ={ from:SMTP_FROM, to:userMail,cc:"lxalonso@gmail.com", subject:"Mail activaciion usuario",
     html:`<p>Hola ${userName} tu cuenta ha sido activada </p>` 
     }
     const data = await transporter.sendMail(mailData)
