@@ -3,6 +3,7 @@ const {getConnection} = require('./bd/db')
 const connection = getConnection()
 const { dateString } = require('../infrastructure/utils/dateString') 
 const { errorNoEntryFound } = require('../customErrors/errorNoEntryFound')
+const { object } = require('joi')
 
 /**
  * CREA la tupla dada en la BDD
@@ -23,6 +24,7 @@ const save = async (entity, table) => {
     let sentencia = `INSERT INTO ${table} (${keys}) VALUES (${cadena})`
     const values = Object.values(entity).map(value => (typeof (value) === 'string' ? value = "'" + value + "'" : value))
     const consulta = await connection.query(sentencia, Object.values(entity))
+    
 
     return consulta[0][0]
 }

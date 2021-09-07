@@ -24,10 +24,20 @@ const createNewReservation = async(req, res) =>{
     const tName = 'reservas';
     const tAnuncios = 'anuncios';
     try{
+        console.log(req.body)
         req.body.tipo_pago_reserva='MENSUAL'
-        req.body.fecha_inicio = new Date(req.body.fecha_inicio)
-        req.body.fecha_fin = new Date(req.body.fecha_fin)
-        let validatedNewRes = reservCreateValidate(req.body) //only allows estado_reserva = PENDING
+        validatedNewRes =req.body
+        if((new Date(req.body.fecha_inicio)> new Date (req.body.fecha_fin)) || new Date (req.body.fecha_inicio)< new Date (req.body.fecha_reserva)){
+            throw new errorInvalidField(
+                "fecha",
+                "fecha inicio",
+                "fecha fin",
+                "formato"
+            )
+            
+
+        }
+        // let validatedNewRes = reservCreateValidate(req.body) //only allows estado_reserva = PENDING
         //TEMP Línea añadida para poder trabajar con los uuid generados en la base de datos
         if (!validatedNewRes.reserva_uuid){
             validatedNewRes = {...validatedNewRes, reserva_uuid : v4()}
@@ -43,10 +53,12 @@ const createNewReservation = async(req, res) =>{
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }
+            
+            
             const newRes = await save(validatedNewRes,tName)
-            const casero = await findItems({user_uuid:req.body.usr_casero_uuid}, 'usuarios')
+            const casero = await findItems({user_uuid:validatedNewRes.usr_casero_uuid}, 'usuarios')
             const mailCasero = await sendStarReservationCasero(casero.username, casero.email)
-            const inquilino  = await findItems({user_uuid:req.body.usr_inquilino_uuid}, 'usuarios')
+            const inquilino  = await findItems({user_uuid:validatedNewRes.usr_inquilino_uuid}, 'usuarios')
             const mailInquilino = await sendStarReservationInquilino(inquilino.username, inquilino.email)
             isStatus = 201
             sendMessage =   {
@@ -287,7 +299,6 @@ const getReservationByUUID = async(req, res) =>{
     let isStatus, sendMessage;
     const tName = 'reservas';
     try{
-        console.log(req.params)
         const validatedRes = validateUuid(req.params)
         let foundRes = await findItems(validatedRes,tName)
         // foundRes = foundRes[0]
