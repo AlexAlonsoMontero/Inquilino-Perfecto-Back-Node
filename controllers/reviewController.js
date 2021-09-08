@@ -7,7 +7,7 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem, getItemsMultiTable, getItemsMultiJoin} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/checkReview')
-const { updatePunctuation } = require('../infrastructure/reviewRepository')
+const { updatePuntuation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
 const { revDirectory } = require('../infrastructure/utils/multerUploads')
@@ -247,7 +247,7 @@ const modifyReview = async(req, res) =>{
                 const updateRev = await updateItem(newRev,oldResRef,tName)
                 if(updateRev === 1){
                     if(newRev.puntuacion){
-                    await updatePunctuation(
+                    await updatePuntuation(
                         findRes.objetivo === 'IMBUEBLE' ?
                             { inmueble_uuid : findRes.inmueble_uuid }
                             :
@@ -348,7 +348,7 @@ const deleteReview = async(req, res) =>{
                 const delRev = await deleteItem(checkRes,tName)
                 if(delRev){
 
-                    await updatePunctuation(
+                    await updatePuntuation(
                             findRes.objetivo === 'IMBUEBLE' ?
                                 { inmueble_uuid : findRes.inmueble_uuid }
                                 :
