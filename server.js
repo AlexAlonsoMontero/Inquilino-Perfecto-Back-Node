@@ -190,7 +190,7 @@ app.post(endpointReservations, validateAuthorization, validateRolInquilino, crea
 app.put(endpointReservationsByRes, validateAuthorization, validateRolCasero, modifyReservation); //ok
 app.delete(endpointReservations, validateAuthorization, validateRolAdmin, deleteReservation); //ok
 //RESERVAS INQUILINO
-app.get(endpointReservationsInquilino,validateAuthorization,validateRolInquilino,getInquilinoReservations)
+app.get(endpointReservationsInquilino,validateAuthorization,getInquilinoReservations)
 
 
 
