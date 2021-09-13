@@ -7,11 +7,12 @@ const { errorInvalidField } = require('../customErrors/errorInvalidField')
 const { errorCouldNotUpdate } = require('../customErrors/errorCouldNotUpdate')
 const { getItems, findItems, getItemsMultiParams, save, updateItem, deleteItem, getItemsMultiTable, getItemsMultiJoin} = require('../infrastructure/generalRepository')
 const { reviewCreateValidate, reviewUpdateValidate } = require('../validators/checkReview')
-const { updatePuntuation } = require('../infrastructure/reviewRepository')
+const { updatePuntuation, getAllInformation } = require('../infrastructure/reviewRepository')
 const { validateUuid } = require('../validators/checkGeneral')
 const { v4 } = require('uuid')
 const { revDirectory } = require('../infrastructure/utils/multerUploads')
-
+const {getConnection} = require('../infrastructure/bd/db')
+const connection = getConnection()
 
 /**
  * SELF INVOLVED IN RESERVATION
@@ -326,6 +327,20 @@ const modifyReview = async(req, res) =>{
     }
 }
 
+ const getReviewAllInfoByUserUIID =async (request, response)=>{
+    try{
+        const consulta =await getAllInformation(request.query)
+        console.log(consulta)
+        response.status(200).send({info: "Datos localizados",data: consulta})
+    }catch(error){
+        response.status(400).send("Error en conexión bd")
+    }
+ }
+
+
+
+
+
 /**
  * #REGISTRED [RESERVATION-RELATED] /ADMIN
  * DELETES an existing tuple identified by ':resena_uuid'
@@ -447,5 +462,5 @@ const getReviewAvg = async(request,response)=>{
 }
 
 module.exports = {
-    getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg
+    getReviewByRev, getAllReviews, getSelfReviews, createNewReview, modifyReview, deleteReview, getReviewAvg, getReviewAllInfoByUserUIID
 }

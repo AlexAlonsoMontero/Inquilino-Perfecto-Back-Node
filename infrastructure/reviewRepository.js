@@ -22,6 +22,20 @@ const updatePuntuation = async (uuidRes, uuid, tName) => {
     }
 }
 
+const getAllInformation = async(param)=>{
+        const sentence =`SELECT * FROM reservas LEFT JOIN resenas`+
+                        ` ON resenas.inmueble_uuid = reservas.inmueble_uuid`+
+                        ` LEFT JOIN inmuebles`+
+                        ` ON inmuebles.inmueble_uuid = resenas.inmueble_uuid`+
+                        ` WHERE reservas.${Object.keys(param)[0]}=?`
+        
+        const consulta = await connection.query(sentence , Object.values(param)[0])
+        return consulta[0]
+}
+
+
+
 module.exports = {
-    updatePuntuation
+    updatePuntuation,
+    getAllInformation
 }

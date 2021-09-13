@@ -55,7 +55,8 @@ const {
     createNewReview,
     modifyReview,
     deleteReview,
-    getReviewAvg
+    getReviewAvg,
+    getReviewAllInfoByUserUIID
 } = require('./controllers/reviewController')
 const {
     storageProp,
@@ -118,6 +119,7 @@ const endpointReservationsInquilino = '/api/reservations/:rol/:usr_inquilino_uui
 const endpointReviews = '/api/reviews';
 const endpointReviewByRev = '/api/reviews-uuid/';
 const endpointReviewAvg = '/api/avg-reviews/:table/:avg_param'
+const endpointReviewUserUUID = '/api/reviews/user-uuid/'
 
 //ENDPOINTS USER
 const endpointUserProfile = '/api/users/:username';
@@ -200,6 +202,7 @@ app.get(endpointReviews, validateAuthorization, validateRolAdmin, getAllReviews)
 app.get(endpointReviewByRev, detectType, getReviewByRev); //ok
 app.get(endpointSelfReviews, validateAuthorization, detectTypeNoGuests, getSelfReviews); //ok
 app.get(endpointReviewAvg, getReviewAvg) // Se puede obtener la puntuación haciendo check de los datos del inmueble
+app.get(endpointReviewUserUUID,getReviewAllInfoByUserUIID)
 app.post(endpointReviews, validateAuthorization, detectTypeNoGuests,  createNewReview); //ok uploadRevCreation.array('imgsrevs', 12),
 app.put(endpointReviewByRev, validateAuthorization, detectTypeNoGuests,  modifyReview); //ok uploadRevsUpdate.array('imgsrevs', 12),
 app.delete(endpointReviews, validateAuthorization, detectTypeNoGuests, deleteReview); //ok
