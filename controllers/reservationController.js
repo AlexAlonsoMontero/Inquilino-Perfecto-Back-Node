@@ -24,9 +24,9 @@ const createNewReservation = async(req, res) =>{
     const tName = 'reservas';
     const tAnuncios = 'anuncios';
     try{
-        console.log(req.body)
         req.body.tipo_pago_reserva='MENSUAL'
         validatedNewRes =req.body
+        console.log(validatedNewRes)
         if((new Date(req.body.fecha_inicio)> new Date (req.body.fecha_fin)) || new Date (req.body.fecha_inicio)< new Date (req.body.fecha_reserva)){
             throw new errorInvalidField(
                 "fecha",
@@ -53,13 +53,12 @@ const createNewReservation = async(req, res) =>{
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }
-            
-            
             const newRes = await save(validatedNewRes,tName)
+            
             const casero = await findItems({user_uuid:validatedNewRes.usr_casero_uuid}, 'usuarios')
             const mailCasero = await sendStarReservationCasero(casero.username, casero.email)
-            const inquilino  = await findItems({user_uuid:validatedNewRes.usr_inquilino_uuid}, 'usuarios')
-            const mailInquilino = await sendStarReservationInquilino(inquilino.username, inquilino.email)
+            // const inquilino  = await findItems({user_uuid:validatedNewRes.usr_inquilino_uuid}, 'usuarios')
+            // const mailInquilino = await sendStarReservationInquilino(inquilino.username, inquilino.email)
             isStatus = 201
             sendMessage =   {
                 info: `Creada nueva reserva para ${req.auth?.user?.username}`,
