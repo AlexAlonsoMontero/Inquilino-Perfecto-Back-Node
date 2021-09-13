@@ -53,7 +53,6 @@ const createNewReservation = async(req, res) =>{
                 usr_casero_uuid : anuncioRes.usr_casero_uuid,
                 inmueble_uuid :  anuncioRes.inmueble_uuid
             }
-            console.log("********************************************************")
             const newRes = await save(validatedNewRes,tName)
             
             const casero = await findItems({user_uuid:validatedNewRes.usr_casero_uuid}, 'usuarios')
