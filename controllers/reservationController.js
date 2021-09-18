@@ -20,6 +20,7 @@ const connection = getConnection()
  * @param {json} res reservation parameters
  */
 const createNewReservation = async(req, res) =>{
+    console.log(res.body)
     let isStatus, sendMessage;
     const tName = 'reservas';
     const tAnuncios = 'anuncios';

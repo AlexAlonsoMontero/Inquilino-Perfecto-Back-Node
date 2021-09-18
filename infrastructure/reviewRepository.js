@@ -23,13 +23,19 @@ const updatePuntuation = async (uuidRes, uuid, tName) => {
 }
 
 const getAllInformation = async(param)=>{
-        const sentence =`SELECT * FROM reservas LEFT JOIN resenas`+
-                        ` ON resenas.inmueble_uuid = reservas.inmueble_uuid`+
-                        ` LEFT JOIN inmuebles`+
-                        ` ON inmuebles.inmueble_uuid = resenas.inmueble_uuid`+
-                        ` WHERE reservas.${Object.keys(param)[0]}=?`
         
+        const sentence =`SELECT * ,reservas.reserva_uuid as reserv_uuid, `+
+                        `reservas.usr_casero_uuid  as caser_uuid, reservas.usr_inquilino_uuid as inqui_uuid,`+
+                        ` reservas.inmueble_uuid as inmu_uuid ` +
+                        `FROM reservas INNER JOIN inmuebles` +
+                        ` ON reservas.inmueble_uuid = inmuebles.inmueble_uuid`+
+                        ` LEFT JOIN resenas`+
+                        ` ON resenas.inmueble_uuid = reservas.inmueble_uuid `+
+                        ` WHERE reservas.estado_reserva="ACEPTADA" AND reservas.${Object.keys(param)[0]}=?`
+        console.log("entra")
+        console.log(sentence)      
         const consulta = await connection.query(sentence , Object.values(param)[0])
+        console.log(consulta[0])
         return consulta[0]
 }
 

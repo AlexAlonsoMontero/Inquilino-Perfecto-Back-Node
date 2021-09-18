@@ -25,7 +25,7 @@ const connection = getConnection()
     const tName = 'resenas'
     const tRes = 'reservas'
     const tImgs = 'img_resenas';
-    
+    console.log(req.body)
     let tUpdate
     try{
         let validatedNewRev = reviewCreateValidate(req.body)
